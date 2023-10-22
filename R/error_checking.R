@@ -2,7 +2,7 @@
 
 # Check for the dimension for the input. Return empty list if dimensions match, and
 # return the error information for each input. The error list is in the following
-# format: NAME, actual COL_NUM, expected COL_NUM.
+# format: NAME, expected COL_NUM, actual COL_NUM.
 check_dim <- function(rel, reco) {
   # Recovery Data Frame Column Numbers.
   RECO_NUM_COL = 11
@@ -32,11 +32,11 @@ check_dim <- function(rel, reco) {
 
   error =  list()
   if (ncol(rel) != REL_NUM_COL) {
-    error[["rel"]] = c("'release'", ncol(rel), REL_NUM_COL)
+    error[["rel"]] = c("'release'", REL_NUM_COL, ncol(rel))
   }
 
   if (ncol(rec) != RECO_NUM_COL) {
-    error[["rec"]] = c("'recoveries'", ncol(rec), RECO_NUM_COL)
+    error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(rec))
   }
 
   return(error)
@@ -46,40 +46,30 @@ check_dim <- function(rel, reco) {
 # incorrect argument name and expected data type.
 check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                        sex, fisheries, bootstrap, bootstrap_iter) {
-  error = c()
-  df = "data frame"
-  ch = "character"
-  lg = "logical"
-  nm = "numeric"
+  error = list()
+  df = "'dataframe'"
+  ch = "'character'"
+  lg = "'logical'"
+  nm = "'numeric'"
 
-  if (!is.data.frame(rel)) {
-    error = c("'release'", df, typeof(rel))
-
-  } else if (!is.data.frame(reco)) {
-    error = c("'recovery'", df, typeof(reco))
-
-  } else if (!is.data.frame(size_at_age)) {
-    error = c("'size_at_age'", df, typeof(size_at_age))
-
-  } else if (!is.data.frame(rel_mort)) {
-    error = c("'release mortality'", df, typeof(rel_mort))
-
-  } else if (!is.data.frame(nat_mort)) {
-    error = c("'natural mortality'", df, typeof(nat_mort))
-
-  } else if (!is.character(sex)) {
-    error = c("'sex'", ch, typeof(sex))
-
-  } else if (!is.data.frame(fisheries)) {
-    error = c("'fisheries'", df, typeof(fisheries))
-
-  } else if (!is.logical(bootstrap)) {
-    error = c("'bootstrap'", lg, typeof(bootstrap))
-
-  } else if (!is.numeric(bootstrap_iter)) {
-    error = c("'boostrap_iter'", nm, typeof(bootstrap_iter))
-
-  }
+  if (!is.data.frame(rel))
+    error[['rel']] = c("'release'", df, paste0("'", typeof(rel), "'"))
+  if (!is.data.frame(reco))
+    error[['reco']] = c("'recovery'", df, paste0("'", typeof(reco), "'"))
+  if (!is.data.frame(size_at_age))
+    error[['size']] = c("'size_at_age'", df, paste0("'", typeof(size_at_age), "'"))
+  if (!is.data.frame(rel_mort))
+    error[['rel_mort']] = c("'rel_mort'", df, paste0("'", typeof(rel_mort), "'"))
+  if (!is.data.frame(nat_mort))
+    error[['nat_mort']] = c("'natural mortality'", df, paste0("'", typeof(nat_mort), "'"))
+  if (!is.character(sex))
+    error[['sex']] = c("'sex'", ch, paste0("'", typeof(sex), "'"))
+  if (!is.data.frame(fisheries))
+    error[['fisheries']] = c("'fisheries'", df, paste0("'", typeof(fisheries), "'"))
+  if (!is.logical(bootstrap))
+    error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
+  if (!is.numeric(bootstrap_iter))
+    error[['iter']] = c("'bootsrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
 
   return(error)
 }
