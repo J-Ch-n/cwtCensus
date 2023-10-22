@@ -69,7 +69,7 @@ check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   if (!is.logical(bootstrap))
     error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
   if (!is.numeric(bootstrap_iter))
-    error[['iter']] = c("'bootsrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
+    error[['iter']] = c("'bootstrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
 
   return(error)
 }
