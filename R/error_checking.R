@@ -3,7 +3,7 @@
 # Check for the dimension for the input. Return empty list if dimensions match, and
 # return the error information for each input. The error list is in the following
 # format: NAME, expected COL_NUM, actual COL_NUM.
-check_dim <- function(rel, reco) {
+check_dim <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
   # Recovery Data Frame Column Numbers.
   RECO_NUM_COL = 11
 
