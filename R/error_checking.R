@@ -78,11 +78,53 @@ check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
 check_length <- function() {}
 
 # Check the uniqueness of the data frame.
-check_unique <- function() {}
+# Will warn user about duplicates but remove them and not stop running
+check_unique <- function(rel, reco) {
+  dist_rel <- rel %>% distinct(tag_code)
+  dist_reco <- reco %>% distinct(recovery_id)
+  if (length(rel[['tag_code']) != length(dist_rel[['tag_code']])){
+    warning("Release df has duplicate tag codes")
+  }
+  if (length(reco[['recovery_id']) != length(dist_reco[['recovery_id']])){
+    warning("Release df has duplicate tag codes")
+  }
+  rel <- dist_rel
+  reco <- dist_reco
+}
 
 # Check the columns of the data frame.
-check_columns <- function() {}
+check_columns <- function(rel, reco) {
+  REL_COL = c("release_month",
+              "tag_code",
+              "production_expansion_factor",
+              "total_released",
+              "brood_year")
+  RECO_COL = c("run_year",
+               "brood_year",
+               "recovery_id",
+               "fisheries",
+               "tag_code",
+               "length_at_age",
+               "sex",
+               "month",
+               "location",
+               "size_limit",
+               "estimated_num")
+  if (!(setequal(sort(unlist(colnames(rel))), sort(REL_COL)))) {
+    #alternatively we can go through each provided colname and see if it in is REL/RECO COL 
+    #and return list of unmatched input cols
+    warning("column labels do not match required labels")
+  }
+}
 
 # Check for NAN in the data frame.
-check_nan <- function() {}
+check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
+  input = c(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
+  for (i in input) {
+    if (sum(is.na(i)) > 0) {
+      warning(i+"contains NaN values")
+      # I know this syntax is not correct
+    }
+  }
+}
 
