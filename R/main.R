@@ -34,11 +34,19 @@ ch_reco <- function(rel, reco, size_at_age = rec, rel_mort = rec, nat_mort = rec
   typ_err = check_type(rel, reco, size_at_age, rel_mort, nat_mort, sex, fisheries, bootstrap, iter)
   if (length(typ_err) > 0) error_handler(ty_err, "type")
 
-  # Check incorrect number of columns.s
+  # Check incorrect number of columns.
   col_err = check_dim(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
-  if (length(col_err) > 0) error_handler(col_err, "columns(s)")
+  if (length(col_err) > 0) error_handler(col_err, "column(s)")
 
-  # Check uniqueness of rel and reco
+  # Check incorrec† column names of REL and RECO.
+  nam_err = check_columns(rel, reco)
+  if (length(nam_err) > 0) error_handler(nam_err, "columns")
+
+  # Check uniqueness of REL and RECO
+  u_col = check_unique(rel, reco)
+  rel = u_col[[1]]
+  reco = u_col[[2]]
+
 
   # Check for missing values in all inputs
 }
