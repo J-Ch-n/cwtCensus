@@ -57,9 +57,6 @@ check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   return(error)
 }
 
-# Check for the length of the input.
-check_length <- function() {}
-
 # Check the uniqueness of the data frame.
 # Will warn user about duplicates but remove them and not stop running
 check_unique <- function(rel, reco) {
@@ -109,12 +106,19 @@ check_columns <- function(rel, reco) {
 # Check for NAN in the data frame.
 check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
   input = c(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
-  for (i in input) {
-    if (sum(is.na(i)) > 0) {
-      warning(i+"contains NaN values")
-      # I know this syntax is not correct
-    }
+  names(input) = c("release",
+                   "recovery",
+                   "size_at_age",
+                   "rel_mort",
+                   "nat_mort",
+                   "fisheries")
+  nan_helper <- function(input) {
+   if (sum(is.na(input)) > 0) {
+     warning(paste0(names(input), "contains NaN values"))
+   }
   }
+
+  lapply(input, nan_helper)
 }
 
 # Return a list of expected input columns for REL and RECO. The list contains two
@@ -122,6 +126,7 @@ check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
 # the second contains the expected column names for RECO.
 exp_col <- function() {
   REL_COL = c("release_month",
+              "birth_month",
               "tag_code",
               "production_expansion_factor",
               "total_released",
@@ -129,14 +134,15 @@ exp_col <- function() {
   RECO_COL = c("run_year",
                "brood_year",
                "recovery_id",
-               "fisheries",
+               "fishery",
                "tag_code",
-               "length_at_age",
+               "length",
                "sex",
                "month",
                "location",
                "size_limit",
-               "estimated_num")
+               "est_num",
+               "length")
   return(list(REL_COL, RECO_COL))
 }
 
@@ -156,10 +162,10 @@ check_dim <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
   if (ncol(rel) != REL_NUM_COL) {
     error[["rel"]] = c("'release'", REL_NUM_COL, ncol(rel))
   }
-
   if (ncol(rec) != RECO_NUM_COL) {
     error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(rec))
   }
+
 
   return(error)
 }
@@ -177,30 +183,18 @@ check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   lg = "'logical'"
   nm = "'numeric'"
 
-  if (!is.data.frame(rel))
-    error[['rel']] = c("'release'", df, paste0("'", typeof(rel), "'"))
-  if (!is.data.frame(reco))
-    error[['reco']] = c("'recovery'", df, paste0("'", typeof(reco), "'"))
-  if (!is.data.frame(size_at_age))
-    error[['size']] = c("'size_at_age'", df, paste0("'", typeof(size_at_age), "'"))
-  if (!is.data.frame(rel_mort))
-    error[['rel_mort']] = c("'rel_mort'", df, paste0("'", typeof(rel_mort), "'"))
-  if (!is.data.frame(nat_mort))
-    error[['nat_mort']] = c("'natural mortality'", df, paste0("'", typeof(nat_mort), "'"))
-  if (!is.character(sex))
-    error[['sex']] = c("'sex'", ch, paste0("'", typeof(sex), "'"))
-  if (!is.data.frame(fisheries))
-    error[['fisheries']] = c("'fisheries'", df, paste0("'", typeof(fisheries), "'"))
-  if (!is.logical(bootstrap))
-    error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
-  if (!is.numeric(bootstrap_iter))
-    error[['iter']] = c("'bootstrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
+  if (!is.data.frame(rel)) error[['rel']] = c("'release'", df, paste0("'", typeof(rel), "'"))
+  if (!is.data.frame(reco)) error[['reco']] = c("'recovery'", df, paste0("'", typeof(reco), "'"))
+  if (!is.data.frame(size_at_age)) error[['size']] = c("'size_at_age'", df, paste0("'", typeof(size_at_age), "'"))
+  if (!is.data.frame(rel_mort)) error[['rel_mort']] = c("'rel_mort'", df, paste0("'", typeof(rel_mort), "'"))
+  if (!is.data.frame(nat_mort)) error[['nat_mort']] = c("'natural mortality'", df, paste0("'", typeof(nat_mort), "'"))
+  if (!is.character(sex)) error[['sex']] = c("'sex'", ch, paste0("'", typeof(sex), "'"))
+  if (!is.data.frame(fisheries)) error[['fisheries']] = c("'fisheries'", df, paste0("'", typeof(fisheries), "'"))
+  if (!is.logical(bootstrap)) error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
+  if (!is.numeric(bootstrap_iter)) error[['iter']] = c("'bootstrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
 
   return(error)
 }
-
-# Check for the length of the input.
-check_length <- function() {}
 
 # Check the uniqueness of the data frame.
 # Will warn user about duplicates but remove them and not stop running
@@ -253,13 +247,19 @@ check_columns <- function(rel, reco) {
 
 # Check for NAN in the data frame.
 check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
-  input = c(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
-  for (i in input) {
-    if (sum(is.na(i)) > 0) {
-      warning(i+"contains NaN values")
+  input = list(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
+  names(input) <- c('release', 'recovery', 'size_at_age',
+                       'rel_mort', 'nat_mort', 'fisheries')
+  print(names(input))
+  nan_helper <- function(input) {
+    print(input)
+    if (sum(is.na(input)) > 0) {
+      warning(paste0(names(input), " contains NaN values"))
       # I know this syntax is not correct
     }
   }
+
+  lapply(input, nan_helper)
 }
 
 # Return a list of expected input columns for REL and RECO. The list contains two
@@ -267,21 +267,43 @@ check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
 # the second contains the expected column names for RECO.
 exp_col <- function() {
   REL_COL = c("release_month",
+              "birth_month",
               "tag_code",
-              "production_expansion_factor",
+              "prod_exp",
               "total_released",
               "brood_year")
   RECO_COL = c("run_year",
-               "brood_year",
-               "recovery_id",
-               "fisheries",
-               "tag_code",
-               "length_at_age",
-               "sex",
-               "month",
-               "location",
-               "size_limit",
-               "estimated_num")
-  return(list(REL_COL, RECO_COL))
+              "brood_year",
+              "recovery_id",
+              "fishery",
+              "tag_code",
+              "length",
+              "sex",
+              "month",
+              "location",
+              "size_limit",
+              "est_num",
+              "length")
+
+  SIZE_AT_AGE_COL = c(
+              "size",
+              "age",
+              "month")
+
+  RELEASE_MORT_COL = c("region",
+                       "mortality")
+
+  FISHERIES_COL = c("name_fishery",
+                    "index_fishery")
+
+  NAT_MORTALITY = c("type_fishery",
+                    "mortality")
+
+  return(list(REL_COL,
+              RECO_COL,
+              SIZE_AT_AGE_COL,
+              RELEASE_MORT_COL,
+              FISHERIES_COL,
+              NAT_MORTALITY))
 }
 

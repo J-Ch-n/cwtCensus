@@ -5,8 +5,10 @@
 #' @return list of cohort reconstructions with or without bootstrapping.
 #' @export
 #' @examples
-ch_reco <- function(rel, reco, size_at_age = rec, rel_mort = rec, nat_mort = rec,
-                    sex = "both", fisheries = rec, bootstrap = TRUE, iter = 1000) {
+ch_reco <- function(rel, reco, size_at_age = release, rel_mort = release, nat_mort = release,
+                    sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000) {
+  # Check for missing values in all inputs
+  check_nan(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
 
   # Handles list of errors in ERR of check type TYPE. Aggregate error messages and
   # stops with the composite error message at the end.
@@ -48,7 +50,6 @@ ch_reco <- function(rel, reco, size_at_age = rec, rel_mort = rec, nat_mort = rec
   reco = u_col[[2]]
 
 
-  # Check for missing values in all inputs
 }
 
 
