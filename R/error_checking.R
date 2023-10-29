@@ -15,8 +15,8 @@ check_dim <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
     error[["rel"]] = c("'release'", REL_NUM_COL, ncol(rel))
   }
 
-  if (ncol(rec) != RECO_NUM_COL) {
-    error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(rec))
+  if (ncol(reco) != RECO_NUM_COL) {
+    error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(reco))
   }
 
   return(error)
@@ -162,8 +162,8 @@ check_dim <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
   if (ncol(rel) != REL_NUM_COL) {
     error[["rel"]] = c("'release'", REL_NUM_COL, ncol(rel))
   }
-  if (ncol(rec) != RECO_NUM_COL) {
-    error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(rec))
+  if (ncol(reco) != RECO_NUM_COL) {
+    error[["rec"]] = c("'recoveries'", RECO_NUM_COL, ncol(reco))
   }
 
 
