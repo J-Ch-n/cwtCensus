@@ -247,19 +247,15 @@ check_columns <- function(rel, reco) {
 
 # Check for NAN in the data frame.
 check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
-  input = list(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
+  input = c(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
   names(input) <- c('release', 'recovery', 'size_at_age',
                        'rel_mort', 'nat_mort', 'fisheries')
-  print(names(input))
-  nan_helper <- function(input) {
-    print(input)
-    if (sum(is.na(input)) > 0) {
-      warning(paste0(names(input), " contains NaN values"))
-      # I know this syntax is not correct
+  for (i in names(input)) {
+    if (sum(is.na(input[i])) > 0) {
+      warning(paste0('`',i ,'`', ' contains NaN values'))
     }
   }
 
-  lapply(input, nan_helper)
 }
 
 # Return a list of expected input columns for REL and RECO. The list contains two
