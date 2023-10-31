@@ -3,24 +3,6 @@
 ######################################################
 library(tidyverse)
 library(lubridate)
-# REL_COL = c("release_month",
-#             "birth_month",
-#             "tag_code",
-#             "prod_exp",
-#             "total_released",
-#             "brood_year")
-# RECO_COL = c("run_year",
-#               "brood_year",
-#               "recovery_id",
-#               "fishery",
-#               "tag_code",
-#               "length",
-#               "sex",
-#               "month",
-#               "location",
-#               "size_limit",
-#               "est_num",
-#               "length")
 
 release = read.csv("./temp/releases.csv")
 recovery = read.csv("./temp/recoveries.csv")
@@ -55,7 +37,9 @@ release <- release %>%
          brood_year,
          tag_code,
          prod_exp,
-         total_release)
+         total_release) %>%
+  # Assume to be March.
+  mutate(birth_month = 3)
 
 # Create a sample RECO data frame for the package
 recovery <- recovery %>%
@@ -99,8 +83,7 @@ recovery <- recovery %>%
                         location == 'SF' ~ 24,
                         location == 'MO' ~ 20),
          est_num = estimated_number) %>%
-  select(c("run_year",
-          "brood_year",
+  select("run_year",
           "recovery_id",
           "fishery",
           "tag_code",
@@ -109,8 +92,8 @@ recovery <- recovery %>%
           "month",
           "location",
           "size_limit",
-          "est_num",
-           "length"))
+          "est_num")
+
 
 
 write.csv("release", "./temp/sample_release.csv", row.names = FALSE)
