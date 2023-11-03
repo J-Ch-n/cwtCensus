@@ -1,7 +1,7 @@
-Package: Cohort Reco
+Package: CohortReco
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
-Authors@R: 
+Authors: 
     c(person("Jiashu", "Chen", , "jiashu.chen@berkeley.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
       person("Erin", "Redding" ))

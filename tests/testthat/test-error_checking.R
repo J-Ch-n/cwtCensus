@@ -62,17 +62,45 @@ test_that("check correct number of col", {
   expect_no_error(ch_reco(rel = release,
                           reco = recovery))
   expect_no_warning(ch_reco(rel = release,
-                            reco = recovery))
+                          reco = recovery))
 })
-#
-# test_that("check unique", {
-#   expect_warning(2 * 2, 4)
-#   expect_no_warning()
-# })
-#
-# test_that("check NaN", {
-#   expect_warning(ch_reco(c(NA),c(NA)))
-#   expect_no_warning(release)
-# })
+
+
+test_that("check unique simple", {
+  # Create duplicate rows in release and recovery data frames.
+  rel_dup = rbind(release, release)
+  rec_dup = rbind(recovery, recovery)
+
+  # Use withCallingHandlers to capture warnings
+  withCallingHandlers({
+    ch_reco(rel = rel_dup, reco = rec_dup)
+  }, warning = function(w) {
+    # Expect a warning message about duplicates
+    expect_match(conditionMessage(w), "Release Error in check_unique, expected unique tag_code but got duplicate tag_code.")
+    expect_match(conditionMessage(w), "Recovery df has duplicates in column: recovery_id, dropping duplicates.")
+  })
+})
+
+test_that("check NaN", {
+  # Create a release data frame that contains NA values.
+  rel_nan = release
+  rel_nan[1,2] = NA
+
+  # Create a recovery data frame that contains NA values.
+  rec_nan = recovery
+  rec_nan[3,4] = NA
+
+  # Should throw a warning when only release has NA values.
+  expect_warning(ch_reco(rel_nan, recovery))
+
+  # Should throw a warning when only recovery has NA values.
+  expect_warning(ch_reco(release, rec_nan))
+
+  # Should throw a warning when both release and recovery have NA values.
+  expect_warning(ch_reco(rel_nan, rec_nan))
+
+  # Should not throw error.
+  expect_no_error(ch_reco(rel_nan, rec_nan))
+})
 
 

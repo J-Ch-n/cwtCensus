@@ -54,10 +54,10 @@ check_unique <- function(rel, reco) {
   dist_reco <- reco %>% distinct(recovery_id)
 
   msg1 <- "df has duplicates in column: "
-  msg2 <- "\n Dropping duplicates."
+  msg2 <- ", dropping duplicates."
 
   if (length(rel[['tag_code']]) != length(dist_rel[['tag_code']])){
-    warning(past0("Release ", msg1, "tag_code", msg2))
+    warning(paste0("Release ", msg1, "tag_code", msg2))
   }
   if (length(reco[['recovery_id']]) != length(dist_reco[['recovery_id']])){
     warning(paste0("Recovery ", msg1, "recovery_id", msg2))

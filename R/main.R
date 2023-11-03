@@ -7,7 +7,6 @@
 #' @examples
 ch_reco <- function(rel, reco, size_at_age = release, rel_mort = release, nat_mort = release,
                     sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000) {
-
 # Handles list of errors in ERR of check type TYPE. Aggregate error messages and
 # stops with the composite error message at the end.
 error_handler <- function(err, type) {
