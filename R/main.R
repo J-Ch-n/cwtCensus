@@ -43,8 +43,8 @@ if (length(nam_err) > 0) error_handler(nam_err, "columns")
 
 # Check uniqueness of REL and RECO
 u_col = check_unique(rel, reco)
-rel = u_col[[1]]
-reco = u_col[[2]]
+rel['tag_code'] = u_col[[1]]
+reco['recovery_id'] = u_col[[2]]
 
 # Check for missing values in all inputs
 check_nan(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)

@@ -52,15 +52,20 @@ check_type <- function(rel, reco, size_at_age, rel_mort, nat_mort,
 check_unique <- function(rel, reco) {
   dist_rel <- rel %>% distinct(tag_code)
   dist_reco <- reco %>% distinct(recovery_id)
+  w_msg <- ""
 
   msg1 <- "df has duplicates in column: "
-  msg2 <- ", dropping duplicates."
+  msg2 <- ", dropping duplicates. \n"
 
   if (length(rel[['tag_code']]) != length(dist_rel[['tag_code']])){
-    warning(paste0("Release ", msg1, "tag_code", msg2))
+    w_msg = paste0(w_msg, "Release ", msg1, "tag_code", msg2)
   }
   if (length(reco[['recovery_id']]) != length(dist_reco[['recovery_id']])){
-    warning(paste0("Recovery ", msg1, "recovery_id", msg2))
+    w_msg = paste0(w_msg, "Recovery ", msg1, "recovery_id", msg2)
+  }
+
+  if (nchar(w_msg) > 1) {
+    warning(w_msg)
   }
 
   # pass by value.
@@ -98,13 +103,19 @@ check_columns <- function(rel, reco) {
 
 # Check for NAN in the data frame.
 check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
-  input = c(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
+  input = list(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
   names(input) <- c('release', 'recovery', 'size_at_age',
                        'rel_mort', 'nat_mort', 'fisheries')
+
+  w_msg = ""
   for (i in names(input)) {
-    if (sum(is.na(input[i])) > 0) {
-      warning(paste0('`',i ,'`', ' contains NaN values'))
+    if (sum(is.na(input[[i]])) > 0) {
+     w_msg =paste0(w_msg, '`',i ,'`', ' contains NaN values')
     }
+  }
+
+  if (nchar(w_msg) > 1) {
+    warning(w_msg)
   }
 
 }
