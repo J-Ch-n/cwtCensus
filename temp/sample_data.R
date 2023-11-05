@@ -4,9 +4,10 @@
 library(tidyverse)
 library(lubridate)
 
-release = read.csv("./temp/releases.csv")
-recovery = read.csv("./temp/recoveries.csv")
-site_code = read.csv("./temp/sitearea.modified.csv")
+release = read.csv("./temp/data_files/releases.csv")
+recovery = read.csv("./temp/data_files/recoveries.csv")
+site_code = read.csv("./temp/data_files/sitearea.modified.csv")
+size_limit = read.csv("./temp/data_files/size_limits.csv")
 
 # Create a sample TAG_CODE data frame
 
@@ -77,12 +78,15 @@ recovery <- left_join(recovery, site_code, by = "sampling_site")
 ##############################################
 ### FILL WITH TEMP SIZE_LIMI VALUE FOR NOW ###
 ##############################################
+size_limit <- size_limit %>%
+  mutate(location = Location,
+         month = Month,
+         size_limit = limit) %>%
+  select(-c('Month', 'Location', 'limit'))
 recovery <- recovery %>%
-  mutate(size_limit = case_when(
-                        location %in% c('FB', 'KO', 'KC') ~ 26,
-                        location == 'SF' ~ 24,
-                        location == 'MO' ~ 20),
-         est_num = estimated_number) %>%
+  filter(fishery %in% c(10, 40)) %>%
+  mutate(est_num = estimated_number) %>%
+  left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
           "recovery_id",
           "fishery",
@@ -96,5 +100,5 @@ recovery <- recovery %>%
 
 
 
-write.csv("release", "./temp/sample_release.csv", row.names = FALSE)
-write.csv("recovery", "./temp/sample_recovery.csv", row.names = FALSE)
+write.csv("release", "./temp/data_files/sample_release.csv", row.names = FALSE)
+write.csv("recovery", "./temp/data_files/sample_recovery.csv", row.names = FALSE)

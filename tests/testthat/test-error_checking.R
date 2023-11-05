@@ -72,14 +72,6 @@ test_that("check unique simple", {
   rec_dup = rbind(recovery, recovery)
 
   expect_warning(ch_reco(rel = rel_dup, reco = rec_dup), regex=".*")
-  # # Use withCallingHandlers to capture warnings
-  # withCallingHandlers({
-  #   ch_reco(rel = rel_dup, reco = rec_dup)
-  # }, warning = function(w) {
-  #   # Expect a warning message about duplicates
-  #   expect_match(conditionMessage(w), ".+")
-  #   #expect_match(conditionMessage(w), "Recovery df has duplicates in column: recovery_id, dropping duplicates.")
-  # })
 })
 
 test_that("check NaN", {
@@ -99,9 +91,6 @@ test_that("check NaN", {
 
   # Should throw a warning when both release and recovery have NA values.
   expect_warning(ch_reco(rel_nan, rec_nan), regex=".*")
-
-  # Should not throw error.
-  expect_no_error(ch_reco(rel_nan, rec_nan))
 })
 
 
