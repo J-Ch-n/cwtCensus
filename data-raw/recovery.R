@@ -1,16 +1,14 @@
-######################################################
-#### REMEMBER TO REMOVE LIBRARIES FROM ENVIRONMENT ###
+
 ######################################################
 library(tidyverse)
 library(lubridate)
 
-release = read.csv("./temp/data_files/releases.csv")
-recovery = read.csv("./temp/data_files/recoveries.csv")
-site_code = read.csv("./temp/data_files/sitearea.modified.csv")
-size_limit = read.csv("./temp/data_files/size_limits.csv")
+recovery = read.csv("./data-raw/raw_recoveries.csv")
+site_code = read.csv("./data-raw/raw_sitearea.modified.csv")
+size_limit = read.csv("./data-raw/raw_size_limits.csv")
 
+release = read.csv("./data-raw/raw_releases.csv")
 # Create a sample TAG_CODE data frame
-
 release$cwt_1st_mark_count[is.na(release$cwt_1st_mark_count)] <- 0
 release$cwt_2nd_mark_count[is.na(release$cwt_2nd_mark_count)] <- 0
 release$non_cwt_1st_mark_count[is.na(release$non_cwt_1st_mark_count)] <- 0
@@ -22,9 +20,9 @@ release$non_cwt_2nd_mark_count[is.na(release$non_cwt_2nd_mark_count)] <- 0
 #Fish with no CWT and Ad Clip: non_cwt_1st_mark_count
 #Fish with no CWT and No Clip: non_cwt_2nd_mark_count
 release$Total_Released <- (release$cwt_1st_mark_count
-                              + release$cwt_2nd_mark_count
-                              + release$non_cwt_1st_mark_count
-                              + release$non_cwt_2nd_mark_count)
+                           + release$cwt_2nd_mark_count
+                           + release$non_cwt_1st_mark_count
+                           + release$non_cwt_2nd_mark_count)
 
 # Add a column for the production expansion factor.
 release$prod_exp <- release$cwt_1st_mark_count / release$Total_Released
@@ -88,17 +86,15 @@ recovery <- recovery %>%
   mutate(est_num = estimated_number) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
-          "recovery_id",
-          "fishery",
-          "tag_code",
-          "length",
-          "sex",
-          "month",
-          "location",
-          "size_limit",
-          "est_num")
+         "recovery_id",
+         "fishery",
+         "tag_code",
+         "length",
+         "sex",
+         "month",
+         "location",
+         "size_limit",
+         "est_num")
 
-
-
-write.csv("release", "./temp/data_files/sample_release.csv", row.names = FALSE)
-write.csv("recovery", "./temp/data_files/sample_recovery.csv", row.names = FALSE)
+write.csv("recovery", "./data-raw/recovery.csv", row.names = FALSE)
+usethis::use_data(recovery, overwrite = TRUE)
