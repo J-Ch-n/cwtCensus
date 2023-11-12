@@ -2,15 +2,17 @@
 
 data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                       sex, fisheries, bootstrap, iter) {
+
   # Cohort reconstruction list.
   Cohot_List <- list();
 
   # Shared recovery data
-  Recovery <- reco
+  Recovery <- lazy_dt(reco)
   # Shared release data
-  Release <- rel
+  Release <- lazy_dt(rel)
+
   # Combined data that includes recovery and release, adding necessary columns.
-  Comb_dat <- left_join(release, recovery, by = 'tag_code') %>%
+  Comb_dat <- left_join(Release, Recovery, by = 'tag_code') %>%
     mutate(age = run_year - brood_year)
 
   BY <- CWT_Releases %>% #BY for each batch
@@ -45,7 +47,7 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
 
   # Returns a list of bootstrapped estimates if bootstrap is true.
   # Returns a list of one point estimate if bootrstrap is false.
-  escape_to_spawn <- function(recoveries, bootstrap, iter) {
+  escape_to_spawn <- function(Recovery, bootstrap, iter) {
     if (!bootstrap) {
       Cohort_List[[1]] <<- Comb_dat %>%
         filter(fishery == 54) %>% #from spawning ground surveys

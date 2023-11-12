@@ -2,7 +2,7 @@ Package: CohortReco
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors: 
-    c(person("Jiashu", "Chen", , "jiashu.chen@berkeley.edu", role = c("aut", "cre"),
+    c(person("Jiashu", "Chen", "jiashu.chen@berkeley.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
       person("Erin", "Redding" ))
 Description: What the package does (one paragraph).
@@ -13,7 +13,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     dplyr,
-    tidyr
+    tidyr,
+    dtplyr,
+    data.table
 Depends: 
     R (>= 2.10)
 LazyData: true
