@@ -7,8 +7,15 @@
 #' @examples
 ch_reco <- function(rel, reco, size_at_age = release, rel_mort = release, nat_mort = release,
                     sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000) {
-  check_error(rel, reco, size_at_age, rel_mort, nat_mort,
+  # Throws warning or error if necessary.
+  error_handler(rel, reco, size_at_age, rel_mort, nat_mort,
               sex, fisheries, bootstrap, iter)
+
+  # Prepare necessary data for conhort reconstruction.
+  data_prep(rel, reco, size_at_age, rel_mort, nat_mort,
+            sex, fisheries, bootstrap, iter)
+
+  #
 }
 
 

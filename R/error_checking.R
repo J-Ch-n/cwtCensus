@@ -1,5 +1,5 @@
 ### Error Checking Functions ###
-check_error <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
+error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
                         fisheries, bootstrap, iter) {
   # Check for the dimension for the input. Return empty list if dimensions match, and
   # return the error information for each input. The error list is in the following
