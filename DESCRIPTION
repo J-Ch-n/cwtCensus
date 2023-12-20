@@ -16,9 +16,11 @@ Imports:
     tidyr,
     dtplyr,
     data.table
+    rlang
 Depends: 
     R (>= 2.10),
-    data.table
+    data.table,
+    rlang
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
