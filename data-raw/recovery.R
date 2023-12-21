@@ -82,7 +82,7 @@ size_limit <- size_limit %>%
          size_limit = limit) %>%
   select(-c('Month', 'Location', 'limit'))
 recovery <- recovery %>%
-  filter(fishery %in% c(10, 40)) %>%
+  filter(fishery %in% c(10, 40, 54, 50, 46)) %>%
   mutate(est_num = estimated_number) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",

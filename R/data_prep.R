@@ -25,8 +25,13 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
       month >= birth_month ~ run_year - brood_year,
       TRUE ~ run_year - brood_year - 1
     )) |>
-    group_by(brood_year, month, age, fishery, location) |>
-    summarize(total_indiv = sum(est_num / prod_exp))
+    mutate(maturation_grp = case_when(
+      fishery %in% c(spawn, hatchery, river) ~ 1,
+      TRUE ~ 2
+    )) |>
+    group_by(brood_year, month, age, fishery, location, maturation_grp) |>
+    summarize(total_indiv = sum(est_num / prod_exp)) |>
+    arrange(brood_year, month, age, maturation_grp, fishery)
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
@@ -69,28 +74,59 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                                   age = inm_init_vec,
                                   impact = inm_init_vec,
                                   nat_mort = inm_init_vec)
-  row_idx = 1
-  maturation_temp = 0
-  prev_year = rel_reco_dt[1, ..by_idx]
-  prev_age = rel_reco_dt[1, ..age_idx]
+  row_idx = 1L
+
+  prev_hat_esc = 0
+  prev_sp_esc = 0
+  prev_riv_harv = 0
+
+  prev_year = rel_reco_dt[1, ..by_idx] |> unlist()
+  prev_age = rel_reco_dt[1, ..age_idx] |> unlist()
 
   # Aggregate function for calculating impact, maturation, and natural mortality.
   find_imp_nat_mat <- function(record) {
-    par_env = env_parent(cur_env())
+    par_env = env_parent(current_env())
 
-    prev_year = record[by_idx]
-    prev_age = record[age_idx]
+    cur_year = record[by_idx] |> as.integer()
+    cur_age = record[age_idx] |> as.integer()
 
-    if (record[fshry_idx] %in% c(spawn, river, hatchery)) {
+    cur_fishery = record[fshry_idx] |> as.numeric()
+    print(c(cur_year, prev_year, cur_fishery))
+    if (cur_fishery %in% c(spawn, river, hatchery)) {
       # If fishery is spawning ground, river harvest, or hatchery escapement,
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
-      #
-      par_env(maturation_dt) |>
-        set(i = row_idx, j = "maturation")
 
-    } else if (record[fshry_id] %in% c(ocean_r, ocean_c)) {
+      if (cur_year != prev_year) {
+        par_env$maturation_dt |>
+          set(i = row_idx, j = "maturation", value =
+                par_env$prev_sp_esc +
+                par_env$prev_riv_harv +
+                par_env$prev_hat_esc)
+        row_idx <<- row_idx + 1L
+        prev_sp_esc = prev_riv_harv = prev_hat_esc = 0
+      }
+
+      total_indiv = record[total_idx] |> as.numeric()
+      # Calculate individual
+      if (cur_fishery == spawn) {
+        prev_sp_esc <<- prev_sp_esc + total_indiv
+      } else if (cur_fishery == river) {
+        prev_riv_harv <<- prev_riv_harv + total_indiv
+      } else {
+        prev_hat_esc <<- prev_hat_esc + total_indiv
+      }
+
+    } else if (record[fshry_idx] %in% c(ocean_r, ocean_c)) {
       # If fishery is recreational or commercial ocean harvest, calculate natural
       # mortality and impact.
     }
+
+    prev_year <<- cur_year
+    prev_age <<- cur_age
+    return(NULL)
   }
+
+  apply(rel_reco_dt, 1, find_imp_nat_mat)
+  print(maturation_dt)
+  view(rel_reco_dt)
 }
