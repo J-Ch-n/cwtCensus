@@ -19,7 +19,7 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
     rel_reco_dt |>
       filter(fishery %in% provided_fisheries) |>
       distinct(brood_year, age) |>
-      view()
+      nrow()
   }
 
   ######################
@@ -57,23 +57,22 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   month_max = max(rel_reco_dt$month)
   month_range_cnt = month_max - month_min + 1
 
-  # Find min and max age.
+  # Find min and max age.s
   age_min = min(rel_reco_dt$age)
   age_max = max(rel_reco_dt$age)
   age_range_cnt = age_max - age_min + 1
 
-  # yr_ag_cnt = num_unique_year_age(rel_reco_dt, c(spawn, hatchery, river))
+  yr_ag_cnt = num_unique_year_age(rel_reco_dt, c(spawn, hatchery, river))
   # print(yr_ag_cnt)
 
   ######################
   ### Intermediate 2 ###
   ######################
 
-  # Assume brood years are densely and contiguously distributed.
   # Declare and zero-fill a data table with columns "by", "age", and "maturation"
   # for storing maturation.
 
-  m_init_vec = rep(0, by_range_cnt * age_range_cnt)
+  m_init_vec = rep(0, yr_ag_cnt)
 
   maturation_dt = data.table(by = m_init_vec,
                              age = m_init_vec,
@@ -99,11 +98,11 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
 
   prev_year = rel_reco_dt[1, ..BY_IDX] |> unlist()
   prev_age = rel_reco_dt[1, ..AGE_IDX] |> unlist()
-  view(rel_reco_dt)
-
+  # view(rel_reco_dt)
+s
   # Aggregate function for calculating impact, maturation, and natural mortality.
   find_imp_nat_mat <- function(record) {
-    #print(record)
+    # print(record)
     par_env = env_parent(current_env())
 
     cur_year = record[BY_IDX] |> as.integer()
@@ -115,7 +114,7 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_year && prev_year_valid)
            | (cur_year == prev_year && cur_age != prev_age))) {
-        print(record)
+        # print(record)
         par_env$maturation_dt |>
           set(i = row_idx, j = "maturation", value =
                 par_env$prev_sp_esc +
@@ -169,7 +168,6 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
     set(i = row_idx, j = "by", value = prev_year)
   maturation_dt |>
     set(i = row_idx, j = "age", value = prev_age)
-
-  view(maturation_dt)
-  view(rel_reco_dt)
+  # view(maturation_dt)
+  # view(rel_reco_dt)
 }
