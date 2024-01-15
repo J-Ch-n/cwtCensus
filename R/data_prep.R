@@ -22,6 +22,30 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
       nrow()
   }
 
+  # Find the hook and release mortality rate give LOCATION and MORT_MAP, which describes the
+  # mapping between location and hook and releae mortality rate. MORT_MAP is a hashmap. LOCATION can be
+  # any data type.
+  # If MORT_MAP is NA, use the mapping provided in
+  # "Sacramento River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery Impacts"
+  find_hook_rel_mort <- function(location, mort_map, recreational) {
+    if (is.na(mort_map)) {
+      if (recreational) {
+        return(0.14)
+      } else {
+        return(0.26)
+      }
+    } else {
+      # when constructing the hashmap, use (location, recreational) as key.
+      return(mort_map[[c(location, recreational)]])
+    }
+  }
+
+  # Find the percent harvestable for a specific MONTH and AGE given SIZE_LIMIT and SIZE_AGE_MAP.
+  # Assume population distributes in normal distribution.
+  find_percent_harvest<-function(Month, Age, size_limit, size_age_map){
+    1-pnorm(size_limit, mean = size_age_map$mean[which(SizeAge$age == Age+1 & SizeAge$month == Month)], sd = size_age_map$sd[which(size_age_map$age == Age+1 & size_age_map$month == Month)])
+  }
+
   ######################
   ### Intermediate 1 ###
   ######################
@@ -86,7 +110,10 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                                   age = inm_init_vec,
                                   impact = inm_init_vec,
                                   nat_mort = inm_init_vec)
-  row_idx = 1L
+
+  ### Variables for maturation ###
+
+
 
   prev_hat_esc = 0
   prev_sp_esc = 0
@@ -95,11 +122,19 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   # The value is true if the previous year has data from spawn, hatchery,
   # or river, and false otherwise. The value defaults to false.
   prev_year_valid = F
+  # view(rel_reco_dt)
 
+  ### Variables for impact ###
+  drop_off_mort = 0
+  hook_rel_mort = 0
+  harvest = 0
+
+
+  ### Iterator variables ###
   prev_year = rel_reco_dt[1, ..BY_IDX] |> unlist()
   prev_age = rel_reco_dt[1, ..AGE_IDX] |> unlist()
-  # view(rel_reco_dt)
-s
+  row_idx = 1L
+
   # Aggregate function for calculating impact, maturation, and natural mortality.
   find_imp_nat_mat <- function(record) {
     # print(record)
@@ -149,6 +184,10 @@ s
     } else if (record[FSHRY_IDX] %in% c(ocean_r, ocean_c)) {
       # If fishery is recreational or commercial ocean harvest, calculate natural
       # mortality and impact.
+
+      # Calculate impact
+
+
     }
 
     prev_year <<- cur_year

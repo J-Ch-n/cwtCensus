@@ -16,7 +16,8 @@ Imports:
     tidyr,
     dtplyr,
     data.table,
-    rlang
+    rlang,
+    r2r
 Depends: 
     R (>= 2.10),
     data.table,
