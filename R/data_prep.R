@@ -13,14 +13,23 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   MAT_GRP_IDX = 6
   TOTAL_IDX = 7
 
-  # Find the number of unique year - age pairs for a specific fishery in PROVIDED_FISHERIES.
+  # If MONTH is true, find the number of unique year - age - month tuples for a specific fishery in PROVIDED_FISHERIES.
+  # If MONTH is false, find the number of unique year - age pairs for a specific fishery in PROVIDED_FISHERIES.
   # PROVIDED_FISHERIES is passed in as a vector of fisheries.
-  num_unique_year_age <- function(rel_reco_dt, provided_fisheries) {
+  num_uniq_rows <- function(rel_reco_dt, fisheries, month) {
+    distinct_cols = c("brood_year", "age")
+
+    if (month) {
+      distinct_cols = c(distinct_cols, "month")
+    }
+
     rel_reco_dt |>
-      filter(fishery %in% provided_fisheries) |>
-      distinct(brood_year, age) |>
+      filter(fishery %in% fisheries) |>
+      select(distinct_cols) |>
+      distinct() |>
       nrow()
   }
+
 
   # Find the hook and release mortality rate give LOCATION and MORT_MAP, which describes the
   # mapping between location and hook and releae mortality rate. MORT_MAP is a hashmap. LOCATION can be
@@ -67,26 +76,13 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
     summarize(total_indiv = sum(est_num / prod_exp)) |>
     arrange(brood_year, maturation_grp, age, fishery)
 
+
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
+  # view(rel_reco_dt)
 
-  # Find min and max brood year.
-  by_min = min(rel_reco_dt$brood_year)
-  by_max = max(rel_reco_dt$brood_year)
-  by_range_cnt = by_max - by_min + 1
-
-
-  # Find min and max month.
-  month_min = min(rel_reco_dt$month)
-  month_max = max(rel_reco_dt$month)
-  month_range_cnt = month_max - month_min + 1
-
-  # Find min and max age.s
-  age_min = min(rel_reco_dt$age)
-  age_max = max(rel_reco_dt$age)
-  age_range_cnt = age_max - age_min + 1
-
-  yr_ag_cnt = num_unique_year_age(rel_reco_dt, c(spawn, hatchery, river))
+  yr_ag_cnt = num_uniq_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
+  yr_ag_mth_cnt = num_uniq_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
   # print(yr_ag_cnt)
 
   ######################
@@ -103,7 +99,7 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                              maturation = m_init_vec)
 
   # Declare and zero-fill a data table for storing impact and natural mortality.
-  inm_init_vec = rep(0, by_range_cnt * age_range_cnt * month_range_cnt)
+  inm_init_vec = rep(0, yr_ag_mth_cnt)
 
   impact_nat_mort_dt = data.table(by = inm_init_vec,
                                   month = inm_init_vec,
@@ -112,16 +108,13 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
                                   nat_mort = inm_init_vec)
 
   ### Variables for maturation ###
-
-
-
   prev_hat_esc = 0
   prev_sp_esc = 0
   prev_riv_harv = 0
 
   # The value is true if the previous year has data from spawn, hatchery,
   # or river, and false otherwise. The value defaults to false.
-  prev_year_valid = F
+  prev_year_valid = FALSE
   # view(rel_reco_dt)
 
   ### Variables for impact ###
@@ -207,6 +200,6 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
     set(i = row_idx, j = "by", value = prev_year)
   maturation_dt |>
     set(i = row_idx, j = "age", value = prev_age)
-  # view(maturation_dt)
+  view(maturation_dt)
   # view(rel_reco_dt)
 }
