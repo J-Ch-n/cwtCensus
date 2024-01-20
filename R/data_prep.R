@@ -1,17 +1,26 @@
 ### Data Preparation Function ###
 
-data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
+data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort,
                       sex, spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 10, ocean_c = 40, bootstrap, iter) {
 
-  # Create mappings from column name to column indices.
+  # Create mappings from column name to column indices in rel_col_dt.
   BY_IDX = 1
   MNTH_IDX = 2
   AGE_IDX = 3
   FSHRY_IDX = 4
   LOC_IDX = 5
   MAT_GRP_IDX = 6
-  TOTAL_IDX = 7
+  SIZE_LIM_IDX = 7
+  TOTAL_IDX = 8
+  CATCH_IDX = 9
+
+
+  # Create mappings from column name to column indices in length_at_age.
+  AGE_LAA_IDX = 1
+  MNTH_LAA_IDX = 2
+  MEAN_LAA_IDX = 3
+  SD_LAA_IDX = 4
 
   # If MONTH is true, find the number of unique year - age - month tuples for a specific fishery in PROVIDED_FISHERIES.
   # If MONTH is false, find the number of unique year - age pairs for a specific fishery in PROVIDED_FISHERIES.
@@ -30,11 +39,9 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
       nrow()
   }
 
-
   # Find the hook and release mortality rate give LOCATION and MORT_MAP, which describes the
   # mapping between location and hook and releae mortality rate. MORT_MAP is a hashmap. LOCATION can be
-  # any data type.
-  # If MORT_MAP is NA, use the mapping provided in
+  # any data type. If MORT_MAP is NA, use the mapping provided in
   # "Sacramento River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery Impacts"
   find_hook_rel_mort <- function(location, mort_map, recreational) {
     if (is.na(mort_map)) {
@@ -50,19 +57,59 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   }
 
   # Find the percent harvestable for a specific MONTH and AGE given SIZE_LIMIT and SIZE_AGE_MAP.
-  # Assume population distributes in normal distribution. SIZE_AGE_MAP has c(month, age) as key.
-  # Each key corresponds to a value of c(mean, standard deviation).
-
+  # Assume population distributes in normal distribution.
   percent_harvest <- function(month, age, size_limit, size_age_map) {
     mean_sd = size_age_map[[c(month, age)]]
+    print(c(month, age))
     if (is.null(mean_sd)) {
-      warnings("The specified month, age pair dooes not have any corresponding size at age data.")
+      #####################################
+      #### HOW DO WE HANDLE THIS CASE? ####
+      #####################################
+      warnings("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
+      mean_sd[1] = mean_sd[2] = NA
     }
 
-    1 - pnorm(size_limit, mean = mead_sd[0], sd = mean_sd[1])
+    1 - pnorm(size_limit, mean = mean_sd[1], sd = mean_sd[2])
   }
 
-  find_harvst_percnt
+  ### Create size_age_map ###
+  size_age_map = hashmap()
+
+  # Create a hashmap from length_at_age. The resulting hashmap SIZE_AGE_MAP has c(month, age) as keys.
+  # Each key corresponds to a value of c(mean, standard deviation).
+  create_size_age_map <- function(record) {
+    record = unname(record)
+    key = c(record[AGE_LAA_IDX], record[MNTH_LAA_IDX])
+    value = c(record[MEAN_LAA_IDX], record[SD_LAA_IDX])
+
+    size_age_map[[key]] <<- value
+  }
+
+  apply(length_at_age, 1, create_size_age_map)
+
+  # # Helper function for find_catch to iterate over all rows through apply.
+  # find_catch_helper <- function(month, age, size_limit, fishery, total_indiv) {
+  #   if (fishery %in% c(ocean_r, ocean_c)) {
+  #     return(total_indiv * percent_harvest(month, age, size_limit, par_env$size_at_age))
+  #   } else {
+  #     return(NA)
+  #   }
+  # }
+
+  # Assign value according to fishery group. If the provided fishery is ocean_r or ocean_c,
+  # return the number of catch. Return NA otherwise.
+  find_catch <- function(month, age, size_limit, fishery, total_indiv) {
+    par_env = env_parent(current_env())
+    result = c()
+    for (i in 1:length(month)) {
+        if (fishery[i] %in% c(ocean_r, ocean_c)) {
+          result = c(result, total_indiv[i] * percent_harvest(month[i], age[i], size_limit[i], par_env$size_age_map))
+        } else {
+          result = c(result, NA)
+        }
+    }
+    return(result)
+  }
 
   ######################
   ### Intermediate 1 ###
@@ -72,7 +119,7 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   rel_reco_ldt = reco |>
     left_join(rel, by = 'tag_code') |>
     setDT() |>
-    lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location")) |>
+    lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
     mutate(age = case_when(
       month >= birth_month ~ run_year - brood_year,
       TRUE ~ run_year - brood_year - 1
@@ -81,13 +128,15 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
       fishery %in% c(spawn, hatchery, river) ~ 1,
       TRUE ~ 2
     )) |>
-    group_by(brood_year, month, age, fishery, location, maturation_grp) |>
+    group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit) |>
     summarize(total_indiv = sum(est_num / prod_exp)) |>
+    mutate(catch = find_catch(month, age, size_limit, fishery, total_indiv)) |>
     arrange(brood_year, maturation_grp, age, fishery)
 
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
+  view(rel_reco_dt)
 
   yr_ag_cnt = num_uniq_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_cnt = num_uniq_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
