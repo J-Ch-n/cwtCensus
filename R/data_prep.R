@@ -50,10 +50,19 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   }
 
   # Find the percent harvestable for a specific MONTH and AGE given SIZE_LIMIT and SIZE_AGE_MAP.
-  # Assume population distributes in normal distribution.
-  find_percent_harvest<-function(Month, Age, size_limit, size_age_map){
-    1-pnorm(size_limit, mean = size_age_map$mean[which(SizeAge$age == Age+1 & SizeAge$month == Month)], sd = size_age_map$sd[which(size_age_map$age == Age+1 & size_age_map$month == Month)])
+  # Assume population distributes in normal distribution. SIZE_AGE_MAP has c(month, age) as key.
+  # Each key corresponds to a value of c(mean, standard deviation).
+
+  percent_harvest <- function(month, age, size_limit, size_age_map) {
+    mean_sd = size_age_map[[c(month, age)]]
+    if (is.null(mean_sd)) {
+      warnings("The specified month, age pair dooes not have any corresponding size at age data.")
+    }
+
+    1 - pnorm(size_limit, mean = mead_sd[0], sd = mean_sd[1])
   }
+
+  find_harvst_percnt
 
   ######################
   ### Intermediate 1 ###
@@ -79,11 +88,9 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
-  # view(rel_reco_dt)
 
   yr_ag_cnt = num_uniq_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_cnt = num_uniq_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
-  # print(yr_ag_cnt)
 
   ######################
   ### Intermediate 2 ###
@@ -115,13 +122,11 @@ data_prep <- function(rel, reco, size_at_age, rel_mort, nat_mort,
   # The value is true if the previous year has data from spawn, hatchery,
   # or river, and false otherwise. The value defaults to false.
   prev_year_valid = FALSE
-  # view(rel_reco_dt)
 
   ### Variables for impact ###
   drop_off_mort = 0
   hook_rel_mort = 0
   harvest = 0
-
 
   ### Iterator variables ###
   prev_year = rel_reco_dt[1, ..BY_IDX] |> unlist()
