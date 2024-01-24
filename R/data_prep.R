@@ -65,7 +65,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       #####################################
       #### HOW DO WE HANDLE THIS CASE? ####
       #####################################
-      warnings("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
+      warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
       mean_sd[1] = mean_sd[2] = NA
     }
 
@@ -232,8 +232,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       # If fishery is recreational or commercial ocean harvest, calculate natural
       # mortality and impact.
 
-      # Calculate impact
-
+      # Calculate impact.
 
     }
 
