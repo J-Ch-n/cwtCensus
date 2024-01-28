@@ -56,9 +56,50 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     }
   }
 
+  # Handle the case where c(MONTH, AGE) is not present in SIZE_AGE_DF. Iterate from the current time
+  # backward until we find a valid key. If backward doesn't yield any valid key, iterate from the current time
+  # forward until we find a valid key.
+  missing_size_age_handler <- function(month, age, size_age_df, size_age_map) {
+    min_age_mnth_row = size_age_df |>
+      arrange(month, age) |>
+      head(1) |>
+      unname()
+
+
+    max_age_mnth_row = size_age_df |>
+      arrange(month, age) |>
+      tail(1) |>
+      unname()
+
+    if (age < min_age_mnth[1] | age == min_age_mnth[1] & month < min_age_mnth[2]) {
+      return(min_age_mnth_row[3:4])
+    } else if (age > min_age_mnth[1] | age == min_age_mnth[1] & month > min_age_mnth[2]) {
+      return(max_age_mnth_row[3:4])
+    }
+
+
+    for (age in age : min_mnth_age[1]) {
+      for (_ in 1: 12) {
+        month = ((month - 1) %% 12) + 1
+        if (!is.null(size_age_map[[c(month, age)]])) {
+          return(size_age_map[[c(month, age)]])
+        }
+      }
+    }
+
+    for (age in age : max_mnth_age[1] ) {
+      for (_ in 1: 12) {
+        month = ((month + 1) %% 12) + 1
+        if (!is.null(size_age_map[[c(month, age)]])) {
+          return(size_age_map[[c(month, age)]])
+        }
+      }
+    }
+  }
+
   # Find the percent harvestable for a specific MONTH and AGE given SIZE_LIMIT and SIZE_AGE_MAP.
   # Assume population distributes in normal distribution.
-  percent_harvest <- function(month, age, size_limit, size_age_map) {
+  percent_harvest <- function(month, age, size_limit, size_age_map, size_age_df) {
     mean_sd = size_age_map[[c(month, age)]]
     print(c(month, age))
     if (is.null(mean_sd)) {
@@ -66,7 +107,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       #### HOW DO WE HANDLE THIS CASE? ####
       #####################################
       warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
-      mean_sd[1] = mean_sd[2] = NA
+      mean_sd = missing_size_age_handler(month, age, size_age_df)
+
     }
 
     1 - pnorm(size_limit, mean = mean_sd[1], sd = mean_sd[2])
@@ -103,7 +145,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     result = c()
     for (i in 1:length(month)) {
         if (fishery[i] %in% c(ocean_r, ocean_c)) {
-          result = c(result, total_indiv[i] * percent_harvest(month[i], age[i], size_limit[i], par_env$size_age_map))
+          result = c(result, total_indiv[i] * percent_harvest(month[i], age[i], size_limit[i], par_env$size_age_map, par_env$size_at_age))
         } else {
           result = c(result, NA)
         }
