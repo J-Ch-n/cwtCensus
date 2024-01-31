@@ -285,6 +285,9 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
       prev_m_year_valid <<- TRUE
 
+      prev_m_year <<- cur_year
+      prev_m_age <<- cur_age
+
     } else if (record[FSHRY_IDX] %in% c(ocean_r, ocean_c)) {
       # If fishery is recreational or commercial ocean harvest, calculate natural
       # mortality and impact.
@@ -296,7 +299,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       if (prev_i_year_valid && (cur_age != prev_i_age | cur_month != prev_i_month | cur_year != prev_i_year)) {
         print(c(prev_i_year, prev_i_age, prev_i_month))
         #print(row_i_idx)
-        if (record[FSHRY_IDX] == ocean_r) {
+        if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE
           par_env$impact_nat_mort_dt |>
             set(i = row_i_idx, j = "impact", value = par_env$prev_rec_impact)
@@ -331,23 +334,23 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       catch = record[CATCH_IDX] |>  as.numeric()
       # Calculate number of individuals for each type of fishery.
       if (cur_fishery == ocean_r) {
+        is_prev_ocean_r <<- TRUE
         prev_rec_impact <<- prev_rec_impact + total_indiv + catch * d_mort
         + (catch - total_indiv) * hr_r
       } else {
-        prev_riv_harv <<- prev_com_impact + total_indiv + catch * d_mort
+        is_prev_ocean_r <<- FALSE
+        prev_com_impact <<- prev_com_impact + total_indiv + catch * d_mort
         + (catch - total_indiv) * hr_c
       }
 
       prev_i_year_valid <<- TRUE
+
+      prev_i_year <<- cur_year
+      prev_i_age <<- cur_age
+      prev_i_month <<- cur_month
     } #end impact calc
 
-
-
-    prev_m_year <<- cur_year
-    prev_m_age <<- cur_age
-    prev_i_year <<- cur_year
-    prev_i_age <<- cur_age
-    prev_i_month <<- cur_month
+    
     return(NULL)
   }
 
@@ -388,7 +391,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     set(i = row_i_idx, j = "age", value = prev_i_age)
   impact_nat_mort_dt |>
     set(i = row_i_idx, j = "month", value = prev_i_month)
-
 
   # view(rel_reco_dt)
   view(impact_nat_mort_dt)
