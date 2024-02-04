@@ -1,5 +1,4 @@
 ### Data Preparation Function ###
-
 data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort,
                       sex, spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 10, ocean_c = 40, bootstrap, iter, d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
@@ -14,7 +13,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   SIZE_LIM_IDX = 7
   TOTAL_IDX = 8
   CATCH_IDX = 9
-
 
   # Create mappings from column name to column indices in length_at_age.
   AGE_LAA_IDX = 1
@@ -31,10 +29,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     if (month) {
       distinct_cols = c(distinct_cols, "month")
     }
-    view(rel_reco_dt |>
-      filter(fishery %in% fisheries) |>
-      select(distinct_cols) |>
-      distinct())
 
     rel_reco_dt |>
       filter(fishery %in% fisheries) |>
@@ -69,7 +63,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       head(1) |>
       unname()
 
-
     max_age_mnth_row = size_age_df |>
       arrange(month, age) |>
       tail(1) |>
@@ -80,7 +73,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     } else if (age > min_age_mnth_row[1] | age == min_age_mnth_row[1] & month > min_age_mnth_row[2]) {
       return(max_age_mnth_row[3:4])
     }
-
 
     for (age in age : min_age_mnth_row[1]) {
       for (i in 1: 12) {
@@ -105,11 +97,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   # Assume population distributes in normal distribution.
   percent_harvest <- function(month, age, size_limit, size_age_map, size_age_df) {
     mean_sd = size_age_map[[c(age, month)]]
-    print(c(age, month, mean_sd))
     if (is.null(mean_sd)) {
-      #####################################
-      #### HOW DO WE HANDLE THIS CASE? ####
-      #####################################
       warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
       mean_sd = NA #missing_size_age_handler(month, age, size_age_df)
     }
@@ -124,7 +112,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   # Each key corresponds to a value of c(mean, standard deviation).
   create_size_age_map <- function(record) {
     record = unname(record)
-    print(record)
     key = c(record[AGE_LAA_IDX], record[MNTH_LAA_IDX])
     value = c(record[MEAN_LAA_IDX], record[SD_LAA_IDX])
 
@@ -133,28 +120,38 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
   apply(length_at_age, 1, create_size_age_map)
 
-  # # Helper function for find_catch to iterate over all rows through apply.
-  # find_catch_helper <- function(month, age, size_limit, fishery, total_indiv) {
-  #   if (fishery %in% c(ocean_r, ocean_c)) {
-  #     return(total_indiv * percent_harvest(month, age, size_limit, par_env$size_at_age))
-  #   } else {
-  #     return(NA)
+  # Assign value according to fishery group. If the provided fishery is ocean_r or ocean_c,
+  # return the estimated number of catch. Return NA otherwise.
+  # find_catch <- function(month, age, size_limit, fishery, total_indiv) {
+  #   par_env = env_parent(current_env())
+  #   result = c()
+  #   for (i in 1:length(month)) {
+  #       if (fishery[i] %in% c(ocean_r, ocean_c)) {
+  #         result = c(result, total_indiv[i] * percent_harvest(month[i], age[i], size_limit[i], par_env$size_age_map, par_env$size_at_age))
+  #       } else {
+  #         result = c(result, NA)
+  #       }
   #   }
+  #   return(result)
   # }
 
-  # Assign value according to fishery group. If the provided fishery is ocean_r or ocean_c,
-  # return the number of catch. Return NA otherwise.
+  # Helper function for find_catch to iterate over all rows through apply.
+  find_catch_helper <- function(i, month, age, size_limit, fishery, total_indiv) {
+    par_env = env_parent(current_env())
+
+    if (fishery %in% c(ocean_r, ocean_c)) {
+      return(total_indiv * percent_harvest(month, age, size_limit, par_env$size_age_map, size_at_age))
+    } else {
+      return(NA)
+    }
+  }
+
+  # find_catch with sapply.
   find_catch <- function(month, age, size_limit, fishery, total_indiv) {
     par_env = env_parent(current_env())
-    result = c()
-    for (i in 1:length(month)) {
-        if (fishery[i] %in% c(ocean_r, ocean_c)) {
-          result = c(result, total_indiv[i] * percent_harvest(month[i], age[i], size_limit[i], par_env$size_age_map, par_env$size_at_age))
-        } else {
-          result = c(result, NA)
-        }
-    }
-    return(result)
+    catch_result = 1:length(month)
+    
+    return(sapply(X = 1:length(month), FUN = find_catch_helper, m = month, a = age, s = size_limit, f = fishery, t = total_indiv))
   }
 
   ######################
@@ -182,7 +179,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
-  view(rel_reco_dt)
 
   yr_ag_cnt = num_uniq_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_cnt = num_uniq_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
@@ -202,7 +198,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
   # Declare and zero-fill a data table for storing impact and natural mortality.
   inm_init_vec = rep(0, yr_ag_mth_cnt)
-  print(yr_ag_mth_cnt)
 
   impact_nat_mort_dt = data.table(by = inm_init_vec,
                                   month = inm_init_vec,
@@ -211,7 +206,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
                                   nat_mort = inm_init_vec,
                                   fishery = inm_init_vec)
 
-  ### Variables for maturation ###
+  ### Variables for maturation calculation. ###
   prev_hat_esc = 0
   prev_sp_esc = 0
   prev_riv_harv = 0
@@ -221,10 +216,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   prev_m_year_valid = FALSE
   prev_i_year_valid = FALSE
 
-  ### Variables for impact ###
-  # drop_off_mort = 0
-  # hook_rel_mort = 0
-  # harvest = 0
+  ### Variables for impact calculation. ###
   prev_com_impact = 0
   prev_rec_impact = 0
   is_prev_ocean_r = FALSE
@@ -241,7 +233,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
   # Aggregate function for calculating impact, maturation, and natural mortality.
   find_imp_nat_mat <- function(record) {
-    # print(record)
     par_env = env_parent(current_env())
 
     cur_year = record[BY_IDX] |> as.integer()
@@ -253,7 +244,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
            | (cur_year == prev_m_year && cur_age != prev_m_age))) {
-        # print(record)
         par_env$maturation_dt |>
           set(i = row_m_idx, j = "maturation", value =
                 par_env$prev_sp_esc +
@@ -271,7 +261,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       # If fishery is spawning ground, river harvest, or hatchery escapement,
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
       # a new year.
-      # print(c(cur_year, prev_m_year, prev_sp_esc, prev_riv_harv, prev_hat_esc))
       total_indiv = record[TOTAL_IDX] |> as.numeric()
 
       # Calculate number of individuals for each type of fishery.
@@ -297,8 +286,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       ### Impact Calc ###
       ######################
       if (prev_i_year_valid && (cur_age != prev_i_age | cur_month != prev_i_month | cur_year != prev_i_year)) {
-        print(c(prev_i_year, prev_i_age, prev_i_month))
-        #print(row_i_idx)
         if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE
           par_env$impact_nat_mort_dt |>
@@ -329,7 +316,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       # If fishery is spawning ground, river harvest, or hatchery escapement,
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
       # a new year.
-      #
+      
       total_indiv = record[TOTAL_IDX] |> as.numeric()
       catch = record[CATCH_IDX] |>  as.numeric()
       # Calculate number of individuals for each type of fishery.
@@ -350,13 +337,14 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
       prev_i_month <<- cur_month
     } #end impact calc
 
-    
     return(NULL)
   }
 
   apply(rel_reco_dt, 1, find_imp_nat_mat)
+
   # The apply function doesn't have knowledge of the end of the data frame.
   # Thus, the solution is one off. We need to apply the last row of maturation here.
+  
   maturation_dt |>
     set(i = row_m_idx, j = "maturation", value =
           prev_sp_esc +
@@ -366,7 +354,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     set(i = row_m_idx, j = "by", value = prev_m_year)
   maturation_dt |>
     set(i = row_m_idx, j = "age", value = prev_m_age)
-  view(maturation_dt)
 
   # The apply function doesn't have knowledge of the end of the data frame.
   # Thus, the solution is one off. We need to apply the last row of impact here.
@@ -392,6 +379,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   impact_nat_mort_dt |>
     set(i = row_i_idx, j = "month", value = prev_i_month)
 
-  # view(rel_reco_dt)
+  view(rel_reco_dt)
+  view(maturation_dt)
   view(impact_nat_mort_dt)
 }

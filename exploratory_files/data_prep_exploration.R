@@ -31,6 +31,6 @@ rm(rel_2)
 rm(reco_2)
 
 
-
+{data_prep(release, recovery)} |> system.time()
 
 
