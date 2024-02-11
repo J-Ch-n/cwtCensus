@@ -143,7 +143,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
     mutate(
       age = case_when(
         month >= birth_month ~ run_year - brood_year,
-        TRUE ~ run_year - brood_year - 1), 
+        TRUE ~ run_year - brood_year - 1),
       maturation_grp = case_when(
         fishery %in% c(spawn, hatchery, river) ~ 1,
         TRUE ~ 2)) |>
@@ -165,16 +165,16 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
 
   # Declare and zero-fill a data table with columns "by", "age", and "maturation" for storing maturation.
   maturation_init_vec = rep(0, yr_ag_cnt)
-  maturation_dt = data.table(by = maturation_init_vec, 
-                        age = maturation_init_vec, 
+  maturation_dt = data.table(by = maturation_init_vec,
+                        age = maturation_init_vec,
                         maturation = maturation_init_vec)
 
   # Declare and zero-fill a data table for storing impact and natural mortality.
   impact_init_vec = rep(0, yr_ag_mth_fshry_cnt)
-  impact_dt = data.table(by = impact_init_vec, 
-                         month = impact_init_vec, 
-                         age = impact_init_vec, 
-                         fishery = impact_init_vec, 
+  impact_dt = data.table(by = impact_init_vec,
+                         month = impact_init_vec,
+                         age = impact_init_vec,
+                         fishery = impact_init_vec,
                          impact = impact_init_vec)
 
   ### Variables for maturation calculation. ###
@@ -277,7 +277,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
         row_i_idx <<- row_i_idx + 1L
         prev_i_year_valid <<- FALSE
       }
-      
+
       # Calculate number of individuals for each type of fishery.
       if (cur_fishery == ocean_r) {
         is_prev_ocean_r <<- TRUE
@@ -335,4 +335,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   view(rel_reco_dt)
   view(maturation_dt)
   view(impact_dt)
+  return(maturation_dt)
+  return(impact_dt)
 }
