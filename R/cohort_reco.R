@@ -20,6 +20,16 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     ###########################################
     ### Step 1: Setup Cohort Reconsutrction ###
     ###########################################
+    num_by = 10
+    num_age = 4
+    num_month = 12
+    init_vec = rep(0, num_by * num_age * num_month)
+
+    cohort = data.table(by = init_vec,
+                month = init_vec,
+                age = init_vec,
+                ocean_abundance = init_vec)
+
     nat_mort_hp = hashmap()
 
     # Create a hashmap from NAT_MORT. The resulting hashmap NAT_MORT_MAP has AGE as its key.
@@ -37,6 +47,28 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
 
     # Variables for Reconstruction
     cur_year = impact_dt[1, ..IM_BY_IDX] |> unlist()
-    cur_month = impact_dt[1, ..IM_MNTH_IDX] |> unlist()
-    cur_age = impact_dt[1, ..IM_AGE_IDX] |> unlist()
+    cur_month = birth_month % 12 - 1
+    cur_age = nun_age - 1
+
+    prev_mnth_oc_ab = 0
+    prev_age_mnth_oc_ab = 0
+
+    cohort_helper <- function(record) {
+        # Start from min BY. For each BY:
+        # Start from Age 6 (Oldest theoretically non-zero cohort) and if no data for that month, zero fill the cell.
+        # Go backwards in time, from least recent to most recent, month by month.
+        # Start reconstruction at the first existent data point.
+        # Apply the iterative rule.
+        # Save the prev_ocean_abundnace.
+        # Query impact and maturation for the right age/year.
+        # When done with that brood year/month/age pair, write it in the cohort table.
+
+        cur_month <<- (cur_month - 1) % 12
+        if (cur_month == birth_month - 1) {
+            cur_age <<- cur_age - 1
+        }
+    }
+
+    apply(cohort, 1, cohort_helper)
 }
+
