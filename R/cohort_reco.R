@@ -1,6 +1,6 @@
 ### Reconstruction Functions ###
 
-cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) {
+cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age = 6, impact_fisheries = c(40, 10)) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_RATE_IDX = 2
@@ -23,7 +23,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     nat_mort_hp = hashmap()
 
     num_by = 10
-    num_age = 4
+    num_age = max_age - 2
     num_month = 12
     init_vec = rep(0, num_by * num_age * num_month)
 
@@ -47,9 +47,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     ###########################################
 
     # Variables for Reconstruction
-    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist()
+    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
     cur_month = birth_month %% 12 - 1
-    cur_age = num_age - 1
+    cur_age = max_age
     row_idx = 1L
 
     # Stores the previous month and its ocean abundance.
@@ -67,11 +67,55 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
         # Save the prev_ocean_abundnace.
         # Query impact and maturation for the right age/year.
         # When done with that brood year/month/age pair, write it in the cohort table.
+        # browser()
 
 
-        cur_month <<- (cur_month - 1) %% 12
-        if (cur_month == birth_month - 1) {
+        # Local variables to accumulate maturation and impact.
+        cur_maturation = 0
+        cur_impact = 0
+
+        # TODO: The maturation query can be optimized to activate at every age change.
+        cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+
+        cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
+
+        cur_maturation_mat = as.matrix(cur_maturation_rows)
+        cur_impact_mat = as.matrix(cur_impact_rows)
+
+        cur_maturation_mat_size = length(cur_maturation_mat)
+        cur_impact_mat_size = length(cur_impact_mat)
+
+        # TODO: This is too messy. Make the following logic concise.
+        if (cur_maturation_mat_size == 0 && cur_impact_mat_size == 0) {
+          cur_maturation_mat = 0
+          cur_impact_mat = 0
+        } else if (cur_maturation_mat_size == 0) {
+          cur_maturation = 0
+          for (impact in cur_impact_mat[, 1]) {
+            cur_impact = cur_impact + impact
+          }
+        } else if (cur_impact_mat_size == 0) {
+          cur_impact_mat = 0
+          for (maturation in cur_maturation_mat[, 1]) {
+            cur_maturation = cur_maturation + maturation
+          }
+        } else {
+          for (maturation in cur_maturation_mat[, 1]) {
+            cur_maturation = cur_maturation + maturation
+          }
+          for (impact in cur_impact_mat[, 1]) {
+            cur_impact = cur_impact + impact
+          }
+        }
+
+        cur_month <<- cur_month %% 12 + 1
+        if (cur_month == birth_month) {
             cur_age <<- cur_age - 1
+        }
+
+        if (cur_age == 1) {
+          cur_year <<- cur_year + 1
+          cur_age <<- max_age
         }
 
         row_idx <<- row_idx + 1
