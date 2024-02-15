@@ -196,6 +196,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   prev_rec_impact = 0
   prev_fishery = NA
   is_prev_ocean_r = FALSE
+  is_ocean_r = FALSE
   prev_i_year = prev_m_year
   prev_i_age = prev_m_age
   prev_i_month = rel_reco_dt[1, ..MNTH_IDX] |> unlist()

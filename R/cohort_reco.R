@@ -20,6 +20,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     ###########################################
     ### Step 1: Setup Cohort Reconsutrction ###
     ###########################################
+    nat_mort_hp = hashmap()
+
     num_by = 10
     num_age = 4
     num_month = 12
@@ -30,8 +32,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
                 age = init_vec,
                 ocean_abundance = init_vec)
 
-    nat_mort_hp = hashmap()
-
     # Create a hashmap from NAT_MORT. The resulting hashmap NAT_MORT_MAP has AGE as its key.
     # Each key corresponds to the natural mortality rate of that age.
     create_nat_mort_map <- function(record) {
@@ -41,6 +41,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
         nat_mort_hp[[key]] <<- value
     }
 
+    apply(nat_mort, 1, create_nat_mort_map)
     ###########################################
     ### Step 2: Reconstruct Ocean Abundance ###
     ###########################################
@@ -49,9 +50,13 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist()
     cur_month = birth_month %% 12 - 1
     cur_age = num_age - 1
+    row_idx = 1L
 
-    prev_mnth_oc_ab = 0
-    prev_age_mnth_oc_ab = 0
+    # Stores the previous month and its ocean abundance.
+    prev_mnth_N = c(cur_month, 0)
+
+    # Stores the previous age, month, and their ocean abundance.
+    prev_age_mnth_N = c(cur_age, cur_month, 0)
 
     cohort_helper <- function(record) {
         # Start from min BY. For each BY:
@@ -63,10 +68,13 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
         # Query impact and maturation for the right age/year.
         # When done with that brood year/month/age pair, write it in the cohort table.
 
+
         cur_month <<- (cur_month - 1) %% 12
         if (cur_month == birth_month - 1) {
             cur_age <<- cur_age - 1
         }
+
+        row_idx <<- row_idx + 1
     }
 
     recon_result = apply(cohort, 1, cohort_helper)
