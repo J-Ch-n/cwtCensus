@@ -46,9 +46,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
     ###########################################
 
     # Variables for Reconstruction
-    cur_year = impact_dt[1, ..IM_BY_IDX] |> unlist()
-    cur_month = birth_month % 12 - 1
-    cur_age = nun_age - 1
+    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist()
+    cur_month = birth_month %% 12 - 1
+    cur_age = num_age - 1
 
     prev_mnth_oc_ab = 0
     prev_age_mnth_oc_ab = 0
@@ -63,12 +63,12 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month) 
         # Query impact and maturation for the right age/year.
         # When done with that brood year/month/age pair, write it in the cohort table.
 
-        cur_month <<- (cur_month - 1) % 12
+        cur_month <<- (cur_month - 1) %% 12
         if (cur_month == birth_month - 1) {
             cur_age <<- cur_age - 1
         }
     }
 
-    apply(cohort, 1, cohort_helper)
+    recon_result = apply(cohort, 1, cohort_helper)
 }
 

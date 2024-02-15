@@ -2,9 +2,10 @@
 ### Data Preparation Function ###
 #################################
 
-data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort,
+data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
                       sex, spawn = 54, hatchery = 50, river = 46,
-                      ocean_r = 40, ocean_c = 10, bootstrap, iter, d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
+                      ocean_r = 40, ocean_c = 10, bootstrap, iter,
+                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
 
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
@@ -332,11 +333,11 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort, nat_mort
   impact_dt |>
     set(i = row_i_idx, j = "month", value = prev_i_month)
 
-  view(rel_reco_dt)
-  view(maturation_dt)
-  view(impact_dt)
-  return(maturation_dt)
-  return(impact_dt)
+  # view(rel_reco_dt)
+  # view(maturation_dt)
+  # view(impact_dt)
+
+  return(list(maturation = maturation_dt, impact = impact_dt))
 }
 
 
