@@ -36,8 +36,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     # Each key corresponds to the natural mortality rate of that age.
     create_nat_mort_map <- function(record) {
         record = unname(record)
-        key = record[NM_RATE_IDX]
-        value = record[NM_AGE_IDX]
+        key = record[NM_AGE_IDX] |> unname()
+        value = record[NM_RATE_IDX] |> unname()
         nat_mort_hp[[key]] <<- value
     }
 
@@ -45,6 +45,33 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ###########################################
     ### Step 2: Reconstruct Ocean Abundance ###
     ###########################################
+    # Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
+    handle_missing_mort_rate <- function(age) {
+      if (age == 2) {
+        return(0.0561)
+      }
+
+      return(0.0184)
+    }
+
+    # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
+    find_mortality <- function(maturation, month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate) {
+      if (month == birth_month) {
+        (maturation + prev_age_mnth_N) * (nat_mort_rate) / (1 - nat_mort_rate)
+      } else {
+        prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate)
+      }
+    }
+
+    # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
+    find_mortality_rate <- function(age) {
+      mort_rate = nat_mort_hp[[age]]
+      if (is.null(mort_rate)) {
+        mort_rate = handle_missing_mort_rate(age)
+      }
+
+      return(mort_rate)
+    }
 
     # Variables for Reconstruction
     cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
@@ -53,10 +80,10 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     row_idx = 1L
 
     # Stores the previous month and its ocean abundance.
-    prev_mnth_N = c(cur_month, 0)
+    prev_mnth_N = 0
 
     # Stores the previous age, month, and their ocean abundance.
-    prev_age_mnth_N = c(cur_age, cur_month, 0)
+    prev_age_mnth_N = 0
 
     cohort_helper <- function(record) {
         # Start from min BY. For each BY:
@@ -67,16 +94,15 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         # Save the prev_ocean_abundnace.
         # Query impact and maturation for the right age/year.
         # When done with that brood year/month/age pair, write it in the cohort table.
-        # browser()
-
 
         # Local variables to accumulate maturation and impact.
         cur_maturation = 0
         cur_impact = 0
 
+        par_env = env_parent(current_env())
+
         # TODO: The maturation query can be optimized to activate at every age change.
         cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
-
         cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
 
         cur_maturation_mat = as.matrix(cur_maturation_rows)
@@ -108,8 +134,28 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
           }
         }
 
+        nat_mort_rate = find_mortality_rate(cur_age)
+        cur_mortality = find_mortality(cur_maturation, cur_month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate)
+
+        cur_ocean_abundance = cur_impact + cur_mortality
+        if (cur_month == birth_month) {
+          cur_ocean_abundance = cur_ocean_abundance + cur_maturation + prev_age_mnth_N
+        } else {
+          cur_ocean_abundance = cur_ocean_abundance + prev_mnth_N
+        }
+
+        par_env$cohort |>
+          set(i = row_idx, j = "ocean_abundance", value = cur_ocean_abundance)
+        par_env$cohort |>
+          set(i = row_idx, j = "by", value = cur_year)
+        par_env$cohort |>
+          set(i = row_idx, j = "month", value = cur_month)
+        par_env$cohort |>
+          set(i = row_idx, j = "age", value = cur_age)
+
         cur_month <<- cur_month %% 12 + 1
         if (cur_month == birth_month) {
+            prev_age_mnth_N = cur_ocean_abundance
             cur_age <<- cur_age - 1
         }
 
@@ -118,9 +164,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
           cur_age <<- max_age
         }
 
-        row_idx <<- row_idx + 1
+        row_idx <<- row_idx + 1L
+        prev_mnth_N = cur_ocean_abundance
     }
 
     recon_result = apply(cohort, 1, cohort_helper)
+    view(cohort)
 }
 
