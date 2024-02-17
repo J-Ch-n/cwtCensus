@@ -22,14 +22,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ###########################################
     nat_mort_hp = hashmap()
 
-    num_by = 10
+    num_by = 20
     num_age = max_age - 2
     num_month = 12
     init_vec = rep(0, num_by * num_age * num_month)
 
     cohort = data.table(by = init_vec,
-                month = init_vec,
                 age = init_vec,
+                month = init_vec,
                 ocean_abundance = init_vec)
 
     # Create a hashmap from NAT_MORT. The resulting hashmap NAT_MORT_MAP has AGE as its key.
@@ -58,10 +58,10 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
     find_mortality <- function(maturation, month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate) {
       if (month == birth_month) {
-        (maturation + prev_age_mnth_N) * (nat_mort_rate) / (1 - nat_mort_rate)
-      } else {
-        prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate)
+        return((maturation + prev_age_mnth_N) * (nat_mort_rate) / (1 - nat_mort_rate))
       }
+
+      return(prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate))
     }
 
     # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
@@ -76,7 +76,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
     # Variables for Reconstruction
     cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
-    cur_month = birth_month %% 12 - 1
+    cur_month = birth_month
     cur_age = max_age
     row_idx = 1L
 
@@ -101,9 +101,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cur_impact = 0
 
         par_env = env_parent(current_env())
-
+        # if (cur_year == 1999 && cur_month == 7 && cur_age == 3) {
+        #   browser()
+        # }
+        cur_maturation_rows = 0
         # TODO: The maturation query can be optimized to activate at every age change.
-        cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+        if (cur_month %% 12 + 1 == birth_month) {
+          cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+        }
         cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
 
         cur_maturation_mat = as.matrix(cur_maturation_rows)
@@ -154,19 +159,27 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         par_env$cohort |>
           set(i = row_idx, j = "age", value = cur_age)
 
-        cur_month <<- cur_month %% 12 + 1
+        cur_month <<- (cur_month - 1) %% 12
+
         if (cur_month == birth_month) {
-            prev_age_mnth_N = cur_ocean_abundance
+            prev_age_mnth_N <<- cur_ocean_abundance
             cur_age <<- cur_age - 1
         }
 
         if (cur_age == 1) {
-          cur_year <<- cur_year + 1
-          cur_age <<- max_age
+          if (cur_month == birth_month) {
+            cur_year <<- cur_year + 1
+          }
+
+          cur_age <<- max_age - 1
+          prev_mnth_N <<- 0
+          prev_age_mnth_N <<- 0
         }
 
+
+
         row_idx <<- row_idx + 1L
-        prev_mnth_N = cur_ocean_abundance
+        prev_mnth_N <<- cur_ocean_abundance
     }
 
     recon_result = apply(cohort, 1, cohort_helper)
