@@ -5,7 +5,7 @@
 #' @return list of cohort reconstructions with or without bootstrapping.
 #' @export
 #' @examples
-ch_reco <- function(rel, reco, size_at_age = length_at_age, rel_mort = release, nat_mort = release,
+ch_reco <- function(rel, reco, size_at_age = length_at_age, rel_mort = release, nat_mort = nat_mort_default,
                     sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000) {
   # Throws warning or error if necessary.
   # error_handler(rel, reco, size_at_age, rel_mort, nat_mort,

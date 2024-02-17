@@ -45,6 +45,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ###########################################
     ### Step 2: Reconstruct Ocean Abundance ###
     ###########################################
+
     # Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
     handle_missing_mort_rate <- function(age) {
       if (age == 2) {
