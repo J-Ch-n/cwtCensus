@@ -22,6 +22,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ###########################################
     nat_mort_hp = hashmap()
 
+    # TODO: find the number of BY. This should be done during data prep.
     num_by = 20
     num_age = max_age - 2
     num_month = 12
@@ -83,9 +84,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     # Stores the previous month and its ocean abundance.
     prev_mnth_N = 0
 
-    # Stores the previous age, month, and their ocean abundance.
-    prev_age_mnth_N = 0
-
     cohort_helper <- function(record) {
         # Start from min BY. For each BY:
         # Start from Age 6 (Oldest theoretically non-zero cohort) and if no data for that month, zero fill the cell.
@@ -143,11 +141,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         nat_mort_rate = find_mortality_rate(cur_age)
         cur_mortality = find_mortality(cur_maturation, cur_month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate)
 
-        cur_ocean_abundance = cur_impact + cur_mortality
-        if (cur_month == birth_month) {
-          cur_ocean_abundance = cur_ocean_abundance + cur_maturation + prev_age_mnth_N
+        cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
+        if (cur_month == (birth_month - 2) %% 12 + 1) {
+          cur_ocean_abundance = cur_ocean_abundance + cur_maturation
         } else {
-          cur_ocean_abundance = cur_ocean_abundance + prev_mnth_N
+          cur_ocean_abundance = cur_ocean_abundance
         }
 
         par_env$cohort |>
@@ -159,24 +157,19 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         par_env$cohort |>
           set(i = row_idx, j = "age", value = cur_age)
 
-        cur_month <<- (cur_month - 1) %% 12
-
         if (cur_month == birth_month) {
-            prev_age_mnth_N <<- cur_ocean_abundance
-            cur_age <<- cur_age - 1
+          cur_age <<- cur_age - 1
         }
 
         if (cur_age == 1) {
           if (cur_month == birth_month) {
             cur_year <<- cur_year + 1
           }
-
-          cur_age <<- max_age - 1
+          cur_age <<- max_age
           prev_mnth_N <<- 0
-          prev_age_mnth_N <<- 0
+        } else {
+          cur_month <<- (cur_month - 2) %% 12 + 1
         }
-
-
 
         row_idx <<- row_idx + 1L
         prev_mnth_N <<- cur_ocean_abundance
