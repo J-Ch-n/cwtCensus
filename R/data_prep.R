@@ -7,6 +7,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
                       ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
 
+  set.seed(88)
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
   #####################################################################
@@ -113,6 +114,17 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     1 - pnorm(size_limit, mean = mean_sd[1], sd = mean_sd[2])
   }
 
+  find_mean_sd <- function(month, age, size_age_map, size_age_df) {
+    mean_sd = size_age_map[[c(age, month)]]
+
+    if (is.null(mean_sd)) {
+      warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
+      missing_size_age_handler(month, age, size_age_df)
+    }
+
+    return(mean_sd)
+  }
+
   # Helper function for find_catch to iterate over all rows through apply.
   find_catch_helper <- function(i, month, age, size_limit, fishery, total_indiv) {
     if (fishery %in% c(ocean_r, ocean_c)) {
@@ -120,6 +132,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     } else {
       return(NA)
     }
+  }
+
+  find_catch_vectorized <- function(mean, sd, size_limit, total_indiv) {
+    total_indiv / (1 - pnorm(size_limit, mean =  mean, sd = sd))
   }
 
   # Find the number of caught individuals represented by each valid recovered tag code.
@@ -150,7 +166,9 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
         TRUE ~ 2)) |>
     group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit) |>
     summarize(total_indiv = sum(est_num / prod_exp)) |>
-    mutate(catch = find_catch(month, age, size_limit, fishery, total_indiv)) |>
+    mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1]) |>
+    mutate(sd = find_mean_sd(month, age, size_age_map, size_age_df)[2]) |>
+    mutate(catch = find_catch_vectorized(mean, sd, size_limit, total_indiv)) |>
     arrange(brood_year, maturation_grp, age, month, fishery)
 
   # Materialize lazy data table.
