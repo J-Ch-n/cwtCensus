@@ -7,7 +7,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
                       ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
 
-  set.seed(88)
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
   #####################################################################
@@ -102,18 +101,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     }
   }
 
-  # Find the percent harvestable for a specific MONTH and AGE given SIZE_LIMIT and SIZE_AGE_MAP.
-  # Assume population follows a Gaussian distribution with mean and variance provided by SIZE_AGE_MAP.
-  percent_harvest <- function(month, age, size_limit, size_age_map, size_age_df) {
-    mean_sd = size_age_map[[c(age + 1, month)]]
-    if (is.null(mean_sd)) {
-      warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
-      missing_size_age_handler(month, age, size_age_df)
-    }
-
-    1 - pnorm(size_limit, mean = mean_sd[1], sd = mean_sd[2])
-  }
-
   find_mean_sd <- function(month, age, size_age_map, size_age_df) {
     mean_sd = size_age_map[[c(age, month)]]
 
@@ -125,25 +112,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     return(mean_sd)
   }
 
-  # Helper function for find_catch to iterate over all rows through apply.
-  find_catch_helper <- function(i, month, age, size_limit, fishery, total_indiv) {
-    if (fishery %in% c(ocean_r, ocean_c)) {
-      return(total_indiv / percent_harvest(month, age, size_limit, size_age_map, size_at_age))
-    } else {
-      return(NA)
-    }
-  }
-
   find_catch_vectorized <- function(mean, sd, size_limit, total_indiv) {
     total_indiv / (1 - pnorm(size_limit, mean =  mean, sd = sd))
-  }
-
-  # Find the number of caught individuals represented by each valid recovered tag code.
-  find_catch <- function(month, age, size_limit, fishery, total_indiv) {
-    par_env = env_parent(current_env())
-    catch_result = 1:length(month)
-
-    return(sapply(X = 1:length(month), FUN = find_catch_helper, m = month, a = age, s = size_limit, f = fishery, t = total_indiv))
   }
 
   ########################################
