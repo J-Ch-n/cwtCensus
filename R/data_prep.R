@@ -5,7 +5,7 @@
 data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
-                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14) {
+                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, birth_month = 2) {
 
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
@@ -136,10 +136,11 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
         TRUE ~ 2)) |>
     group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit) |>
     summarize(total_indiv = sum(est_num / prod_exp)) |>
-    mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1]) |>
-    mutate(sd = find_mean_sd(month, age, size_age_map, size_age_df)[2]) |>
-    mutate(catch = find_catch_vectorized(mean, sd, size_limit, total_indiv)) |>
-    arrange(brood_year, maturation_grp, age, month, fishery)
+    mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
+           sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
+           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
+           rank_month = (month - birth_month) %% 12) |>
+    arrange(brood_year, maturation_grp, age, rank_month, fishery)
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
