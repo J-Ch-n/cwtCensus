@@ -1,6 +1,7 @@
 ### Reconstruction Functions ###
 
-cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age = 6, impact_fisheries = c(40, 10)) {
+cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age_month_df,
+                               max_age = 6, impact_fisheries = c(40, 10)) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_RATE_IDX = 2
@@ -18,7 +19,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     MA_MA_IDX = 3
 
     ###########################################
-    ### Step 1: Setup Cohort Reconsutrction ###
+    ### Step 1: Setup Cohort Reconstruction ###
     ###########################################
     nat_mort_hp = hashmap()
 
@@ -57,11 +58,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
-    find_mortality <- function(maturation, month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate) {
-      if (month == birth_month) {
-        return((maturation + prev_age_mnth_N) * (nat_mort_rate) / (1 - nat_mort_rate))
-      }
-
+    find_mortality <- function(maturation, prev_mnth_N, nat_mort_rate) {
       return(prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate))
     }
 
@@ -99,9 +96,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cur_impact = 0
 
         par_env = env_parent(current_env())
-        # if (cur_year == 1999 && cur_month == 7 && cur_age == 3) {
-        #   browser()
-        # }
+
         cur_maturation_rows = 0
         # TODO: The maturation query can be optimized to activate at every age change.
         if (cur_month %% 12 + 1 == birth_month) {
@@ -139,7 +134,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         }
 
         nat_mort_rate = find_mortality_rate(cur_age)
-        cur_mortality = find_mortality(cur_maturation, cur_month, prev_age_mnth_N, prev_mnth_N, nat_mort_rate)
+        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
 
         cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
         if (cur_month == (birth_month - 2) %% 12 + 1) {
