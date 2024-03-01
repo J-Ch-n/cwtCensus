@@ -20,7 +20,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   MAT_GRP_IDX = 6
   SIZE_LIM_IDX = 7
   TOTAL_IDX = 8
-  CATCH_IDX = 9
+  CATCH_IDX = 11
 
   # Create mappings from column name to column indices in length_at_age.
   AGE_LAA_IDX = 1
@@ -138,9 +138,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     summarize(total_indiv = sum(est_num / prod_exp)) |>
     mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
            sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
-           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
-           rank_month = (month - birth_month) %% 12) |>
-    arrange(brood_year, maturation_grp, age, rank_month, fishery)
+           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv)) |>
+    mutate(month = (month - birth_month) %% 12) |>
+    arrange(brood_year, maturation_grp, age, month, fishery) |>
+    mutate(month = (month + birth_month) %% 12)
 
   # Materialize lazy data table.
   rel_reco_dt = as.data.table(rel_reco_ldt)
