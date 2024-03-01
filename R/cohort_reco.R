@@ -22,12 +22,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ### Step 1: Setup Cohort Reconstruction ###
     ###########################################
     nat_mort_hp = hashmap()
-
+    view(max_age_month_df)
     # TODO: find the number of BY. This should be done during data prep.
-    num_by = 20
-    num_age = max_age - 2
-    num_month = 12
-    init_vec = rep(0, num_by * num_age * num_month)
+    num_by = nrow(max_age_month_df)
+    num_by_age_month = sum(12 * max_age_month_df$max_age + max_age_month_df$month) - num_by * (11 + birth_month)
+    init_vec = rep(0, num_by_age_month)
 
     cohort = data.table(by = init_vec,
                 age = init_vec,
@@ -73,10 +72,12 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     # Variables for Reconstruction
-    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
-    cur_month = birth_month
-    cur_age = max_age
     row_idx = 1L
+    max_age_month_idx = 1L
+
+    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
+    cur_age = max_age_month_df$max_age[[max_age_month_idx]]
+    cur_month = max_age_month_df$month[[max_age_month_idx]]
 
     # Stores the previous month and its ocean abundance.
     prev_mnth_N = 0
@@ -152,22 +153,27 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         par_env$cohort |>
           set(i = row_idx, j = "age", value = cur_age)
 
+        prev_mnth_N <<- cur_ocean_abundance
+        row_idx <<- row_idx + 1L
+        #browser()
         if (cur_month == birth_month) {
           cur_age <<- cur_age - 1
         }
 
         if (cur_age == 1) {
           if (cur_month == birth_month) {
-            cur_year <<- cur_year + 1
+            if (max_age_month_idx <= num_by) {
+              max_age_month_idx <<- max_age_month_idx + 1
+              cur_year <<- max_age_month_df$brood_year[[max_age_month_idx]]
+            }
           }
-          cur_age <<- max_age
-          prev_mnth_N <<- 0
+          if (max_age_month_idx <= num_by) {
+            cur_age <<- max_age_month_df$max_age[[max_age_month_idx]]
+            prev_mnth_N <<- 0
+          }
         } else {
           cur_month <<- (cur_month - 2) %% 12 + 1
         }
-
-        row_idx <<- row_idx + 1L
-        prev_mnth_N <<- cur_ocean_abundance
     }
 
     recon_result = apply(cohort, 1, cohort_helper)
