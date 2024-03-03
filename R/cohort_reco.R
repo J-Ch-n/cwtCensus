@@ -25,7 +25,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     view(max_age_month_df)
     # TODO: find the number of BY. This should be done during data prep.
     num_by = nrow(max_age_month_df)
-    num_by_age_month = sum(12 * max_age_month_df$max_age + max_age_month_df$month) - num_by * (11 + birth_month)
+    num_by_age_month = sum((max_age_month_df$max_age - 2) * 12 + ((max_age_month_df$month - birth_month) %% 12 + 1))
+
     init_vec = rep(0, num_by_age_month)
 
     cohort = data.table(by = init_vec,
@@ -155,22 +156,22 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         prev_mnth_N <<- cur_ocean_abundance
         row_idx <<- row_idx + 1L
-        #browser()
+
         if (cur_month == birth_month) {
           cur_age <<- cur_age - 1
         }
 
         if (cur_age == 1) {
           if (cur_month == birth_month) {
-            if (max_age_month_idx <= num_by) {
+            if (max_age_month_idx < num_by) {
               max_age_month_idx <<- max_age_month_idx + 1
-              cur_year <<- max_age_month_df$brood_year[[max_age_month_idx]]
             }
+            cur_year <<- max_age_month_df$brood_year[[max_age_month_idx]]
           }
-          if (max_age_month_idx <= num_by) {
-            cur_age <<- max_age_month_df$max_age[[max_age_month_idx]]
-            prev_mnth_N <<- 0
-          }
+
+          cur_age <<- max_age_month_df$max_age[[max_age_month_idx]]
+          cur_month <<- max_age_month_df$month[[max_age_month_idx]]
+          prev_mnth_N <<- 0
         } else {
           cur_month <<- (cur_month - 2) %% 12 + 1
         }
