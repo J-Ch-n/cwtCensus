@@ -325,13 +325,16 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     set(i = row_i_idx, j = "month", value = prev_i_month)
 
   view(rel_reco_dt)
-
   view(maturation_dt)
   view(impact_dt)
 
-  max_age_month_df = rel_reco_dt |>
+  max_age_month_df = impact_dt |>
+    mutate(brood_year = by) |>
     group_by(brood_year) |>
-    summarize(max_age = max(age), month = (max((month - birth_month) %% 12) + birth_month) %% 12)
+    mutate(month = (month - birth_month) %% 12) |>
+    arrange(desc(age), desc(month)) |>
+    summarize(max_age = max(age), month = month[1]) |>
+    mutate(month = (month + birth_month) %% 12)
 
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
 }
