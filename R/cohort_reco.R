@@ -22,11 +22,12 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ### Step 1: Setup Cohort Reconstruction ###
     ###########################################
     nat_mort_hp = hashmap()
-    view(max_age_month_df)
-    # TODO: find the number of BY. This should be done during data prep.
     num_by = nrow(max_age_month_df)
-    num_by_age_month = sum((max_age_month_df$max_age - 2) * 12 + ((max_age_month_df$month - birth_month) %% 12 + 1))
-
+    num_by_age_month = sum(pmax((max_age_month_df$max_age - 2) * 12, 0) +
+                             pmin(max_age_month_df$max_age - 1, 1) * ((max_age_month_df$month - birth_month) %% 12 + 1))
+    if (num_by_age_month <= 0) {
+      stop("Size is less than or equal to zero.")
+    }
     init_vec = rep(0, num_by_age_month)
 
     cohort = data.table(by = init_vec,
