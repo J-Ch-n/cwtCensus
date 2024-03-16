@@ -5,7 +5,7 @@
 data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
-                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, birth_month = 2) {
+                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, birth_month = 2, min_harvest_rate = 0.01) {
 
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
@@ -113,7 +113,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   }
 
   find_catch_vectorized <- function(mean, sd, size_limit, total_indiv) {
-    total_indiv / (1 - pnorm(size_limit, mean =  mean, sd = sd))
+    total_indiv / max(c((1 - pnorm(size_limit, mean =  mean, sd = sd)), min_harvest_rate))
   }
 
   ########################################
