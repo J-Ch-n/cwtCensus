@@ -1,7 +1,7 @@
 ### Reconstruction Functions ###
 
 cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age_month_df,
-                               max_age = 6, impact_fisheries = c(40, 10)) {
+                               max_age = 6, impact_fisheries = c(40, 10), detail) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_RATE_IDX = 2
@@ -30,10 +30,19 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
     init_vec = rep(0, num_by_age_month)
 
-    cohort = data.table(by = init_vec,
-                age = init_vec,
-                month = init_vec,
-                ocean_abundance = init_vec)
+    if (detail) {
+      cohort = data.table(by = init_vec,
+                          age = init_vec,
+                          month = init_vec,
+                          ocean_abundance = init_vec,
+                          natural_mort = init_vec)
+    } else {
+      cohort = data.table(by = init_vec,
+                          age = init_vec,
+                          month = init_vec,
+                          ocean_abundance = init_vec)
+    }
+
 
     # Create a hashmap from NAT_MORT. The resulting hashmap NAT_MORT_MAP has AGE as its key.
     # Each key corresponds to the natural mortality rate of that age.
@@ -51,6 +60,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
     # Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
     handle_missing_mort_rate <- function(age) {
+      warning(paste0("Missing mortality rate for age ", age))
       if (age == 2) {
         return(0.0561)
       }
@@ -154,6 +164,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
           set(i = row_idx, j = "month", value = cur_month)
         par_env$cohort |>
           set(i = row_idx, j = "age", value = cur_age)
+        if (detail) {
+          par_env$cohort |>
+            set(i = row_idx, j = "natural_mort", value = cur_mortality)
+        }
+
 
         prev_mnth_N <<- cur_ocean_abundance
         row_idx <<- row_idx + 1L
