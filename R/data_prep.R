@@ -326,8 +326,9 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
 
   view(rel_reco_dt)
   view(maturation_dt)
-  view(impact_dt)
+  view(impact_dt |> group_by(by, age, month) |> summarize(round(sum(impact), 2)))
 
+  # TODO: need to account for maturation data frame as well.
   max_age_month_df = impact_dt |>
     mutate(brood_year = by) |>
     group_by(brood_year) |>
@@ -335,6 +336,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = month[1]) |>
     mutate(month = (month + birth_month) %% 12)
+  view(max_age_month_df)
 
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
 }

@@ -113,7 +113,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cur_maturation_rows = 0
         # TODO: The maturation query can be optimized to activate at every age change.
         if (cur_month %% 12 + 1 == birth_month) {
-          cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+          # TODO: cur_age + 1 is a temporary and hacky fix. Think this through later.
+          cur_maturation_rows = maturation_dt[by == cur_year & age == (cur_age + 1), ..MA_MA_IDX]
         }
         cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
 
@@ -122,7 +123,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         cur_maturation_mat_size = length(cur_maturation_mat)
         cur_impact_mat_size = length(cur_impact_mat)
-
+        # if ( cur_year == 2002 && cur_month == (birth_month - 2) %% 12 + 1) {
+        #   #browser()
+        # }
         # TODO: This is too messy. Make the following logic concise.
         if (cur_maturation_mat_size == 0 && cur_impact_mat_size == 0) {
           cur_maturation_mat = 0
@@ -151,7 +154,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
         if (cur_month == (birth_month - 2) %% 12 + 1) {
+          print(cur_ocean_abundance)
           cur_ocean_abundance = cur_ocean_abundance + cur_maturation
+          print(c(cur_ocean_abundance, cur_impact, cur_mortality, cur_impact + cur_mortality + prev_mnth_N, cur_maturation))
         } else {
           cur_ocean_abundance = cur_ocean_abundance
         }
@@ -194,6 +199,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     recon_result = apply(cohort, 1, cohort_helper)
-    view(cohort)
+    view(cohort |> mutate(ocean_abundance = round(ocean_abundance, 2),
+                          natural_mort = round(natural_mort, 2)))
 }
 
