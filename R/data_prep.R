@@ -119,7 +119,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
-
   # Create the first intermediate data table with lazy data table.
   # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
   # The rows are sorted such that all fisheries related to maturation precede those related to impact.
