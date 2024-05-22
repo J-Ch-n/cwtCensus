@@ -55,6 +55,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     apply(nat_mort, 1, create_nat_mort_map)
+
     ###########################################
     ### Step 2: Reconstruct Ocean Abundance ###
     ###########################################
@@ -70,8 +71,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
-    find_mortality <- function(maturation, prev_mnth_N, nat_mort_rate) {
-      return(prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate))
+    find_mortality <- function(maturation, abundance, rate) {
+      #return(prev_mnth_N * (nat_mort_rate) / (1 - nat_mort_rate))
+      return(abundance * rate)
     }
 
     # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
@@ -113,7 +115,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         cur_maturation_rows = 0
         # TODO: The maturation query can be optimized to activate at every age change.
-        if (cur_month %% 12 + 1 == birth_month) {
+        if (cur_month %% 12 == (birth_month - 2) %% 12 + 1) {
           # TODO: cur_age + 1 is a temporary and hacky fix. Think this through later.
           cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
         }
@@ -124,13 +126,15 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         cur_maturation_mat_size = length(cur_maturation_mat)
         cur_impact_mat_size = length(cur_impact_mat)
-        # if ( cur_year == 2002 && cur_month == (birth_month - 2) %% 12 + 1) {
-        #   #browser()
-        # }
 
-        # if (cur_year == 2002) {
+        # if (cur_year == 2002 && cur_month == (birth_month - 2) %% 12 + 1) {
         #   browser()
         # }
+#
+        # if (cur_year == 2002 & cur_age == 4) {
+        #   browser()
+        # }
+
         # TODO: This is too messy. Make the following logic concise.
         if (cur_maturation_mat_size == 0 && cur_impact_mat_size == 0) {
           cur_maturation_mat = 0
@@ -159,9 +163,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
         cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
         if (cur_month == (birth_month - 2) %% 12 + 1) {
-          print(cur_ocean_abundance)
           cur_ocean_abundance = cur_ocean_abundance + cur_maturation
-          print(c(cur_ocean_abundance, cur_impact, cur_mortality, cur_impact + cur_mortality + prev_mnth_N, cur_maturation))
+          #print(c(cur_ocean_abundance, cur_impact, cur_mortality, cur_impact + cur_mortality + prev_mnth_N, cur_maturation))
         } else {
           cur_ocean_abundance = cur_ocean_abundance
         }

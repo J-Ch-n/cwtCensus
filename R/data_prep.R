@@ -2,10 +2,10 @@
 ### Data Preparation Function ###
 #################################
 
-data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
+data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
-                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, birth_month = 2, min_harvest_rate = 0.01) {
+                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, min_harvest_rate = 0.01) {
 
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
@@ -102,7 +102,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   }
 
   find_mean_sd <- function(month, age, size_age_map, size_age_df) {
-    mean_sd = size_age_map[[c(age, month)]]
+    ####################################################
+    ### Changed age to age + 1. This is a hacky fix. ###
+    ####################################################
+    mean_sd = size_age_map[[c(age + 1, month)]]
 
     if (is.null(mean_sd)) {
       warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
@@ -137,7 +140,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
     summarize(total_indiv = sum(est_num / prod_exp)) |>
     mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
            sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
-           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv)) |>
+           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
+           harvest_rate = 1 - pnorm(size_limit, mean =  mean, sd = sd)) |>
     mutate(month = (month - birth_month) %% 12) |>
     arrange(brood_year, maturation_grp, age, month, fishery) |>
     mutate(month = (month + birth_month) %% 12)
@@ -323,17 +327,15 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, rel_mort = NA,
   impact_dt |>
     set(i = row_i_idx, j = "month", value = prev_i_month)
 
-  view(rel_reco_dt)
-  view(maturation_dt)
+  # view(rel_reco_dt)
+  # view(maturation_dt)
+  # view(impact_dt)
 
   max_age_month_df = rel_reco_dt |>
-    #mutate(brood_year = by) |>
     group_by(brood_year) |>
-    drop_na(location) |>
-    mutate(month = (month - birth_month) %% 12) |>
     arrange(desc(age), desc(month)) |>
-    summarize(max_age = max(age), month = month[1]) |>
-    mutate(month = (month + birth_month) %% 12)
+    summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
+
   view(max_age_month_df)
 
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))

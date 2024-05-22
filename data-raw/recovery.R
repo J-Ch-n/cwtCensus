@@ -37,8 +37,8 @@ release <- release %>%
          tag_code,
          prod_exp,
          total_release) %>%
-  # Assume to be March.
-  mutate(birth_month = 3)
+  # Assume to be April.
+  mutate(birth_month = 4)
 
 # Create a sample RECO data frame for the package
 recovery <- recovery %>%
