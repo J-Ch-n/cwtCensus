@@ -104,35 +104,32 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
-        if (cur_month == adj_birth_month) {
-          # TODO: cur_age + 1 is a temporary and hacky fix. Think this through later.
-          cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
-        }
+        # Query for natural mortality rate.
+        nat_mort_rate = find_mortality_rate(as.integer(cur_age))
+        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
 
+        # Every row needs an impact calculation.
         cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
-
-        cur_maturation_mat = as.matrix(cur_maturation_rows)
         cur_impact_mat = as.matrix(cur_impact_rows)
-
-        cur_maturation_mat_size = length(cur_maturation_mat)
         cur_impact_mat_size = length(cur_impact_mat)
 
-        for (maturation in cur_maturation_mat[, 1]) {
-          cur_maturation = cur_maturation + maturation
-        }
         for (impact in cur_impact_mat[, 1]) {
           cur_impact = cur_impact + impact
         }
 
-        nat_mort_rate = find_mortality_rate(as.integer(cur_age))
-        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
-
         cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
-        if (cur_month == adj_birth_month) {
-          cur_ocean_abundance = cur_ocean_abundance + cur_maturation
 
-        } else {
-          cur_ocean_abundance = cur_ocean_abundance
+        # If the age is about to change, query and account for maturation.
+        if (cur_month == adj_birth_month) {
+          cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+          cur_maturation_mat = as.matrix(cur_maturation_rows)
+          cur_maturation_mat_size = length(cur_maturation_mat)
+
+          for (maturation in cur_maturation_mat[, 1]) {
+            cur_maturation = cur_maturation + maturation
+          }
+
+          cur_ocean_abundance = cur_ocean_abundance + cur_maturation
         }
 
         par_env$cohort |>
