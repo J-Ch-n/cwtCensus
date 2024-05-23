@@ -336,7 +336,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
-  view(max_age_month_df)
+  # view(max_age_month_df)
 
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
 }
