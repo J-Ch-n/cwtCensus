@@ -37,7 +37,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
                           month = init_vec,
                           ocean_abundance = init_vec,
                           natural_mort = init_vec,
-                          impact = init_vec)
+                          impact = init_vec,
+                          maturation = init_vec)
     } else {
       cohort = data.table(by = init_vec,
                           age = init_vec,
@@ -146,6 +147,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
             set(i = row_idx, j = "natural_mort", value = cur_mortality)
           par_env$cohort |>
             set(i = row_idx, j = "impact", value = cur_impact)
+          par_env$cohort |>
+            set(i = row_idx, j = "maturation", value = cur_maturation)
         }
 
         prev_mnth_N <<- cur_ocean_abundance
@@ -174,6 +177,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     apply(cohort, 1, cohort_helper)
     view(cohort |> mutate(ocean_abundance = round(ocean_abundance, 2),
                           natural_mort = round(natural_mort, 2),
-                          impact = round(impact, 2)))
+                          impact = round(impact, 2),
+                          maturation = round(maturation, 2)))
 }
 

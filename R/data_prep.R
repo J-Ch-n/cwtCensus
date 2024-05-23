@@ -222,6 +222,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
         prev_sp_esc = prev_riv_harv = prev_hat_esc = 0
         prev_m_year_valid <<- FALSE
       }
+
       # If fishery is spawning ground, river harvest, or hatchery escapement,
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
       # a new year.
