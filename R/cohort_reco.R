@@ -62,7 +62,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     ### Step 2: Reconstruct Ocean Abundance ###
     ###########################################
 
-    # Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
+    # Use default mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
     handle_missing_mort_rate <- function(age) {
       warning(paste0("Missing mortality rate for age ", age))
       if (age == 2) {
@@ -74,8 +74,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
     # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
     find_mortality <- function(maturation, abundance, rate) {
-      # return(abundance * (rate) / (1 - rate))
-      return(abundance * rate)
+      # TODO: handle maturation edge case.
+      return(abundance * (rate) / (1 - rate))
     }
 
     # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
@@ -89,8 +89,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     }
 
     # Variables for Reconstruction
-    row_idx = 1L
-    max_age_month_idx = 1L
+    row_idx <- max_age_month_idx <- 1L
 
     cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
     cur_age = max_age_month_df$max_age[[max_age_month_idx]]
@@ -100,6 +99,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     prev_mnth_N = 0
 
     cohort_helper <- function(record) {
+        # if (cur_year == 2002 && cur_age == 3 && cur_month == 10) {
+        #   browser()
+        # }
         # Local variables to accumulate maturation and impact.
         cur_maturation <- cur_impact <- cur_maturation_rows <- 0
         par_env = env_parent(current_env())
