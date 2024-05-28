@@ -1,7 +1,7 @@
 ### Reconstruction Functions ###
 
 cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age_month_df,
-                               detail, impact_fisheries = c(40, 10), bootstrap = T) {
+                               detail, impact_fisheries = c(40, 10), bootstrap = T, alpha = 0.05) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_RATE_IDX = 2
@@ -104,28 +104,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
     prev_mnth_N = 0
 
     cohort_helper <- function(record) {
-        # if (cur_year == 2002 && cur_age == 3 && cur_month == 10) {
+        # if (cur_year == 1995 && cur_age == 3 && cur_month == 4) {
         #   browser()
         # }
         # Local variables to accumulate maturation and impact.
+        # browser()
         cur_maturation <- cur_impact <- cur_maturation_rows <- 0
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
-
-        # Query for natural mortality rate.
-        nat_mort_rate = find_mortality_rate(as.integer(cur_age))
-        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
-
-        # Every row needs an impact calculation.
-        cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month & (fishery %in% impact_fisheries), ..IP_IMP_IDX]
-        cur_impact_mat = as.matrix(cur_impact_rows)
-        cur_impact_mat_size = length(cur_impact_mat)
-
-        for (impact in cur_impact_mat[, 1]) {
-          cur_impact = cur_impact + impact
-        }
-
-        cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N
 
         # If the age is about to change, query and account for maturation.
         if (cur_month == adj_birth_month) {
@@ -136,9 +122,24 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
           for (maturation in cur_maturation_mat[, 1]) {
             cur_maturation = cur_maturation + maturation
           }
-
-          cur_ocean_abundance = cur_ocean_abundance + cur_maturation
         }
+
+        # Query for natural mortality rate.
+        nat_mort_rate = find_mortality_rate(as.integer(cur_age))
+        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
+
+        # Every row needs an impact calculation.
+        cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
+        cur_impact_mat = as.matrix(cur_impact_rows)
+        cur_impact_mat_size = length(cur_impact_mat)
+
+        for (impact in cur_impact_mat[, 1]) {
+          cur_impact = cur_impact + impact
+        }
+
+        cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N + cur_maturation
+
+
         # if (bootstrap) {
         abundance_column <<- append(abundance_column, list(cur_ocean_abundance))
         # } else {

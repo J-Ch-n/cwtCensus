@@ -185,7 +185,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
         TRUE ~ rate)) |>
       select(-run_year)
 
-    # view(rel_reco_dt)
+    #view(rel_reco_dt)
   } else {
     # Create the first intermediate data table with lazy data table.
     # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
@@ -438,10 +438,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
     arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
-  # view(max_age_month_df)
-  # view(rel_reco_dt)
-  # view(maturation_dt)
-  # view(impact_dt)
+  view(max_age_month_df)
+  view(rel_reco_dt)
+  view(maturation_dt)
+  view(impact_dt)
   rm(rel_reco_dt)
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
 }
