@@ -13,9 +13,9 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
   #            sex, fisheries, bootstrap, iter)
 
   # Prepare necessary data for cohort reconstruction.
-  clean_data = data_prep(rel, reco, size_at_age, birth_month = birth_month, min_harvest_rate = min_harvest_rate)
+  clean_data = data_prep(rel, reco, size_at_age, birth_month = birth_month, min_harvest_rate = min_harvest_rate, bootstrap = bootstrap)
   # Conduct cohort reconstruction
-  cohort_reconstruct(clean_data$maturation, clean_data$impact, nat_mort, birth_month, clean_data$max_age_month_df, detail = detail)
+  cohort_reconstruct(clean_data$maturation, clean_data$impact, nat_mort, birth_month, clean_data$max_age_month_df, detail = detail, bootstrap = bootstrap)
 }
 
 

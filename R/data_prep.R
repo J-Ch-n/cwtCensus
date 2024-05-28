@@ -4,7 +4,7 @@
 
 data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
-                      ocean_r = 40, ocean_c = 10, bootstrap = F, iter = 1000,
+                      ocean_r = 40, ocean_c = 10, bootstrap = T, iter = 100000,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, min_harvest_rate = 0.0001, release_mortality = release_mort) {
   set.seed(10)
   #####################################################################
@@ -126,7 +126,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
   }
 
   bt_sum_helper <- function(est_num, prod_exp) {
-    return(est_num / prod_exp)
+    return((1 + est_num) / prod_exp)
   }
 
   bt_sum <- function(est_num, prod_exp) {
