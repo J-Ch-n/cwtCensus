@@ -2,9 +2,9 @@
 ### Data Preparation Function ###
 #################################
 
-data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_mort = NA,
+data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
-                      ocean_r = 40, ocean_c = 10, bootstrap = T, iter = 100000,
+                      ocean_r = 40, ocean_c = 10, bootstrap = T,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, min_harvest_rate = 0.0001, release_mortality = release_mort) {
   set.seed(10)
   #####################################################################
@@ -118,11 +118,11 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
   }
 
   find_catch_vectorized <- function(mean, sd, size_limit, total_indiv) {
-    total_indiv / max(c((1 - pnorm(size_limit, mean =  mean, sd = sd)), min_harvest_rate))
+    return(total_indiv / max(c((1 - pnorm(size_limit, mean =  mean, sd = sd)), min_harvest_rate)))
   }
 
   find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
-    mapply(find_catch_vectorized, mean = mean, sd = sd, size_limit = size_limit, total_indiv)
+   return(mapply(find_catch_vectorized, mean = mean, sd = sd, size_limit = size_limit, total_indiv))
   }
 
   bt_sum_helper <- function(est_num, prod_exp) {
@@ -185,7 +185,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
         TRUE ~ rate)) |>
       select(-run_year)
 
-    view(rel_reco_dt)
+    # view(rel_reco_dt)
   } else {
     # Create the first intermediate data table with lazy data table.
     # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
@@ -318,7 +318,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
       # a new year.
 
-
       # Calculate number of individuals for each type of fishery.
       if (cur_fishery == spawn) {
         prev_sp_esc <<- prev_sp_esc + cur_indiv
@@ -439,11 +438,11 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
-  view(max_age_month_df)
+  # view(max_age_month_df)
   # view(rel_reco_dt)
-  view(maturation_dt)
-  view(impact_dt)
-
+  # view(maturation_dt)
+  # view(impact_dt)
+  rm(rel_reco_dt)
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
 }
 

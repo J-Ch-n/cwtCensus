@@ -139,12 +139,12 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
           cur_ocean_abundance = cur_ocean_abundance + cur_maturation
         }
-        if (bootstrap) {
-          abundance_column <<- append(abundance_column, list(cur_ocean_abundance))
-        } else {
-          par_env$cohort |>
-            set(i = row_idx, j = "ocean_abundance", value = cur_ocean_abundance)
-        }
+        # if (bootstrap) {
+        abundance_column <<- append(abundance_column, list(cur_ocean_abundance))
+        # } else {
+        #   par_env$cohort |>
+        #     set(i = row_idx, j = "ocean_abundance", value = cur_ocean_abundance)
+        # }
 
         par_env$cohort |>
           set(i = row_idx, j = "by", value = cur_year)
@@ -154,24 +154,23 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
           set(i = row_idx, j = "age", value = cur_age)
 
         if (detail) {
-          if (bootstrap) {
-            # par_env$cohort |>
-            #   set(i = row_idx, j = "natural_mort", value = cur_mortality)
-            mortality_column <<- append(mortality_column, list(cur_mortality))
-            # par_env$cohort |>
-            #   set(i = row_idx, j = "impact", value = cur_impact)
-            impact_column <<- append(impact_column, list(cur_impact))
-            # par_env$cohort |>
-            #   set(i = row_idx, j = "maturation", value = cur_maturation)
-            maturation_column <<- append(maturation_column, list(cur_maturation))
-          } else {
-            par_env$cohort |>
-              set(i = row_idx, j = "natural_mort", value = cur_mortality)
-            par_env$cohort |>
-              set(i = row_idx, j = "impact", value = cur_impact)
-            par_env$cohort |>
-              set(i = row_idx, j = "maturation", value = cur_maturation)
-          }
+          # par_env$cohort |>
+          #   set(i = row_idx, j = "natural_mort", value = cur_mortality)
+          mortality_column <<- append(mortality_column, list(cur_mortality))
+          # par_env$cohort |>
+          #   set(i = row_idx, j = "impact", value = cur_impact)
+          impact_column <<- append(impact_column, list(cur_impact))
+          # par_env$cohort |>
+          #   set(i = row_idx, j = "maturation", value = cur_maturation)
+          maturation_column <<- append(maturation_column, list(cur_maturation))
+          # } else {
+          #   par_env$cohort |>
+          #     set(i = row_idx, j = "natural_mort", value = cur_mortality)
+          #   par_env$cohort |>
+          #     set(i = row_idx, j = "impact", value = cur_impact)
+          #   par_env$cohort |>
+          #     set(i = row_idx, j = "maturation", value = cur_maturation)
+          # }
         }
 
         prev_mnth_N <<- cur_ocean_abundance
@@ -199,7 +198,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
 
     if (bootstrap) {
       sapply(1 : nrow(cohort), cohort_helper)
-
       cohort[, 'ocean_abundance' := .(abundance_column)]
 
       if (detail) {
@@ -207,17 +205,22 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cohort[, 'maturation' := .(maturation_column)]
         cohort[, 'natural_mort' := .(mortality_column)]
       }
-    } else {
-      apply(cohort, 1, cohort_helper)
-    }
-
-    if (bootstrap) {
       view(cohort)
     } else {
-      view(cohort |> mutate(ocean_abundance = round(ocean_abundance, 2),
-                            natural_mort = round(natural_mort, 2),
-                            impact = round(impact, 2),
-                            maturation = round(maturation, 2)))
+      apply(cohort, 1, cohort_helper)
+      cohort[, 'ocean_abundance' := .(abundance_column)]
+
+      if (detail) {
+        cohort[, 'impact' := .(impact_column)]
+        cohort[, 'maturation' := .(maturation_column)]
+        cohort[, 'natural_mort' := .(mortality_column)]
+        view(cohort)
+      }
+
+      view(cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
+                            natural_mort = round(as.numeric(natural_mort), 2),
+                            impact = round(as.numeric(impact), 2),
+                            maturation = round(as.numeric(maturation), 2)))
     }
   }
 
