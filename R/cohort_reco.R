@@ -197,6 +197,24 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         }
     }
 
+    find_ci_helper <- function(vec, alpha, center) {
+      alpha = alpha / 2
+      # if (any(unname(center - quantile(vec - center, c(1 - alpha, alpha))) < 0)) {
+      #   browser()
+      # }
+      unname(center - quantile(vec - center, c(1 - alpha, alpha)))
+    }
+
+    find_ci <- function(col, alpha, center) {
+      # browser()
+      split(mapply(find_ci_helper, vec = col, alpha = alpha, center = center), rep(1 : length(col), each = 2))
+    }
+
+    find_bt_mean <- function(col) {
+      #browser()
+      mapply(mean, x = col)
+    }
+
     if (bootstrap) {
       sapply(1 : nrow(cohort), cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
@@ -206,6 +224,17 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cohort[, 'maturation' := .(maturation_column)]
         cohort[, 'natural_mort' := .(mortality_column)]
       }
+
+      cohort = cohort[, `:=`(
+        impact_mean = find_bt_mean(impact),
+        maturation_mean = find_bt_mean(maturation),
+        natural_mort_mean = find_bt_mean(natural_mort)
+      )][, `:=`(
+        impact_ci = find_ci(impact, alpha, impact_mean),
+        maturation_ci = find_ci(maturation, alpha, maturation_mean),
+        natural_mort_ci = find_ci(natural_mort, alpha, natural_mort_mean)
+      )]
+
       view(cohort)
     } else {
       apply(cohort, 1, cohort_helper)
