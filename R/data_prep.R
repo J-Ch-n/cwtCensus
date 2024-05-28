@@ -20,8 +20,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
   MAT_GRP_IDX = 6
   SIZE_LIM_IDX = 7
   TOTAL_IDX = 8
-  CATCH_IDX = 11
-  REL_MORT_IDX = 13
+  CATCH_IDX = 12
+  REL_MORT_IDX = 14
 
   # Create mappings from column name to column indices in length_at_age.
   AGE_LAA_IDX = 1
@@ -138,7 +138,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
         fishery %in% c(spawn, hatchery, river) ~ 1,
         TRUE ~ 2)) |>
     group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year) |>
-    summarize(total_indiv = sum(est_num / prod_exp)) |>
+    summarize(total_indiv = sum(est_num / prod_exp), est_num = sum(est_num)) |>
     mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
            sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
            catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
@@ -155,6 +155,14 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
       is.na(rate) & fishery == ocean_c ~ hr_c,
       TRUE ~ rate)) |>
     select(-run_year)
+
+  # Add parametric bootstrap if the flag is selected.
+  if (bootstrap) {
+    num_rows = rel_reco_dt |> nrow()
+    prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
+    bt_est_num = split(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1), 1 : num_rows)
+    rel_reco_dt[, est_num := bt_est_num]
+  }
 
   view(rel_reco_dt)
   ##############################################
@@ -214,10 +222,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     cur_month = record[MNTH_IDX] |> as.integer()
     cur_fishery = record[FSHRY_IDX] |> as.numeric()
     cur_rel_mort_rate = record[REL_MORT_IDX] |> as.numeric()
-    if (cur_year == 2002 && cur_age == 3 && cur_month == 6) {
-      print(cur_fishery)
-      browser()
-    }
+
     if (cur_fishery %in% c(spawn, river, hatchery)) {
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
