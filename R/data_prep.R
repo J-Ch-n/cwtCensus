@@ -4,9 +4,9 @@
 
 data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_mort = NA,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
-                      ocean_r = 40, ocean_c = 10, bootstrap = TRUE, iter = 1000,
+                      ocean_r = 40, ocean_c = 10, bootstrap = T, iter = 3,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, min_harvest_rate = 0.0001, release_mortality = release_mort) {
-
+  set.seed(10)
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
   #####################################################################
@@ -120,51 +120,106 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     total_indiv / max(c((1 - pnorm(size_limit, mean =  mean, sd = sd)), min_harvest_rate))
   }
 
+  find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
+    mapply(find_catch_vectorized, mean = mean, sd = sd, size_limit = size_limit, total_indiv)
+  }
+
+  bt_sum_helper <- function(est_num, prod_exp) {
+    return(est_num / prod_exp)
+  }
+
+  bt_sum <- function(est_num, prod_exp) {
+    return(mapply(bt_sum_helper, est_num = est_num, prod_exp = prod_exp) |> rowSums())
+  }
+
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
-  # Create the first intermediate data table with lazy data table.
-  # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
-  # The rows are sorted such that all fisheries related to maturation precede those related to impact.
-  rel_reco_ldt = reco |>
-    left_join(rel, by = 'tag_code') |>
-    setDT() |>
-    lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
-    mutate(
-      age = case_when(
-        month >= birth_month ~ run_year - brood_year,
-        TRUE ~ run_year - brood_year - 1),
-      maturation_grp = case_when(
-        fishery %in% c(spawn, hatchery, river) ~ 1,
-        TRUE ~ 2)) |>
-    group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year) |>
-    summarize(total_indiv = sum(est_num / prod_exp), est_num = sum(est_num)) |>
-    mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
-           sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
-           catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
-           harvest_rate = 1 - pnorm(size_limit, mean =  mean, sd = sd)) |>
-    mutate(month = (month - birth_month) %% 12) |>
-    arrange(brood_year, maturation_grp, age, month, fishery) |>
-    mutate(month = (month + birth_month) %% 12)
-
-  # Materialize lazy data table.
-  rel_reco_dt = as.data.table(rel_reco_ldt) |>
-    left_join(release_mortality, by = c("run_year", "month", "fishery", "location")) |>
-    mutate(rate = case_when(
-      is.na(rate) & fishery == ocean_r ~ hr_r,
-      is.na(rate) & fishery == ocean_c ~ hr_c,
-      TRUE ~ rate)) |>
-    select(-run_year)
 
   # Add parametric bootstrap if the flag is selected.
   if (bootstrap) {
+    rel_reco_dt = reco |>
+      left_join(rel, by = 'tag_code') |>
+      setDT() |>
+      lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
+      mutate(
+        age = case_when(
+          month >= birth_month ~ run_year - brood_year,
+          TRUE ~ run_year - brood_year - 1),
+        maturation_grp = case_when(
+          fishery %in% c(spawn, hatchery, river) ~ 1,
+          TRUE ~ 2)) |>
+      as.data.table()
+
+    # Add bootstrapped values.
     num_rows = rel_reco_dt |> nrow()
     prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
-    bt_est_num = split(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1), 1 : num_rows)
+    bt_est_num = split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)
     rel_reco_dt[, est_num := bt_est_num]
+    rel_reco_dt = rel_reco_dt[, {
+      total_indiv = bt_sum(est_num, prod_exp)
+      mean_sd = find_mean_sd(month, age, size_age_map, size_age_df)
+      mean = mean_sd[1]
+      sd = mean_sd[2]
+      catch = find_catch_bootstrap(mean, sd, size_limit, total_indiv)
+
+      .(total_indiv = .(bt_sum(est_num, prod_exp)),
+        mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
+        sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
+        catch = .(find_catch_bootstrap(mean, sd, size_limit, total_indiv)),
+        harvest_rate = 1 - pnorm(size_limit, mean = mean, sd = sd))
+    },
+    by = list(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year)]
+
+    rel_reco_dt = rel_reco_dt |>
+      lazy_dt(immutable = F) |>
+      mutate(month = (month - birth_month) %% 12) |>
+      arrange(brood_year, maturation_grp, age, month, fishery) |>
+      mutate(month = (month + birth_month) %% 12) |>
+      as.data.table(rel_reco_dt) |>
+      left_join(release_mortality, by = c("run_year", "month", "fishery", "location")) |>
+      mutate(rate = case_when(
+        is.na(rate) & fishery == ocean_r ~ hr_r,
+        is.na(rate) & fishery == ocean_c ~ hr_c,
+        TRUE ~ rate)) |>
+      select(-run_year)
+
+    view(rel_reco_dt)
+  } else {
+    # Create the first intermediate data table with lazy data table.
+    # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
+    # The rows are sorted such that all fisheries related to maturation precede those related to impact.
+    rel_reco_ldt = reco |>
+      left_join(rel, by = 'tag_code') |>
+      setDT() |>
+      lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
+      mutate(
+        age = case_when(
+          month >= birth_month ~ run_year - brood_year,
+          TRUE ~ run_year - brood_year - 1),
+        maturation_grp = case_when(
+          fishery %in% c(spawn, hatchery, river) ~ 1,
+          TRUE ~ 2)) |>
+      group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year) |>
+      summarize(total_indiv = sum(est_num / prod_exp), est_num = sum(est_num)) |>
+      mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
+             sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
+             catch = find_catch_vectorized(mean, sd, size_limit, total_indiv),
+             harvest_rate = 1 - pnorm(size_limit, mean =  mean, sd = sd)) |>
+      mutate(month = (month - birth_month) %% 12) |>
+      arrange(brood_year, maturation_grp, age, month, fishery) |>
+      mutate(month = (month + birth_month) %% 12)
+
+    # Materialize lazy data table.
+    rel_reco_dt = as.data.table(rel_reco_ldt) |>
+      left_join(release_mortality, by = c("run_year", "month", "fishery", "location")) |>
+      mutate(rate = case_when(
+        is.na(rate) & fishery == ocean_r ~ hr_r,
+        is.na(rate) & fishery == ocean_c ~ hr_c,
+        TRUE ~ rate)) |>
+      select(-run_year)
   }
 
-  view(rel_reco_dt)
   ##############################################
   ### Step 3: Calcuate Maturation and Impact ###
   ##############################################
@@ -214,7 +269,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
   # Aggregate function for calculating maturation and impact.
   find_imp_nat_mat <- function(record) {
 
-
     par_env = env_parent(current_env())
 
     cur_year = record[BY_IDX] |> as.integer()
@@ -222,7 +276,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     cur_month = record[MNTH_IDX] |> as.integer()
     cur_fishery = record[FSHRY_IDX] |> as.numeric()
     cur_rel_mort_rate = record[REL_MORT_IDX] |> as.numeric()
-
+    browser()
     if (cur_fishery %in% c(spawn, river, hatchery)) {
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
