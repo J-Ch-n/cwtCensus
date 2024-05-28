@@ -29,6 +29,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
   MEAN_LAA_IDX = 3
   SD_LAA_IDX = 4
 
+  num_rows = 0
 
   ### Create size_age_map ###
   size_age_map = hashmap()
@@ -268,15 +269,27 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
 
   # Aggregate function for calculating maturation and impact.
   find_imp_nat_mat <- function(record) {
-
-    par_env = env_parent(current_env())
-
-    cur_year = record[BY_IDX] |> as.integer()
-    cur_age = record[AGE_IDX] |> as.integer()
-    cur_month = record[MNTH_IDX] |> as.integer()
-    cur_fishery = record[FSHRY_IDX] |> as.numeric()
-    cur_rel_mort_rate = record[REL_MORT_IDX] |> as.numeric()
     browser()
+    par_env = env_parent(current_env())
+    if (bootstrap) {
+      cur_year = record[[BY_IDX]] |> as.integer()
+      cur_age = record[[AGE_IDX]] |> as.integer()
+      cur_month = record[[MNTH_IDX]] |> as.integer()
+      cur_fishery = record[[FSHRY_IDX]] |> as.numeric()
+      # TODO: CHANGE THIS HACK.
+      cur_rel_mort_rate = record[[REL_MORT_IDX - 1]] |> as.numeric()
+      cur_indiv = record[[TOTAL_IDX]] |> unlist() |> as.numeric()
+      catch = record[[CATCH_IDX]] |>  as.numeric()
+    } else {
+      cur_year = record[BY_IDX] |> as.integer()
+      cur_age = record[AGE_IDX] |> as.integer()
+      cur_month = record[MNTH_IDX] |> as.integer()
+      cur_fishery = record[FSHRY_IDX] |> as.numeric()
+      cur_rel_mort_rate = record[REL_MORT_IDX] |> as.numeric()
+      cur_indiv = record[TOTAL_IDX] |> as.numeric()
+      catch = record[CATCH_IDX] |>  as.numeric()
+    }
+
     if (cur_fishery %in% c(spawn, river, hatchery)) {
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
@@ -299,28 +312,29 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
       # If fishery is spawning ground, river harvest, or hatchery escapement,
       # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
       # a new year.
-      total_indiv = record[TOTAL_IDX] |> as.numeric()
+
 
       # Calculate number of individuals for each type of fishery.
       if (cur_fishery == spawn) {
-        prev_sp_esc <<- prev_sp_esc + total_indiv
+        prev_sp_esc <<- prev_sp_esc + cur_indiv
       } else if (cur_fishery == river) {
-        prev_riv_harv <<- prev_riv_harv + total_indiv
+        prev_riv_harv <<- prev_riv_harv + cur_indiv
       } else {
-        prev_hat_esc <<- prev_hat_esc + total_indiv
+        prev_hat_esc <<- prev_hat_esc + cur_indiv
       }
 
       prev_m_year_valid <<- TRUE
       prev_m_year <<- cur_year
       prev_m_age <<- cur_age
 
-    } else if (record[FSHRY_IDX] %in% c(ocean_r, ocean_c)) {
-      total_indiv = record[TOTAL_IDX] |> as.numeric()
-      catch = record[CATCH_IDX] |>  as.numeric()
+    } else if (cur_fishery %in% c(ocean_r, ocean_c)) {
+      #cur_indiv = record[TOTAL_IDX] |> as.numeric()
+
 
       # If fishery is recreational or commercial ocean harvest, calculate impact.
       if (prev_i_year_valid && (cur_age != prev_i_age | cur_month != prev_i_month | cur_year != prev_i_year | (prev_fishery != cur_fishery && !is.na(prev_fishery)))) {
         if (par_env$is_prev_ocean_r) {
+          browser()
           is_ocean_r <<- TRUE
           par_env$impact_dt |>
             set(i = row_i_idx, j = "impact", value = par_env$prev_rec_impact)
@@ -350,10 +364,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
       # Calculate number of individuals for each type of fishery.
       if (cur_fishery == ocean_r) {
         is_prev_ocean_r <<- TRUE
-        prev_rec_impact <<- prev_rec_impact + total_indiv + catch * d_mort + (catch - total_indiv) * cur_rel_mort_rate
+        prev_rec_impact <<- prev_rec_impact + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort_rate
       } else {
         is_prev_ocean_r <<- FALSE
-        prev_com_impact <<- prev_com_impact + total_indiv + catch * d_mort + (catch - total_indiv) * cur_rel_mort_rate
+        prev_com_impact <<- prev_com_impact + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort_rate
       }
 
       prev_i_year_valid <<- TRUE
@@ -364,7 +378,13 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, rel_m
     }
   }
 
-  apply(rel_reco_dt, 1, find_imp_nat_mat)
+  if (bootstrap) {
+    for (i in 1 : num_rows) {
+      find_imp_nat_mat(rel_reco_dt[i, ])
+    }
+  } else {
+    apply(rel_reco_dt, 1, find_imp_nat_mat)
+  }
 
   # The apply function doesn't have knowledge of the end of the data frame.
   # Thus, the solution is one off. We need to apply the last row of maturation here.
