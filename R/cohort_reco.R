@@ -225,17 +225,18 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cohort[, 'natural_mort' := .(mortality_column)]
       }
 
-      cohort = cohort[, `:=`(
+      cohort[, `:=`(
+        ocean_abundance_mean = find_bt_mean(ocean_abundance),
         impact_mean = find_bt_mean(impact),
         maturation_mean = find_bt_mean(maturation),
         natural_mort_mean = find_bt_mean(natural_mort)
       )][, `:=`(
+        ocean_abundance_ci = find_ci(ocean_abundance, alpha, ocean_abundance_mean),
         impact_ci = find_ci(impact, alpha, impact_mean),
         maturation_ci = find_ci(maturation, alpha, maturation_mean),
         natural_mort_ci = find_ci(natural_mort, alpha, natural_mort_mean)
       )]
 
-      view(cohort)
     } else {
       apply(cohort, 1, cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
@@ -244,14 +245,15 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         cohort[, 'impact' := .(impact_column)]
         cohort[, 'maturation' := .(maturation_column)]
         cohort[, 'natural_mort' := .(mortality_column)]
-        view(cohort)
       }
 
-      view(cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
+      cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
                             natural_mort = round(as.numeric(natural_mort), 2),
                             impact = round(as.numeric(impact), 2),
-                            maturation = round(as.numeric(maturation), 2)))
+                            maturation = round(as.numeric(maturation), 2))
     }
+
+    view(cohort)
   }
 
 
