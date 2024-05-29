@@ -222,21 +222,44 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
         impact_ci = find_ci(impact, alpha, impact_mean),
         maturation_ci = find_ci(maturation, alpha, maturation_mean),
         natural_mort_ci = find_ci(natural_mort, alpha, natural_mort_mean)
-      )][, ':='(
-        maturaion_rate = find_mat_rate(ocean_abundance, impact, maturation, natural_mort)
-      )]
+      )][,
+        maturation_rate := .(find_mat_rate(ocean_abundance, impact, maturation, natural_mort))
+      ][,
+        maturation_rate_mean := find_bt_mean(maturation_rate)
+      ][,
+        maturation_rate_ci := .(find_ci(maturation_rate, alpha, maturation_rate_mean))
+      ]
 
       annual_impact_rate_dt = cohort[,
                                      .('impact_rate' = .(rowSums(mapply(identity, x = impact)) / ocean_abundance[[length(ocean_abundance)]])),
-                                     by = list(by, age)]
+                                     by = list(by, age)][,
+                                      impact_rate_mean := find_bt_mean(impact_rate)][,
+                                      impact_rate_ci := .(find_ci(impact_rate, alpha, impact_rate_mean))
+                                    ]
       view(annual_impact_rate_dt)
+
+      find_srr <- function(p, a) {
+        srr = mapply(function(p, a) (p - a) / a, p = p, a = a)
+        split(replace(srr, is.nan(srr), 0), rep(1 : length(p), each = iter))
+      }
+      srr_dt = cohort[,
+                      .(proj_mat = .(rowSums(mapply('*', x = maturation_rate, ocean_abundance))),
+                        act_mat = .(rowSums(mapply(identity, x = maturation)))),
+                      by = list(by)]
+      srr_dt[, srr := .(find_srr(proj_mat, act_mat))][,
+                                                  srr_mean := find_bt_mean(srr)][
+                                                  ,
+                                                  srr_ci := .(find_ci(srr, alpha, srr_mean))
+                                                  ]
+
+      view(srr_dt)
     } else {
       apply(cohort, 1, cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
 
       if (detail) {
         cohort[, 'impact' := .(impact_column)]
-        cohort[, 'maturation' := .(maturation_column)]
+        cohort[, 'maturation' := .(maturation_column)]Term
         cohort[, 'natural_mort' := .(mortality_column)]
         cohort[, 'mat_rate' := .(find_mat_rate(ocean_abundance, impact, maturation, natural_mort))]
 
@@ -244,6 +267,13 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
                                        .('impact_rate' = sum(unlist(impact))/ ocean_abundance[[length(ocean_abundance)]]),
                                        by = list(by, age)]
         view(annual_impact_rate_dt)
+
+        srr_dt = cohort[,
+                        .(proj_mat = sum(unlist(mat_rate) * unlist(ocean_abundance)),
+                          act_mat = sum(unlist(maturation))),
+                        by = list(by)][,
+                        srr := fifelse(act_mat == 0, 0, (proj_mat - act_mat) / act_mat)]
+        view(srr_dt)
       }
 
       cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
