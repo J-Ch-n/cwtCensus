@@ -6,6 +6,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
                       sex = "both", spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 40, ocean_c = 10, bootstrap = T,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14, min_harvest_rate = 0.0001, release_mortality = release_mort) {
+  # TODO: REMOVE THIS LINE.
   set.seed(10)
   #####################################################################
   ### Step 1: Declare and define necessary functions and variables. ###
@@ -136,7 +137,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
-
   # Add parametric bootstrap if the flag is selected.
   if (bootstrap) {
     rel_reco_dt = reco |>
