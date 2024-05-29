@@ -134,6 +134,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
     return(mapply(bt_sum_helper, est_num = est_num, prod_exp = prod_exp) |> rowSums())
   }
 
+  release_info = as.data.table(rel)[, .(total_release = sum(total_release / prod_exp)), by = list(brood_year)][order(brood_year)]
+
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
@@ -419,7 +421,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month, iter,
   # view(maturation_dt)
   # view(impact_dt)
   rm(rel_reco_dt)
-  return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df))
+  return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df, release_info = release_info))
 }
 
 

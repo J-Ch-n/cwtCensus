@@ -1,6 +1,6 @@
 ### Reconstruction Functions ###
 
-cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age_month_df, iter,
+cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, max_age_month_df, iter, release_info,
                                detail, impact_fisheries = c(40, 10), bootstrap = T, alpha = 0.05) {
     # Natural mortality indices
     NM_AGE_IDX = 1
@@ -253,13 +253,24 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
                                                   ]
 
       view(srr_dt)
+
+      els_dt = release_info[cohort[,.(early_abundance = .(ocean_abundance[[length(ocean_abundance)]])),
+                                   by = list(by)],
+                                   on = .(brood_year == by)][,
+                            early_life_survival_rate := .(split(mapply('/', x = early_abundance, y = total_release),
+                            rep(1 : length(early_abundance), each = iter)))][,
+                            early_life_survival_rate_mean := find_bt_mean(early_life_survival_rate)
+                            ][,
+                            early_life_survvial_rate_ci := .(find_ci(early_life_survival_rate, alpha, early_life_survival_rate_mean))]
+
+      view(els_dt)
     } else {
       apply(cohort, 1, cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
 
       if (detail) {
         cohort[, 'impact' := .(impact_column)]
-        cohort[, 'maturation' := .(maturation_column)]Term
+        cohort[, 'maturation' := .(maturation_column)]
         cohort[, 'natural_mort' := .(mortality_column)]
         cohort[, 'mat_rate' := .(find_mat_rate(ocean_abundance, impact, maturation, natural_mort))]
 
@@ -274,6 +285,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort, birth_month, 
                         by = list(by)][,
                         srr := fifelse(act_mat == 0, 0, (proj_mat - act_mat) / act_mat)]
         view(srr_dt)
+        # browser()
+        els_dt = release_info[cohort[,.(early_abundance = ocean_abundance[[length(ocean_abundance)]]), by = list(by)], on = .(brood_year == by)][,
+                                                                                                                                                 early_life_survival_rate := early_abundance / total_release]
+
+        view(els_dt)
       }
 
       cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
