@@ -172,8 +172,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     # Add bootstrapped values.
     num_rows = rel_reco_dt |> nrow()
     prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
-    bt_est_num = split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)
-    rel_reco_dt[, est_num := bt_est_num]
+    rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)]
     rel_reco_dt = rel_reco_dt[,
                               {
                                 total_indiv = bt_sum(est_num, prod_exp)
@@ -307,6 +306,9 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
 
     if (cur_fishery %in% c(spawn, river, hatchery)) {
+
+      # if (cur_year == 2003)
+      #   browser()
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
            | (cur_year == prev_m_year && cur_age != prev_m_age))) {
@@ -319,7 +321,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
           set(i = row_m_idx, j = "age", value = prev_m_age)
 
         row_m_idx <<- row_m_idx + 1L
-        prev_sp_esc = prev_riv_harv = prev_hat_esc = 0
+        prev_sp_esc <<- prev_riv_harv <<- prev_hat_esc <<- 0
         prev_m_year_valid <<- FALSE
       }
 
@@ -433,10 +435,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
-  # view(max_age_month_df)
-  # view(rel_reco_dt)
-  # view(maturation_dt)
-  # view(impact_dt)
+  view(max_age_month_df)
+  view(rel_reco_dt)
+  view(maturation_dt)
+  view(impact_dt)
   rm(rel_reco_dt)
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df, release_info = release_info))
 }

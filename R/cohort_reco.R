@@ -107,7 +107,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
     # Takes in MATURATION, MONTH, OCEAN_ABUNDANCE, NAT_MORT_RATE and calculate the corresponding mortality count.
     find_mortality <- function(maturation, abundance, rate) {
-      return(abundance * (rate) / (1 - rate))
+      return((abundance + maturation) * (rate) / (1 - rate))
     }
 
     # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
@@ -138,6 +138,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
+        if (cur_year == 2002 & cur_month == 10 & cur_age == 4)
+          browser()
         # If the age is about to change, query and account for maturation.
         if (cur_month == adj_birth_month) {
           cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
@@ -148,13 +150,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
             cur_maturation = cur_maturation + maturation
           }
         }
-
+        # TODO: also account for the number of spawners during nat mort.
         # Query for natural mortality rate.
         nat_mort_rate = find_mortality_rate(as.integer(cur_age))
         cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
 
         # Every row needs an impact calculation.
-        cur_impact_rows = impact_dt[by == cur_year & age == cur_age & month == cur_month, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
+        # TODO: this is a hack MUST FIX (cur_age - 1).
+        cur_impact_rows = impact_dt[by == cur_year & age == (cur_age - 1) & month == cur_month, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
         cur_impact_mat = as.matrix(cur_impact_rows)
         cur_impact_mat_size = length(cur_impact_mat)
 
