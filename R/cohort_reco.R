@@ -6,7 +6,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                alpha = 0.05) {
     # Natural mortality indices
     NM_AGE_IDX = 1
-    NM_RATE_IDX = 2
+    NM_MNTH_IDX = 2
+    NM_RATE_IDX = 3
 
     # Impact indices
     IP_BY_IDX = 1
@@ -53,7 +54,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     # Each key corresponds to the natural mortality rate of that age.
     create_nat_mort_map <- function(record) {
         record = unname(record)
-        key = record[NM_AGE_IDX] |> unname() |> as.integer()
+        key = c(record[NM_AGE_IDX] |> unname() |> as.integer(),
+                record[NM_MNTH_IDX] |> unname() |> as.integer())
         value = record[NM_RATE_IDX] |> unname()
         nat_mort_hp[[key]] <<- value
     }
@@ -111,8 +113,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     }
 
     # Finds the morality rate of a particular AGE. If the age doesn't exist, invoke the error handler.
-    find_mortality_rate <- function(age) {
-      mort_rate = nat_mort_hp[[age]]
+    find_mortality_rate <- function(age, month) {
+      mort_rate = nat_mort_hp[[c(age, month)]]
       if (is.null(mort_rate)) {
         mort_rate = handle_missing_mort_rate(age)
       }
@@ -138,7 +140,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
-        if (cur_year == 2002 & cur_month == 10 & cur_age == 4)
+        if (cur_year == 2002 & cur_month == 3 & cur_age == 3)
           browser()
         # If the age is about to change, query and account for maturation.
         if (cur_month == adj_birth_month) {
@@ -152,7 +154,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         }
         # TODO: also account for the number of spawners during nat mort.
         # Query for natural mortality rate.
-        nat_mort_rate = find_mortality_rate(as.integer(cur_age))
+        nat_mort_rate = find_mortality_rate(as.integer(cur_age), as.integer(cur_month))
         cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
 
         # Every row needs an impact calculation.
