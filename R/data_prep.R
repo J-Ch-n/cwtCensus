@@ -4,11 +4,12 @@
 
 # TODO: think about if the arguments make sense.
 data_prep <- function(rel, reco, size_at_age = length_at_age,
-                      birth_month, iter, rel_mort = NA, sex = "both", #TODO: implement cohort reconstruction based on sex.
+                      birth_month, iter, min_harvest_rate,
+                      rel_mort = NA, sex = "both", #TODO: implement cohort reconstruction based on sex.
                       spawn = 54, hatchery = 50, river = 46,
                       ocean_r = 40, ocean_c = 10, bootstrap = T,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14,
-                      min_harvest_rate = 0.0001, release_mortality = release_mort) {
+                      release_mortality = release_mort) {
 
   # TODO: REMOVE THIS LINE.
   set.seed(10)
@@ -224,7 +225,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       mutate(mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
              sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
              catch = find_catch(mean, sd, size_limit, total_indiv),
-             harvest_rate = 1 - pnorm(size_limit, mean =  mean, sd = sd)) |>
+             harvest_rate = 1 - pnorm(size_limit, mean = mean, sd = sd)) |>
       mutate(month = (month - birth_month) %% 12) |>
       arrange(brood_year, maturation_grp, age, month, fishery) |>
       mutate(month = (month + birth_month) %% 12)
@@ -306,9 +307,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
 
     if (cur_fishery %in% c(spawn, river, hatchery)) {
-
-      # if (cur_year == 2003)
-      #   browser()
       # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
            | (cur_year == prev_m_year && cur_age != prev_m_age))) {
@@ -387,6 +385,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
   }
 
+  #browser()
   # TODO: Think about possible ways to remove this for loop.
   if (bootstrap) {
     for (i in 1 : num_rows) {

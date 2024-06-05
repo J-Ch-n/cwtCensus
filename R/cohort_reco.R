@@ -140,8 +140,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
-        if (cur_year == 2002 & cur_month == 3 & cur_age == 3)
-          browser()
         # If the age is about to change, query and account for maturation.
         if (cur_month == adj_birth_month) {
           cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
