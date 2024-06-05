@@ -338,7 +338,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
       return(list(cohort = cohort,
                   srr_dt = srr_dt,
                   els_dt = els_dt,
-                  air_dt = annual_impact_rate_dt))
+                  air_dt = annual_impact_rate_dt,
+                  len = num_by_age_month))
     }
 
     return(list(cohort = cohort))
