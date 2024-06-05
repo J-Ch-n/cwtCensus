@@ -385,7 +385,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
   }
 
-  #browser()
   # TODO: Think about possible ways to remove this for loop.
   if (bootstrap) {
     for (i in 1 : num_rows) {

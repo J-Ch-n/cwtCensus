@@ -3,7 +3,7 @@
 cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                birth_month, max_age_month_df, iter,
                                release_info, detail, impact_fisheries = c(40, 10), bootstrap = T,
-                               alpha = 0.05) {
+                               level = 0.05) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_MNTH_IDX = 2
@@ -77,17 +77,22 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     }
 
     # Find the confidence interval of a statistic in the bootstrap sampling distribution.
-    find_ci <- function(col, alpha, center) {
-      find_ci_helper <- function(vec, alpha, center) {
-        alpha = alpha / 2
-        unname(center - quantile(vec - center, c(1 - alpha, alpha)))
+    find_CrI <- function(col, level, center) {
+      find_CrI_helper <- function(vec, level, center) {
+        l_cut_off = 0.5 - (level / 2)
+        quantile(vec, c(l_cut_off, 1 - l_cut_off))
       }
-      return(split(mapply(find_ci_helper, vec = col, alpha = alpha, center = center), rep(1 : length(col), each = 2)))
+      return(split(mapply(find_CrI_helper, vec = col, level = level, center = center), rep(1 : length(col), each = 2)))
     }
 
     # Find the center of a bootstrap sampling distribution.
-    find_bt_mean <- function(col) {
-      return(mapply(mean, x = col))
+    find_bt_median <- function(col) {
+      return(mapply(median, x = col))
+    }
+
+    # Find the standard deviation of a bootstrap sampling distribution.
+    find_bt_sd <- function(col) {
+      return(mapply(sd, x = col))
     }
 
     # Find bootstrapped srr.
@@ -217,21 +222,27 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
         # Construct confidence interval for ocean abundance, impact, maturation, and natural mortality.
         cohort[, ':='(
-          ocean_abundance_mean = find_bt_mean(ocean_abundance),
-          impact_mean = find_bt_mean(impact),
-          maturation_mean = find_bt_mean(maturation),
-          natural_mort_mean = find_bt_mean(natural_mort)
+          ocean_abundance_median = find_bt_median(ocean_abundance),
+          ocean_abundance_sd = find_bt_sd(ocean_abundance),
+          impact_median = find_bt_median(impact),
+          impact_sd = find_bt_sd(impact),
+          maturation_median = find_bt_median(maturation),
+          maturation_sd = find_bt_sd(maturation),
+          natural_mort_median = find_bt_median(natural_mort),
+          natural_mort_sd = find_bt_sd(natural_mort)
         )][, ':='(
-          ocean_abundance_ci = find_ci(ocean_abundance, alpha, ocean_abundance_mean),
-          impact_ci = find_ci(impact, alpha, impact_mean),
-          maturation_ci = find_ci(maturation, alpha, maturation_mean),
-          natural_mort_ci = find_ci(natural_mort, alpha, natural_mort_mean)
+          ocean_abundance_CrI = find_CrI(ocean_abundance, level, ocean_abundance_median),
+          impact_CrI = find_CrI(impact, level, impact_median),
+          maturation_CrI = find_CrI(maturation, level, maturation_median),
+          natural_mort_CrI = find_CrI(natural_mort, level, natural_mort_median)
         )][,
            maturation_rate := .(find_mat_rate(ocean_abundance, impact, maturation, natural_mort))
          ][,
-          maturation_rate_mean := find_bt_mean(maturation_rate)
+          maturation_rate_median := find_bt_median(maturation_rate)
          ][,
-          maturation_rate_ci := .(find_ci(maturation_rate, alpha, maturation_rate_mean))
+           maturation_rate_sd := find_bt_sd(maturation_rate)
+         ][,
+          maturation_rate_CrI := .(find_CrI(maturation_rate, level, maturation_rate_median))
          ]
 
         # Calculate annual impact rate and its confidence interval.
@@ -239,9 +250,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                        .('impact_rate' = .(rowSums(mapply(identity, x = impact)) / ocean_abundance[[length(ocean_abundance)]])),
                                        by = list(by, age)
                                       ][,
-                                        impact_rate_mean := find_bt_mean(impact_rate)
+                                        impact_rate_median := find_bt_median(impact_rate)
                                       ][,
-                                        impact_rate_ci := .(find_ci(impact_rate, alpha, impact_rate_mean))
+                                        impact_rate_sd := find_bt_sd(impact_rate)
+                                      ][,
+                                        impact_rate_CrI := .(find_CrI(impact_rate, level, impact_rate_median))
                                       ]
 
         # Calculate spawner reduction rate and its confidence interval.
@@ -252,9 +265,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                         ][,
                           srr := .(find_srr(proj_mat, act_mat))
                         ][,
-                          srr_mean := find_bt_mean(srr)
+                          srr_median := find_bt_median(srr)
                         ][,
-                          srr_ci := .(find_ci(srr, alpha, srr_mean))
+                          srr_sd := find_bt_sd(srr)
+                        ][,
+                          srr_CrI := .(find_CrI(srr, level, srr_median))
                         ]
 
         # Calculate early life survival rate and its confidence interval.
@@ -268,9 +283,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                 early_life_survival_rate := .(split(mapply('/', x = early_abundance, y = total_release),
                                 rep(1 : length(early_abundance), each = iter)))
                               ][,
-                                early_life_survival_rate_mean := find_bt_mean(early_life_survival_rate)
+                                early_life_survival_rate_median := find_bt_median(early_life_survival_rate)
                               ][,
-                                early_life_survvial_rate_ci := .(find_ci(early_life_survival_rate, alpha, early_life_survival_rate_mean))
+                                early_life_survival_rate_sd := find_bt_sd(early_life_survival_rate)
+                              ][,
+                                early_life_survvial_rate_CrI := .(find_CrI(early_life_survival_rate, level, early_life_survival_rate_median))
                               ]
       }
     } else {
