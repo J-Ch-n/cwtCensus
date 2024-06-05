@@ -430,8 +430,12 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   impact_dt[, 'impact' := .(impact_column)]
 
   max_age_month_df = rel_reco_dt |>
+    # This a hacky fix for the age offset. NEED TO CHANGE.
+    mutate(age = case_when(
+      fishery %in% c(ocean_r, ocean_c) ~ age + 1,
+      TRUE ~ age
+    )) |>
     group_by(brood_year) |>
-    arrange(desc(age), desc(month)) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
   view(max_age_month_df)
