@@ -214,6 +214,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     if (bootstrap) {
       sapply(1 : nrow(cohort), cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
+      cohort[, ':='(
+        ocean_abundance_median = find_bt_median(ocean_abundance),
+        ocean_abundance_sd = find_bt_sd(ocean_abundance)
+      )][,
+         ocean_abundance_CrI := find_CrI(ocean_abundance, level, ocean_abundance_median)
+      ]
+
+
 
       if (detail) {
         cohort[, 'impact' := .(impact_column)]
@@ -222,8 +230,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
         # Construct confidence interval for ocean abundance, impact, maturation, and natural mortality.
         cohort[, ':='(
-          ocean_abundance_median = find_bt_median(ocean_abundance),
-          ocean_abundance_sd = find_bt_sd(ocean_abundance),
+          #ocean_abundance_median = find_bt_median(ocean_abundance),
+          #ocean_abundance_sd = find_bt_sd(ocean_abundance),
           impact_median = find_bt_median(impact),
           impact_sd = find_bt_sd(impact),
           maturation_median = find_bt_median(maturation),
@@ -231,7 +239,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
           natural_mort_median = find_bt_median(natural_mort),
           natural_mort_sd = find_bt_sd(natural_mort)
         )][, ':='(
-          ocean_abundance_CrI = find_CrI(ocean_abundance, level, ocean_abundance_median),
+          #ocean_abundance_CrI = find_CrI(ocean_abundance, level, ocean_abundance_median),
           impact_CrI = find_CrI(impact, level, impact_median),
           maturation_CrI = find_CrI(maturation, level, maturation_median),
           natural_mort_CrI = find_CrI(natural_mort, level, natural_mort_median)
@@ -289,6 +297,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                               ][,
                                 early_life_survial_rate_CrI := .(find_CrI(early_life_survival_rate, level, early_life_survival_rate_median))
                               ]
+      } else {
+
       }
     } else {
       apply(cohort, 1, cohort_helper)
@@ -328,10 +338,10 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         rm(cohort_left_dt)
       }
 
-      cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
-                            natural_mort = round(as.numeric(natural_mort), 2),
-                            impact = round(as.numeric(impact), 2),
-                            maturation = round(as.numeric(maturation), 2))
+      # cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
+      #                       natural_mort = round(as.numeric(natural_mort), 2),
+      #                       impact = round(as.numeric(impact), 2),
+      #                       maturation = round(as.numeric(maturation), 2))
     }
 
     if (detail) {
