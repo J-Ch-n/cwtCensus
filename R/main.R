@@ -28,18 +28,18 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
                                   level = level, iter = iter,
                                   release_info = clean_data$release_info)
   # TODO: This part is for debugging purposes only.
-  view(final_data$cohort)
-
-  if (detail) {
-    view(final_data$srr_dt)
-    view(final_data$els_dt)
-    view(final_data$air_dt)
-  }
+  # view(final_data$cohort)
+  #
+  # if (detail) {
+  #   view(final_data$srr_dt)
+  #   view(final_data$els_dt)
+  #   view(final_data$air_dt)
+  # }
 
   # Return and print outputs.
   # TODO: Figure out how to effectively display results.
 
-  return(create_output(final_data))
+  return(create_output(final_data, bootstrap = boostrap, iter = iter, detail = detail))
 }
 
 

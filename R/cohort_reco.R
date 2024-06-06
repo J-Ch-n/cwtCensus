@@ -287,7 +287,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                               ][,
                                 early_life_survival_rate_sd := find_bt_sd(early_life_survival_rate)
                               ][,
-                                early_life_survvial_rate_CrI := .(find_CrI(early_life_survival_rate, level, early_life_survival_rate_median))
+                                early_life_survial_rate_CrI := .(find_CrI(early_life_survival_rate, level, early_life_survival_rate_median))
                               ]
       }
     } else {
