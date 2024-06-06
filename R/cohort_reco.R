@@ -221,8 +221,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
          ocean_abundance_CrI := find_CrI(ocean_abundance, level, ocean_abundance_median)
       ]
 
-
-
       if (detail) {
         cohort[, 'impact' := .(impact_column)]
         cohort[, 'maturation' := .(maturation_column)]
@@ -230,8 +228,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
         # Construct confidence interval for ocean abundance, impact, maturation, and natural mortality.
         cohort[, ':='(
-          #ocean_abundance_median = find_bt_median(ocean_abundance),
-          #ocean_abundance_sd = find_bt_sd(ocean_abundance),
           impact_median = find_bt_median(impact),
           impact_sd = find_bt_sd(impact),
           maturation_median = find_bt_median(maturation),
@@ -239,7 +235,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
           natural_mort_median = find_bt_median(natural_mort),
           natural_mort_sd = find_bt_sd(natural_mort)
         )][, ':='(
-          #ocean_abundance_CrI = find_CrI(ocean_abundance, level, ocean_abundance_median),
           impact_CrI = find_CrI(impact, level, impact_median),
           maturation_CrI = find_CrI(maturation, level, maturation_median),
           natural_mort_CrI = find_CrI(natural_mort, level, natural_mort_median)
@@ -255,7 +250,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
         # Calculate annual impact rate and its confidence interval.
         annual_impact_rate_dt = cohort[,
-                                       .('impact_rate' = .(rowSums(mapply(identity, x = impact)) / ocean_abundance[[length(ocean_abundance)]])),
+                                       .('impact_rate' = .(rowSums(mapply(identity, x = impact))
+                                                           / ocean_abundance[[length(ocean_abundance)]])),
                                        by = list(by, age)
                                       ][,
                                         impact_rate_median := find_bt_median(impact_rate)
@@ -288,14 +284,14 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         els_dt = release_info[cohort_left_dt,
                               on = .(brood_year == by)
                               ][,
-                                early_life_survival_rate := .(split(mapply('/', x = early_abundance, y = total_release),
+                                els_rate := .(split(mapply('/', x = early_abundance, y = total_release),
                                 rep(1 : length(early_abundance), each = iter)))
                               ][,
-                                early_life_survival_rate_median := find_bt_median(early_life_survival_rate)
+                                els_rate_median := find_bt_median(els_rate)
                               ][,
-                                early_life_survival_rate_sd := find_bt_sd(early_life_survival_rate)
+                                els_rate_sd := find_bt_sd(els_rate)
                               ][,
-                                early_life_survial_rate_CrI := .(find_CrI(early_life_survival_rate, level, early_life_survival_rate_median))
+                                early_life_survial_rate_CrI := .(find_CrI(els_rate, level, els_rate_median))
                               ]
       } else {
 
@@ -316,7 +312,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         # Calculate annual impact rate.
         annual_impact_rate_dt = cohort[,
                                        .('impact_rate' = sum(unlist(impact)) / ocean_abundance[[length(ocean_abundance)]]),
-                                       by = list(by, age)]
+                                       by = list(by, age)
+                                       ]
 
         # Calculate spawner reduction rate. Handle division by zero by assigning 0 to NaN.
         srr_dt = cohort[,
@@ -333,7 +330,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                 by = list(by)]
         els_dt = release_info[cohort_left_dt, on = .(brood_year == by)
                              ][,
-                               early_life_survival_rate := early_abundance / total_release
+                               els_rate := early_abundance / total_release
                              ]
         rm(cohort_left_dt)
       }

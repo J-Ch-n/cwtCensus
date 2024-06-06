@@ -15,12 +15,13 @@ create_output <- function(data, bootstrap, iter, detail = T) {
         'natural_mort',
         'elsr',
         'srr')
+
       # Raw data
       raw_data = rbind(info[['ocean_abundance']] |> unlist(),
                        info[['impact']] |> unlist(),
                        info[['maturation']] |> unlist(),
                        info[['natural_mort']] |> unlist(),
-                       info[['early_life_survival_rate']] |>  unlist(),
+                       info[['els_rate']] |>  unlist(),
                        info[['srr']] |> unlist()) |>
         round(digits = 2)
 
@@ -38,13 +39,13 @@ create_output <- function(data, bootstrap, iter, detail = T) {
                                        info[['impact_median']] |> unlist(),
                                        info[['maturation_median']] |> unlist(),
                                        info[['natural_mort_median']] |> unlist(),
-                                       info[['early_life_survival_rate_median']] |> unlist(),
+                                       info[['els_rate_median']] |> unlist(),
                                        info[['srr_median']] |> unlist(),
                                        info[['ocean_abundance_sd']] |> unlist(),
                                        info[['impact_sd']] |> unlist(),
                                        info[['maturation_sd']] |> unlist(),
                                        info[['natural_mort_sd']] |> unlist(),
-                                       info[['early_life_survival_rate_sd']] |> unlist(),
+                                       info[['els_rate_sd']] |> unlist(),
                                        info[['srr_sd']] |> unlist(),
                                        oa_CrI[1],
                                        ip_CrI[1],
@@ -70,6 +71,7 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       } else {
         raw_data |> dimnames() = list(row_name, 'value')
       }
+
     # Only the concise version with bootstrap will get here.
     } else {
       if (bootstrap) {
@@ -79,7 +81,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
 
         # Summary information
         oa_CrI = info[['ocean_abundance_CrI']] |> unlist()
-        #browser()
         summary_info = matrix(data = c(info[['ocean_abundance_median']] |> unlist(),
                                        info[['ocean_abundance_sd']] |> unlist(),
                                        oa_CrI[1],
@@ -110,10 +111,12 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       left_join(data$srr_dt, by = c("by"))
     by(comb, list(comb$by, comb$age, comb$month), output_helper)
     rm(data)
+
     return(output_obj)
   } else if (bootstrap) {
     comb = data$cohort
     by(comb, list(comb$by, comb$age, comb$month), output_helper)
+
     return(output_obj)
   }
 

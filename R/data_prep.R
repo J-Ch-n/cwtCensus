@@ -74,7 +74,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   # Handle the case where c(MONTH, AGE) is not present in SIZE_AGE_DF. Iterate from the current time
   # to earlier time until we find a valid key. If this approach doesn't yield any valid key, iterate from the current time
   # to later time until we find a valid key.
-  missing_size_age_handler <- function(month, age, size_age_df, size_age_map) {
+  missing_size_age_handler <- function(month, age, size_age_map, size_age_df) {
     min_age_mnth_row = size_age_df |>
       arrange(month, age) |>
       head(1) |>
@@ -85,42 +85,46 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       tail(1) |>
       unname()
 
-    if (age < min_age_mnth_row[1] | age == min_age_mnth_row[1] & month < min_age_mnth_row[2]) {
-      return(min_age_mnth_row_row[3:4])
-    } else if (age > min_age_mnth_row[1] | age == min_age_mnth_row[1] & month > min_age_mnth_row[2]) {
-      return(max_age_mnth_row[3:4])
+    cur_min_age = min_age_mnth_row[1] |> unlist()
+    cur_min_month = min_age_mnth_row[2] |> unlist()
+    cur_max_age = max_age_mnth_row[1] |> unlist()
+    cur_max_month = max_age_mnth_row[2] |> unlist()
+
+    if (age < cur_min_age | age == cur_min_age & month < cur_min_month) {
+      return(min_age_mnth_row[3:4] |> unlist())
+    } else if (age > cur_max_age | age == cur_max_age & month > cur_max_month) {
+      return(max_age_mnth_row[3:4] |> unlist())
     }
 
-    for (age in age : min_age_mnth_row[1]) {
+    for (age in age : cur_min_age) {
       for (i in 1: 12) {
         month = ((month - 1) %% 12) + 1
         if (!is.null(size_age_map[[c(month, age)]])) {
-          return(size_age_map[[c(month, age)]])
+          return(size_age_map[[c(month, age)]] |> unlist())
         }
       }
     }
 
-    for (age in age : max_age_mnth_row[1] ) {
+    for (age in age : cur_max_age) {
       for (i in 1: 12) {
         month = ((month + 1) %% 12) + 1
         if (!is.null(size_age_map[[c(month, age)]])) {
-          return(size_age_map[[c(month, age)]])
+          return(size_age_map[[c(month, age)]] |> unlist())
         }
       }
     }
   }
 
   # Find the mean and standard deviation of body length at a certain age.
-  find_mean_sd <- function(month, age, size_age_map, size_age_df) {
+  find_mean_sd <- function(month, age, size_age_map) {
     # TODO: ask about this hacky fix.
     ####################################################
     ### Changed age to age + 1. This is a hacky fix. ###
     ####################################################
     mean_sd = size_age_map[[c(age + 1, month)]]
-
     if (is.null(mean_sd)) {
       warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
-      missing_size_age_handler(month, age, size_age_df)
+      return(missing_size_age_handler(month, age, size_age_map, length_at_age))
     }
 
     return(mean_sd)
@@ -177,14 +181,14 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     rel_reco_dt = rel_reco_dt[,
                               {
                                 total_indiv = bt_sum(est_num, prod_exp)
-                                mean_sd = find_mean_sd(month, age, size_age_map, size_age_df)
+                                mean_sd = find_mean_sd(month, age, size_age_map)
                                 mean = mean_sd[1]
                                 sd = mean_sd[2]
                                 catch = find_catch_bootstrap(mean, sd, size_limit, total_indiv)
 
                                 .(total_indiv = .(bt_sum(est_num, prod_exp)),
-                                  mean = find_mean_sd(month, age, size_age_map, size_age_df)[1],
-                                  sd = find_mean_sd(month, age, size_age_map, size_age_df)[2],
+                                  mean = find_mean_sd(month, age, size_age_map)[1],
+                                  sd = find_mean_sd(month, age, size_age_map)[2],
                                   catch = .(find_catch_bootstrap(mean, sd, size_limit, total_indiv)),
                                   harvest_rate = 1 - pnorm(size_limit, mean = mean, sd = sd))
                                 },
