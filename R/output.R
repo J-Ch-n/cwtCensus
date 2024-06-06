@@ -1,30 +1,27 @@
-# Creates an object containing all results for convenient querying.
-create_output <- function(final_data) {
-  # final_data$cohort
-  # final_data$air_dt
-  # final_data$els_dt
-  # final_data$srr_dt
-  dt_size = final_data$len
-  # Apply a function that acts on the data.
-  final_data$cohort |>
-    left_join(final_data$air_dt) |>
-    left_join(final_data$els_dt) |>
-    left_join(final_data$srr_dt) |>
-    group_by(by, age, month) |>
-    mutate(temp = output_helper(by, age, month,
-                                ocean_abundance, natural_mort, impact,
-                                maturation, ocean_abundance_median, ocean_abundance_sd,
-                                impact_median, impact_sd, maturation_median,
-                                maturation_sd, natural_mort_median, natural_mort_sd,
-                                ocean_abundance_CrI, impact_CrI, maturation_CrI,
-                                natural_mort_CrI, maturation_rate, maturation_rate_median,
-                                maturation_rate_sd, maturation_rate_CrI, proj_mat,
-                                act_mat, srr, srr_median,
-                                srr_sd, srr_CrI, impact_rate,
-                                impact_rate_median, impact_rate_sd, impact_rate_CrI,
-                                brood_year, total_release, early_abundance,
-                                early_life_survival_rate, early_life_survival_rate_median,
-                                early_life_survival_rate_sd,early_life_survvial_rate_CrI))
+# Creates an object containing all datas for convenient querying.
+create_output <- function(data) {
+  # data$cohort
+  # data$air_dt
+  # data$els_dt
+  # data$srr_dt
 
-  return(final_data)
+  # The inputs are provided per c(by, age, month).
+  # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
+  output_obj = list()
+  output_helper <- function(info) {
+    name = paste('by', info[[1]], 'age', info[[2]], 'month', info[[3]], sep = "-")
+    info = list(list(info))
+    names(info) = name
+    output_obj <<- append(output_obj, info)
+  }
+
+  dt_size = data$len
+  # Apply a function that acts on the data.
+  comb = data$cohort |>
+         left_join(data$air_dt, by = c("by", "age")) |>
+         left_join(data$els_dt, by = c("by" = "brood_year")) |>
+         left_join(data$srr_dt, by = c("by"))
+  by(comb, list(comb$by, comb$age, comb$month), output_helper)
+
+  return(output_obj)
 }
