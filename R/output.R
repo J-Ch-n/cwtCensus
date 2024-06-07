@@ -1,4 +1,4 @@
-# Creates an object containing all datas for convenient querying.
+# Creates an object containing all data for convenient querying.
 create_output <- function(data, bootstrap, iter, detail = T) {
   # The inputs are provided per c(by, age, month).
   # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
@@ -116,6 +116,48 @@ create_output <- function(data, bootstrap, iter, detail = T) {
   } else if (bootstrap) {
     comb = data$cohort
     by(comb, list(comb$by, comb$age, comb$month), output_helper)
+
+    return(output_obj)
+  }
+
+  return(data$cohort)
+}
+
+# Creates an object to display results by brood year.
+create_output_by <- function(data, bootstrap, iter, detail = T) {
+  # The inputs are provided per c(by, age, month).
+  # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
+  # TODO: This could be optimized.
+  output_obj = list()
+  output_helper <- function(info) {
+    name = paste('by', info[[1]][[1]], sep = "-")
+    summary_info = NA
+    if (detail) {
+      row_name = paste('age', info[[2]], 'month', info[[3]], sep = "-")
+
+      # Raw data
+      raw_data = lapply(info, function(x) {names(x) = row_name
+                                          x})
+
+    elem = list(list(summary = summary_info, raw = raw_data, debug = info))
+    names(elem) = name
+    output_obj <<- append(output_obj, elem)
+    }
+  }
+
+  # Apply a function that acts on the data.
+  if (detail) {
+    comb = data$cohort |>
+      left_join(data$air_dt, by = c("by", "age")) |>
+      left_join(data$els_dt, by = c("by" = "brood_year")) |>
+      left_join(data$srr_dt, by = c("by"))
+    by(comb, list(comb$by), output_helper)
+    rm(data)
+
+    return(output_obj)
+  } else if (bootstrap) {
+    comb = data$cohort
+    by(comb, list(comb$by), output_helper)
 
     return(output_obj)
   }
