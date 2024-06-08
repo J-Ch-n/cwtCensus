@@ -17,7 +17,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   ### Step 1: Declare and define necessary functions and variables. ###
   #####################################################################
 
-  # Create mappings from column name to column indices in rel_col_dt.
   BY_IDX = 1
   MNTH_IDX = 2
   AGE_IDX = 3
@@ -29,7 +28,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   CATCH_IDX = 11
   REL_MORT_IDX = 13
 
-  # Create mappings from column name to column indices in length_at_age.
   AGE_LAA_IDX = 1
   MNTH_LAA_IDX = 2
   MEAN_LAA_IDX = 3
@@ -149,8 +147,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     return(mapply(bt_sum_helper, est_num = est_num, prod_exp = prod_exp) |> rowSums())
   }
 
-  # Provide information about the number of released hatchery fish per brood year.
-  # TODO: right now we assume granularity of brood year regardless of location.
   release_info = as.data.table(rel)[,
                                     .(total_release = sum(total_release / prod_exp)),
                                     by = list(brood_year)][order(brood_year)]
@@ -158,8 +154,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
-  # Add parametric bootstrap if the flag is selected.
-  # TODO: Rewrite everything using native data.table syntax for optimization.
   if (bootstrap) {
     rel_reco_dt = reco |>
       left_join(rel, by = 'tag_code') |>
@@ -174,7 +168,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
           TRUE ~ 2)) |>
       as.data.table()
 
-    # Add bootstrapped values.
     num_rows = rel_reco_dt |> nrow()
     prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
     rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)]
@@ -210,9 +203,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
         TRUE ~ rate)) |>
       select(-run_year)
   } else {
-    # Create the first intermediate data table with lazy data table.
-    # This data table contains columns: BROOD_YEAR, MONTH, AGE, FISHERY, LOCATION, MATURATION_GRP, SIZE_LIMIT, TOTAL_INDIV, and CATCH.
-    # The rows are sorted such that all fisheries related to maturation precede those related to impact.
     rel_reco_ldt = reco |>
       left_join(rel, by = 'tag_code') |>
       setDT() |>
@@ -251,17 +241,14 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   ### Step 3: Calcuate Maturation and Impact ###
   ##############################################
 
-  # Find the minimum necessary number of rows for maturation and impact data tables.
   yr_ag_cnt = num_uniq_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_fshry_cnt = num_uniq_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
 
-  # Declare and zero-fill a data table with columns "by", "age", and "maturation" for storing maturation.
   maturation_init_vec = rep(0, yr_ag_cnt)
   maturation_dt = data.table(by = maturation_init_vec,
                         age = maturation_init_vec,
                         maturation = maturation_init_vec)
 
-  # Declare and zero-fill a data table for storing impact and natural mortality.
   impact_init_vec = rep(0, yr_ag_mth_fshry_cnt)
   impact_dt = data.table(by = impact_init_vec,
                          month = impact_init_vec,
@@ -275,8 +262,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   prev_m_age = rel_reco_dt[1, ..AGE_IDX] |> unlist()
   row_m_idx = 1L
 
-  # The value is true if the previous year has data from spawn, hatchery,
-  # or river, and false otherwise. The value defaults to false.
   prev_m_year_valid <- prev_i_year_valid <- FALSE
 
   ### Variables for impact calculation. ###
@@ -311,7 +296,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
 
     if (cur_fishery %in% c(spawn, river, hatchery)) {
-      # if the record marks a changed brood year or age, push the maturation value onto the data table.
       if (((cur_year != prev_m_year && prev_m_year_valid)
            | (cur_year == prev_m_year && cur_age != prev_m_age))) {
         maturation_column <<- append(par_env$maturation_column, list(par_env$prev_sp_esc +
@@ -327,11 +311,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
         prev_m_year_valid <<- FALSE
       }
 
-      # If fishery is spawning ground, river harvest, or hatchery escapement,
-      # calculate maturation. Aggregate maturation to `maturation_temp` until we encounter
-      # a new year.
-
-      # Calculate number of individuals for each type of fishery.
       if (cur_fishery == spawn) {
         prev_sp_esc <<- prev_sp_esc + cur_indiv
       } else if (cur_fishery == river) {
@@ -441,10 +420,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     group_by(brood_year) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
 
-  # view(max_age_month_df)
-  # view(rel_reco_dt)
-  # view(maturation_dt)
-  # view(impact_dt)
   rm(rel_reco_dt)
   return(list(maturation = maturation_dt, impact = impact_dt, max_age_month_df = max_age_month_df, release_info = release_info))
 }

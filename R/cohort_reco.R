@@ -148,7 +148,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
-        # If the age is about to change, query and account for maturation.
         if (cur_month == adj_birth_month) {
           cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
           cur_maturation_mat = as.matrix(cur_maturation_rows)
@@ -158,12 +157,10 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
             cur_maturation = cur_maturation + maturation
           }
         }
-        # TODO: also account for the number of spawners during nat mort.
-        # Query for natural mortality rate.
+
         nat_mort_rate = find_mortality_rate(as.integer(cur_age), as.integer(cur_month))
         cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
 
-        # Every row needs an impact calculation.
         # TODO: this is a hack MUST FIX (cur_age - 1).
         cur_impact_rows = impact_dt[by == cur_year & age == (cur_age - 1) & month == cur_month, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
         cur_impact_mat = as.matrix(cur_impact_rows)
@@ -213,7 +210,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         }
     }
 
-    # Conduct cohort reconstruction.
     if (bootstrap) {
       sapply(1 : nrow(cohort), cohort_helper)
       cohort[, 'ocean_abundance' := .(abundance_column)]
@@ -229,7 +225,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         cohort[, 'maturation' := .(maturation_column)]
         cohort[, 'natural_mort' := .(mortality_column)]
 
-        # Construct confidence interval for ocean abundance, impact, maturation, and natural mortality.
         cohort[, ':='(
           impact_median = find_bt_median(impact),
           impact_sd = find_bt_sd(impact),
@@ -251,7 +246,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
           maturation_rate_CrI := .(find_CrI(maturation_rate, level, maturation_rate_median))
          ]
 
-        # Calculate annual impact rate and its confidence interval.
         annual_impact_rate_dt = cohort[,
                                        .('impact_rate' = .(rowSums(mapply(identity, x = impact))
                                                            / ocean_abundance[[length(ocean_abundance)]])),
@@ -264,7 +258,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                         impact_rate_CrI := .(find_CrI(impact_rate, level, impact_rate_median))
                                       ]
 
-        # Calculate spawner reduction rate and its confidence interval.
         srr_dt = cohort[,
                         .(proj_mat = .(rowSums(mapply('*', x = maturation_rate, ocean_abundance))),
                           act_mat = .(rowSums(mapply(identity, x = maturation)))),
@@ -279,7 +272,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                           srr_CrI := .(find_CrI(srr, level, srr_median))
                         ]
 
-        # Calculate early life survival rate and its confidence interval.
         cohort_left_dt = cohort[,
                                 .(early_abundance = .(ocean_abundance[[length(ocean_abundance)]])),
                                 by = list(by)
@@ -296,8 +288,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                               ][,
                                 early_life_survial_rate_CrI := .(find_CrI(els_rate, level, els_rate_median))
                               ]
-      } else {
-
       }
     } else {
       apply(cohort, 1, cohort_helper)
@@ -312,13 +302,11 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                                maturation,
                                                natural_mort))]
 
-        # Calculate annual impact rate.
         annual_impact_rate_dt = cohort[,
                                        .('impact_rate' = sum(unlist(impact)) / ocean_abundance[[length(ocean_abundance)]]),
                                        by = list(by, age)
                                        ]
 
-        # Calculate spawner reduction rate. Handle division by zero by assigning 0 to NaN.
         srr_dt = cohort[,
                         .('proj_mat' = sum(unlist(mat_rate) * unlist(ocean_abundance)),
                           'act_mat' = sum(unlist(maturation))),
@@ -327,7 +315,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                          'srr' := fifelse(act_mat == 0, 0, (proj_mat - act_mat) / act_mat)
                        ]
 
-        # Calculate early life survival rate.
         cohort_left_dt = cohort[,
                                 .(early_abundance = ocean_abundance[[length(ocean_abundance)]]),
                                 by = list(by)]
@@ -337,11 +324,6 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                              ]
         rm(cohort_left_dt)
       }
-
-      # cohort = cohort |> mutate(ocean_abundance = round(as.numeric(ocean_abundance), 2),
-      #                       natural_mort = round(as.numeric(natural_mort), 2),
-      #                       impact = round(as.numeric(impact), 2),
-      #                       maturation = round(as.numeric(maturation), 2))
     }
 
     if (detail) {

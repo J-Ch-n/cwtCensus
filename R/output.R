@@ -1,8 +1,5 @@
 # Creates an object containing all data for convenient querying.
 create_output <- function(data, bootstrap, iter, detail = T) {
-  # The inputs are provided per c(by, age, month).
-  # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
-  # TODO: This could be optimized.
   output_obj = list()
   output_helper <- function(info) {
     name = paste('by', info[[1]], 'age', info[[2]], 'month', info[[3]], sep = "-")
@@ -27,7 +24,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       if (bootstrap) {
         data |> dimnames() = list(row_name, 1 : iter)
 
-        # Summary information
         oa_CrI = info[['ocean_abundance_CrI']] |> unlist()
         ip_CrI = info[['impact_CrI']] |> unlist()
         mt_CrI = info[['maturation_CrI']] |> unlist()
@@ -70,8 +66,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       } else {
         data |> dimnames() = list(row_name, 'value')
       }
-
-    # Only the concise version with bootstrap will get here.
     } else {
       if (bootstrap) {
         data = matrix(data = info[['ocean_abundance']] |> unlist(),
@@ -101,7 +95,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
     output_obj <<- append(output_obj, elem)
   }
 
-  # Apply a function that acts on the data.
   if (detail) {
     comb = data$cohort |>
       left_join(data$air_dt, by = c("by", "age")) |>
@@ -123,9 +116,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
 
 # Creates an object to display results by brood year.
 create_output_by <- function(data, bootstrap, iter, detail = T) {
-  # The inputs are provided per c(by, age, month).
-  # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
-  # TODO: This could be optimized.
   output_obj = list()
   output_helper <- function(info) {
     name = paste('by', info[[1]][[1]], sep = "-")
@@ -166,11 +156,8 @@ create_output_by <- function(data, bootstrap, iter, detail = T) {
   return(data$cohort)
 }
 
-# Creates an object to display results by brood year.
+# Creates an object to display results by brood year and age.
 create_output_by_age <- function(data, bootstrap, iter, detail = T) {
-  # The inputs are provided per c(by, age, month).
-  # This function converts each chunk of summary information into a list object keyed by c(by, age, month).
-  # TODO: This could be optimized.
   output_obj = list()
   output_helper <- function(info) {
     name = paste('by', info[[1]][[1]], 'age', info[[2]][[1]], sep = "-")
