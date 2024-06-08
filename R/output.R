@@ -97,7 +97,6 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       }
     }
 
-
     elem = list(list(summary = summary_info, raw = raw_data, debug = info))
     names(elem) = name
     output_obj <<- append(output_obj, elem)
@@ -136,8 +135,10 @@ create_output_by <- function(data, bootstrap, iter, detail = T) {
       row_name = paste('age', info[[2]], 'month', info[[3]], sep = "-")
 
       # Raw data
-      raw_data = lapply(info, function(x) {names(x) = row_name
-                                          x})
+      raw_data = lapply(info |> select(-c(by, month, age)),
+                        function(x) {
+                          names(x) = row_name
+                          x})
 
     elem = list(list(summary = summary_info, raw = raw_data, debug = info))
     names(elem) = name
@@ -174,17 +175,23 @@ create_output_by_age <- function(data, bootstrap, iter, detail = T) {
   output_helper <- function(info) {
     name = paste('by', info[[1]][[1]], 'age', info[[2]][[1]], sep = "-")
     summary_info = NA
-    if (detail) {
-      row_name = paste('month', info[[3]], sep = "-")
+    row_name = paste('month', info[[3]], sep = "-")
+    # Raw data
 
-      # Raw data
-      raw_data = lapply(info, function(x) {names(x) = row_name
-      x})
+    if (detail) {
+      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance),
+                      natural_mort = info |> select(by, age, month, natural_mort),
+                      impact = info |> select(by, age, month, impact),
+                      maturation = info |> select(by, age, month, maturation))
+      summary_info = info |> select(-c(ocean_abundance, natural_mort, impact, maturation))
+    } else if (bootstrap) {
+      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance))
+      summary_info = info |> select(-c(ocean_abundance))
+    }
 
       elem = list(list(summary = summary_info, raw = raw_data, debug = info))
       names(elem) = name
       output_obj <<- append(output_obj, elem)
-    }
   }
 
   # Apply a function that acts on the data.
