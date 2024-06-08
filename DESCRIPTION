@@ -17,13 +17,15 @@ Imports:
     dtplyr,
     data.table,
     rlang,
-    r2r
+    r2r,
+    HDInterval
 Depends: 
     R (>= 2.10),
     data.table,
     rlang,
     tidyverse,
     dtplyr,
+    HDInterval,
     r2r
 LazyData: true
 Suggests: 

@@ -16,8 +16,7 @@ create_output <- function(data, bootstrap, iter, detail = T) {
         'elsr',
         'srr')
 
-      # Raw data
-      raw_data = rbind(info[['ocean_abundance']] |> unlist(),
+      data = rbind(info[['ocean_abundance']] |> unlist(),
                        info[['impact']] |> unlist(),
                        info[['maturation']] |> unlist(),
                        info[['natural_mort']] |> unlist(),
@@ -26,7 +25,7 @@ create_output <- function(data, bootstrap, iter, detail = T) {
         round(digits = 2)
 
       if (bootstrap) {
-        raw_data |> dimnames() = list(row_name, 1 : iter)
+        data |> dimnames() = list(row_name, 1 : iter)
 
         # Summary information
         oa_CrI = info[['ocean_abundance_CrI']] |> unlist()
@@ -69,17 +68,17 @@ create_output <- function(data, bootstrap, iter, detail = T) {
                               )) |>
           round(digits = 2)
       } else {
-        raw_data |> dimnames() = list(row_name, 'value')
+        data |> dimnames() = list(row_name, 'value')
       }
 
     # Only the concise version with bootstrap will get here.
     } else {
       if (bootstrap) {
-        raw_data = matrix(data = info[['ocean_abundance']] |> unlist(),
+        data = matrix(data = info[['ocean_abundance']] |> unlist(),
                           nrow = 1,
                           dimnames = list('ocean_abundance', 1 : iter))
 
-        # Summary information
+
         oa_CrI = info[['ocean_abundance_CrI']] |> unlist()
         summary_info = matrix(data = c(info[['ocean_abundance_median']] |> unlist(),
                                        info[['ocean_abundance_sd']] |> unlist(),
@@ -97,7 +96,7 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       }
     }
 
-    elem = list(list(summary = summary_info, raw = raw_data, debug = info))
+    elem = list(list(summary = summary_info, data = data))#, debug = info))
     names(elem) = name
     output_obj <<- append(output_obj, elem)
   }
@@ -133,22 +132,21 @@ create_output_by <- function(data, bootstrap, iter, detail = T) {
     summary_info = NA
 
     if (detail) {
-      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance),
+      data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance),
                       natural_mort = info |> select(by, age, month, natural_mort),
                       impact = info |> select(by, age, month, impact),
                       maturation = info |> select(by, age, month, maturation))
       summary_info = info |> select(-c(ocean_abundance, natural_mort, impact, maturation))
     } else if (bootstrap) {
-      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance))
+      data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance))
       summary_info = info |> select(-c(ocean_abundance))
     }
 
-    elem = list(list(summary = summary_info, raw = raw_data, debug = info))
+    elem = list(list(summary = summary_info, data = data))#, debug = info))
     names(elem) = name
     output_obj <<- append(output_obj, elem)
   }
 
-  # Apply a function that acts on the data.
   if (detail) {
     comb = data$cohort |>
       left_join(data$air_dt, by = c("by", "age")) |>
@@ -180,22 +178,21 @@ create_output_by_age <- function(data, bootstrap, iter, detail = T) {
     row_name = paste('month', info[[3]], sep = "-")
 
     if (detail) {
-      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance),
+      data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance),
                       natural_mort = info |> select(by, age, month, natural_mort),
                       impact = info |> select(by, age, month, impact),
                       maturation = info |> select(by, age, month, maturation))
       summary_info = info |> select(-c(ocean_abundance, natural_mort, impact, maturation))
     } else if (bootstrap) {
-      raw_data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance))
+      data = list(ocean_abundance = info |> select(by, age, month, ocean_abundance))
       summary_info = info |> select(-c(ocean_abundance))
     }
 
-      elem = list(list(summary = summary_info, raw = raw_data, debug = info))
+      elem = list(list(summary = summary_info, data = data))#, debug = info))
       names(elem) = name
       output_obj <<- append(output_obj, elem)
   }
 
-  # Apply a function that acts on the data.
   if (detail) {
     comb = data$cohort |>
       left_join(data$air_dt, by = c("by", "age")) |>

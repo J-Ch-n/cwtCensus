@@ -3,7 +3,7 @@
 cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
                                birth_month, max_age_month_df, iter,
                                release_info, detail, impact_fisheries = c(40, 10), bootstrap = T,
-                               level = 0.05) {
+                               level = 0.05, hpd = T) {
     # Natural mortality indices
     NM_AGE_IDX = 1
     NM_MNTH_IDX = 2
@@ -81,6 +81,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
       find_CrI_helper <- function(vec, level, center) {
         l_cut_off = 0.5 - (level / 2)
         quantile(vec, c(l_cut_off, 1 - l_cut_off))
+      }
+      if (hpd) {
+        return(split(mapply(hdi, object = col, credMass = level), rep(1 : length(col), each = 2)))
       }
       return(split(mapply(find_CrI_helper, vec = col, level = level, center = center), rep(1 : length(col), each = 2)))
     }

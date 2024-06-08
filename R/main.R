@@ -7,7 +7,7 @@
 #' @examples
 ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mort = release, nat_mort = nat_mort_default,
                     sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
-                    detail = T, level = 0.05) {
+                    detail = T, level = 0.05, hpd = T) {
   # Throws warning or error if necessary.
   # TODO: Update error handler.
   # error_handler(rel, reco, size_at_age, rel_mort, nat_mort,
@@ -26,7 +26,7 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
                                   nat_mort, birth_month, clean_data$max_age_month_df,
                                   detail = detail, bootstrap = bootstrap,
                                   level = level, iter = iter,
-                                  release_info = clean_data$release_info)
+                                  release_info = clean_data$release_info, hpd = hpd)
   # TODO: This part is for debugging purposes only.
   # view(final_data$cohort)
   #
@@ -37,9 +37,7 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
   # }
 
   # Return and print outputs.
-  # TODO: Figure out how to effectively display results.
-
-  return(create_output_by(final_data, bootstrap = bootstrap, iter = iter, detail = detail))
+  return(create_output(final_data, bootstrap = bootstrap, iter = iter, detail = detail))
 }
 
 
