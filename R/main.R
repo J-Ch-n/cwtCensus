@@ -39,7 +39,7 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
   # Return and print outputs.
   # TODO: Figure out how to effectively display results.
 
-  return(create_output_by_age(final_data, bootstrap = bootstrap, iter = iter, detail = detail))
+  return(create_output_by(final_data, bootstrap = bootstrap, iter = iter, detail = detail))
 }
 
 
