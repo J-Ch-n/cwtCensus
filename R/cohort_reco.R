@@ -24,7 +24,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     ###########################################
     ### Step 1: Setup Cohort Reconstruction ###
     ###########################################
-    nat_mort_hp = hashmap()
+    nat_mort_hp = r2r::hashmap()
     num_by = nrow(max_age_month_df)
     num_by_age_month = sum(pmax((max_age_month_df$max_age - 2) * 12, 0) +
                              pmin(max_age_month_df$max_age - 1, 1) * ((max_age_month_df$month - birth_month) %% 12 + 1))

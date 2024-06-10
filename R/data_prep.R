@@ -36,7 +36,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   num_rows = 0
 
   ### Create size_age_map ###
-  size_age_map = hashmap()
+  size_age_map = r2r::hashmap()
 
   # Create a hashmap from length_at_age. The resulting hashmap SIZE_AGE_MAP has c(month, age) as keys.
   # Each key corresponds to a value of c(mean, standard deviation).
@@ -61,11 +61,12 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       distinct_cols = c(distinct_cols, "month", "fishery")
     }
 
-    return(rel_reco_dt |>
-      filter(fishery %in% fisheries) |>
-      select(distinct_cols) |>
-      distinct() |>
-      nrow())
+    # return(rel_reco_dt |>
+    #   filter(fishery %in% fisheries) |>
+    #   select(distinct_cols) |>
+    #   distinct() |>
+    #   nrow())
+    rel_reco_dt[fishery %in% fisheries, .SD, .SDcols = distinct_cols][, unique(.SD)][, .N]
   }
 
   # TODO: debug this section + think about if this is necessary.

@@ -7,13 +7,18 @@
 ch_reco(
   rel,
   reco,
-  size_at_age = release,
+  birth_month,
+  size_at_age = length_at_age,
   rel_mort = release,
-  nat_mort = release,
+  nat_mort = nat_mort_default,
   sex = "both",
   fisheries = release,
   bootstrap = TRUE,
-  iter = 1000
+  iter = 1000,
+  min_harvest_rate = 0,
+  detail = T,
+  level = 0.05,
+  hpd = T
 )
 }
 \value{
