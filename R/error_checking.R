@@ -56,7 +56,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
     w_msg <- ""
 
     msg1 <- "df has duplicates in column: "
-    msg2 <- ", dropping duplicates. \n"
+    msg2 <- ".\n"
 
     if (length(rel[['tag_code']]) != length(dist_rel[['tag_code']])){
       w_msg = paste0(w_msg, "Release ", msg1, "tag_code", msg2)
@@ -193,17 +193,16 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
   # Check incorrect number of columns.
   col_err = check_dim(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
   if (length(col_err) > 0) error_handler(col_err, "column(s)")
-
-  # Check incorrec† column names of REL and RECO.
+  # Check incorrect column names of REL and RECO.
   nam_err = check_columns(rel, reco)
   if (length(nam_err) > 0) error_handler(nam_err, "columns")
 
   # Check uniqueness of REL and RECO
-  u_col = check_unique(rel, reco)
-  rel['tag_code'] = u_col[[1]]
-  reco['recovery_id'] = u_col[[2]]
+  check_unique(rel, reco)
+
+  # rel['tag_code'] = u_col[[1]]
+  # reco['recovery_id'] = u_col[[2]]
 
   # Check for missing values in all inputs
   check_nan(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
 }
-

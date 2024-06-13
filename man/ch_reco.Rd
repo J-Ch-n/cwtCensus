@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{ch_reco}
 \alias{ch_reco}
-\title{Generates a cohort reconstruction for salmon or other anadromous fish.}
+\title{Title}
 \usage{
 ch_reco(
   rel,
@@ -21,9 +21,9 @@ ch_reco(
   hpd = T
 )
 }
-\value{
-list of cohort reconstructions with or without bootstrapping.
+\arguments{
+\item{hpd}{}
 }
 \description{
-Generates a cohort reconstruction for salmon or other anadromous fish.
+Title
 }

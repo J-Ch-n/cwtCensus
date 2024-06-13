@@ -1,7 +1,7 @@
 ### Reconstruction Functions ###
 
-cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
-                               birth_month, max_age_month_df, iter,
+reconstruct <- function(maturation_dt, impact_dt, nat_mort,
+                               birth_month, max_ag_mnth_df, iter,
                                release_info, detail, impact_fisheries = c(40, 10), bootstrap = T,
                                level = 0.05, hpd = T) {
     # Natural mortality indices
@@ -25,9 +25,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     ### Step 1: Setup Cohort Reconstruction ###
     ###########################################
     nat_mort_hp = r2r::hashmap()
-    num_by = nrow(max_age_month_df)
-    num_by_age_month = sum(pmax((max_age_month_df$max_age - 2) * 12, 0) +
-                             pmin(max_age_month_df$max_age - 1, 1) * ((max_age_month_df$month - birth_month) %% 12 + 1))
+    num_by = nrow(max_ag_mnth_df)
+    num_by_age_month = sum(pmax((max_ag_mnth_df$max_age - 2) * 12, 0) +
+                             pmin(max_ag_mnth_df$max_age - 1, 1) * ((max_ag_mnth_df$month - birth_month) %% 12 + 1))
     if (num_by_age_month <= 0) {
       stop("Size is less than or equal to zero.")
     }
@@ -67,7 +67,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     ###########################################
 
     # Use default mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
-    handle_missing_mort_rate <- function(age) {
+    missing_mort_rate_handler <- function(age) {
       warning(paste0("Missing mortality rate for age ", age))
       if (age == 2) {
         return(0.0561)
@@ -124,7 +124,7 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     find_mortality_rate <- function(age, month) {
       mort_rate = nat_mort_hp[[c(age, month)]]
       if (is.null(mort_rate)) {
-        mort_rate = handle_missing_mort_rate(age)
+        mort_rate = missing_mort_rate_handler(age)
       }
 
       return(mort_rate)
@@ -133,86 +133,91 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
     # Variables for Reconstruction
     row_idx <- max_age_month_idx <- 1L
 
-    cur_year = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
-    cur_age = max_age_month_df$max_age[[max_age_month_idx]]
-    cur_month = max_age_month_df$month[[max_age_month_idx]]
+    cur_yr = impact_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
+    cur_ag = max_ag_mnth_df$max_age[[max_age_month_idx]]
+    cur_mnth = max_ag_mnth_df$month[[max_age_month_idx]]
 
-    impact_column <- maturation_column <- abundance_column <- mortality_column <- list()
+    imp_col <- mat_col <- abd_col <- mort_col <- list()
 
     # Stores the previous month and its ocean abundance.
     prev_mnth_N = rep(0, times = iter)
 
     cohort_helper <- function(record) {
         # Local variables to accumulate maturation and impact.
-        cur_maturation <- cur_impact <- cur_maturation_rows <- rep(0, iter)
+        cur_mat <- cur_imp <- cur_maturation_rows <- rep(0, iter)
         par_env = env_parent(current_env())
         adj_birth_month = (birth_month - 2L) %% 12L + 1L
 
-        if (cur_month == adj_birth_month) {
-          cur_maturation_rows = maturation_dt[by == cur_year & age == cur_age, ..MA_MA_IDX]
+        if (cur_mnth == adj_birth_month) {
+          cur_maturation_rows = maturation_dt[by == cur_yr & age == cur_ag, ..MA_MA_IDX]
           cur_maturation_mat = as.matrix(cur_maturation_rows)
           cur_maturation_mat_size = length(cur_maturation_mat)
 
           for (maturation in cur_maturation_mat[, 1]) {
-            cur_maturation = cur_maturation + maturation
+            cur_mat = cur_mat + maturation
           }
         }
 
-        nat_mort_rate = find_mortality_rate(as.integer(cur_age), as.integer(cur_month))
-        cur_mortality = find_mortality(cur_maturation, prev_mnth_N, nat_mort_rate)
+        nat_mort_rate = find_mortality_rate(as.integer(cur_ag), as.integer(cur_mnth))
+        cur_mort = find_mortality(cur_mat, prev_mnth_N, nat_mort_rate)
 
-        # TODO: this is a hack MUST FIX (cur_age - 1).
-        cur_impact_rows = impact_dt[by == cur_year & age == (cur_age - 1) & month == cur_month, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
+        # TODO: this is a hack MUST FIX (cur_ag - 1).
+        if (cur_mnth != birth_month - 1) {
+          HACKY_AGE = cur_ag - 1
+        } else {
+          HACKY_AGE = cur_ag
+        }
+        cur_impact_rows = impact_dt[by == cur_yr & age == HACKY_AGE & month == cur_mnth, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
         cur_impact_mat = as.matrix(cur_impact_rows)
         cur_impact_mat_size = length(cur_impact_mat)
 
         for (impact in cur_impact_mat[, 1]) {
-          cur_impact = cur_impact + impact
+          cur_imp = cur_imp + impact
         }
 
-        cur_ocean_abundance = cur_impact + cur_mortality + prev_mnth_N + cur_maturation
+        cur_ocean_abundance = cur_imp + cur_mort + prev_mnth_N + cur_mat
 
-        abundance_column <<- append(abundance_column, list(cur_ocean_abundance))
+        abd_col <<- append(abd_col, list(cur_ocean_abundance))
 
         par_env$cohort |>
-          set(i = row_idx, j = "by", value = cur_year)
+          set(i = row_idx, j = "by", value = cur_yr)
         par_env$cohort |>
-          set(i = row_idx, j = "month", value = cur_month)
+          set(i = row_idx, j = "month", value = cur_mnth)
         par_env$cohort |>
-          set(i = row_idx, j = "age", value = cur_age)
+          set(i = row_idx, j = "age", value = cur_ag)
 
         if (detail) {
-          mortality_column <<- append(mortality_column, list(cur_mortality))
-          impact_column <<- append(impact_column, list(cur_impact))
-          maturation_column <<- append(maturation_column, list(cur_maturation))
+          mort_col <<- append(mort_col, list(cur_mort))
+          imp_col <<- append(imp_col, list(cur_imp))
+          mat_col <<- append(mat_col, list(cur_mat))
         }
 
         prev_mnth_N <<- cur_ocean_abundance
         row_idx <<- row_idx + 1L
 
-        if (cur_month == birth_month) {
-          cur_age <<- cur_age - 1
+        if (cur_mnth == birth_month) {
+          cur_ag <<- cur_ag - 1
         }
 
-        if (cur_age == 1) {
-          if (cur_month == birth_month) {
+        if (cur_ag == 1) {
+          if (cur_mnth == birth_month) {
             if (max_age_month_idx < num_by) {
               max_age_month_idx <<- max_age_month_idx + 1
             }
-            cur_year <<- max_age_month_df$brood_year[[max_age_month_idx]]
+            cur_yr <<- max_ag_mnth_df$brood_year[[max_age_month_idx]]
           }
 
-          cur_age <<- max_age_month_df$max_age[[max_age_month_idx]]
-          cur_month <<- max_age_month_df$month[[max_age_month_idx]]
+          cur_ag <<- max_ag_mnth_df$max_age[[max_age_month_idx]]
+          cur_mnth <<- max_ag_mnth_df$month[[max_age_month_idx]]
           prev_mnth_N <<- 0
         } else {
-          cur_month <<- (cur_month - 2) %% 12 + 1
+          cur_mnth <<- (cur_mnth - 2) %% 12 + 1
         }
     }
 
     if (bootstrap) {
       sapply(1 : nrow(cohort), cohort_helper)
-      cohort[, 'ocean_abundance' := .(abundance_column)]
+      cohort[, 'ocean_abundance' := .(abd_col)]
       cohort[, ':='(
         ocean_abundance_median = find_bt_median(ocean_abundance),
         ocean_abundance_sd = find_bt_sd(ocean_abundance)
@@ -221,9 +226,9 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
       ]
 
       if (detail) {
-        cohort[, 'impact' := .(impact_column)]
-        cohort[, 'maturation' := .(maturation_column)]
-        cohort[, 'natural_mort' := .(mortality_column)]
+        cohort[, 'impact' := .(imp_col)]
+        cohort[, 'maturation' := .(mat_col)]
+        cohort[, 'natural_mort' := .(mort_col)]
 
         cohort[, ':='(
           impact_median = find_bt_median(impact),
@@ -291,12 +296,12 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
       }
     } else {
       apply(cohort, 1, cohort_helper)
-      cohort[, 'ocean_abundance' := .(abundance_column)]
+      cohort[, 'ocean_abundance' := .(abd_col)]
 
       if (detail) {
-        cohort[, 'impact' := .(impact_column)]
-        cohort[, 'maturation' := .(maturation_column)]
-        cohort[, 'natural_mort' := .(mortality_column)]
+        cohort[, 'impact' := .(imp_col)]
+        cohort[, 'maturation' := .(mat_col)]
+        cohort[, 'natural_mort' := .(mort_col)]
         cohort[, 'mat_rate' := .(find_mat_rate(ocean_abundance,
                                                impact,
                                                maturation,
@@ -325,7 +330,8 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         rm(cohort_left_dt)
       }
     }
-
+    tibble::view(cohort)
+    tibble::view(cohort |> dplyr::filter(age == 2, month == birth_month))
     if (detail) {
       return(list(cohort = cohort,
                   srr_dt = srr_dt,
@@ -336,5 +342,3 @@ cohort_reconstruct <- function(maturation_dt, impact_dt, nat_mort,
 
     return(list(cohort = cohort))
   }
-
-

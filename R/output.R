@@ -1,5 +1,5 @@
 # Creates an object containing all data for convenient querying.
-create_output <- function(data, bootstrap, iter, detail = T) {
+create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
   output_obj = list()
   output_helper <- function(info) {
     name = paste('by', info[[1]], 'age', info[[2]], 'month', info[[3]], sep = "-")
@@ -100,13 +100,13 @@ create_output <- function(data, bootstrap, iter, detail = T) {
       left_join(data$air_dt, by = c("by", "age")) |>
       left_join(data$els_dt, by = c("by" = "brood_year")) |>
       left_join(data$srr_dt, by = c("by"))
-    by(comb, list(comb$by, comb$age, comb$month), output_helper)
+    by(comb, list((comb$month - birth_month) %% 12 + 1, comb$age, comb$by), output_helper)
     rm(data)
 
     return(output_obj)
   } else if (bootstrap) {
     comb = data$cohort
-    by(comb, list(comb$by, comb$age, comb$month), output_helper)
+    by(comb, list((comb$month - birth_month) %% 12 + 1, comb$age, comb$by), output_helper)
 
     return(output_obj)
   }
@@ -185,16 +185,79 @@ create_output_by_age <- function(data, bootstrap, iter, detail = T) {
       left_join(data$air_dt, by = c("by", "age")) |>
       left_join(data$els_dt, by = c("by" = "brood_year")) |>
       left_join(data$srr_dt, by = c("by"))
-    by(comb, list(comb$by, comb$age), output_helper)
+    by(comb, list(comb$age, comb$by), output_helper)
     rm(data)
 
     return(output_obj)
   } else if (bootstrap) {
     comb = data$cohort
-    by(comb, list(comb$by, comb$age), output_helper)
+    by(comb, list(comb$age, comb$by), output_helper)
 
     return(output_obj)
   }
 
   return(data$cohort)
+}
+
+
+cohort_summary <- function(data, bootstrap, detail) {
+  if (bootstrap) {
+    if (detail) {
+      return(data$cohort |>
+               left_join(data$air_dt, by = c("by", "age")) |>
+               left_join(data$els_dt, by = c("by" = "brood_year")) |>
+               left_join(data$srr_dt, by = c("by")) |>
+               select(-c(ocean_abundance,
+                         natural_mort,
+                         impact,
+                         maturation,
+                         els_rate,
+                         srr,
+                         proj_mat,
+                         act_mat)))
+    } else {
+      return(data$cohort |>
+               select(-c(ocean_abundance)))
+    }
+  } else {
+    if (detail) {
+      return(data$cohort |>
+               left_join(data$air_dt, by = c("by", "age")) |>
+               left_join(data$els_dt, by = c("by" = "brood_year")) |>
+               left_join(data$srr_dt, by = c("by")))
+    } else {
+      return(data$cohort)
+    }
+  }
+}
+
+cohort_data <- function(data, bootstrap, detail) {
+  if (bootstrap) {
+    if (detail) {
+      return(data$cohort |>
+               left_join(data$air_dt, by = c("by", "age")) |>
+               left_join(data$els_dt, by = c("by" = "brood_year")) |>
+               left_join(data$srr_dt, by = c("by")) |>
+               select(c(ocean_abundance,
+                         natural_mort,
+                         impact,
+                         maturation,
+                         els_rate,
+                         srr,
+                         proj_mat,
+                         act_mat)))
+    } else {
+      return(data$cohort |>
+               select(c(ocean_abundance)))
+    }
+  } else {
+    if (detail) {
+      return(data$cohort |>
+               left_join(data$air_dt, by = c("by", "age")) |>
+               left_join(data$els_dt, by = c("by" = "brood_year")) |>
+               left_join(data$srr_dt, by = c("by")))
+    } else {
+      return(data$cohort)
+    }
+  }
 }
