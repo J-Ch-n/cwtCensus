@@ -10,10 +10,10 @@
 #' @importFrom dplyr distinct
 #' @importFrom dplyr summarize
 #' @importFrom dplyr group_by
+#' @import data.table
 #' @import dtplyr
 #' @importFrom rlang env_parent
 #' @importFrom rlang current_env
 #' @importFrom HDInterval hdi
-#' @import data.table
 ## usethis namespace: end
 NULL

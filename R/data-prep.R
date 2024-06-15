@@ -1,20 +1,11 @@
-#################################
-### Data Preparation Function ###
-#################################
-
-# TODO: think about if the arguments make sense.
-data_prep <- function(rel, reco, size_at_age = length_at_age,
-                      birth_month, iter, min_harvest_rate,
-                      spawn = 54, hatchery = 50, river = 46,
-                      ocean_r = 40, ocean_c = 10, bootstrap = T,
+data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
+                      iter, min_harvest_rate, spawn = 54, hatchery = 50,
+                      river = 46, ocean_r = 40, ocean_c = 10, bootstrap = T,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14,
                       rel_mort = release_mort) {
 
-  # TODO: REMOVE THIS LINE.
-  set.seed(10)
-  #####################################################################
-  ### Step 1: Declare and define necessary functions and variables. ###
-  #####################################################################
+
+# Preprocess and Helper Function Definitions ------------------------------
 
   BY_IDX = 1
   MNTH_IDX = 2
@@ -35,8 +26,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   num_rows = 0
   size_age_map = r2r::hashmap()
 
-  # Create a hashmap from length_at_age. The resulting hashmap SIZE_AGE_MAP has c(month, age) as keys.
-  # Each key corresponds to a value of c(mean, standard deviation).
   create_size_age_map <- function(record) {
     record = unname(record)
     key = c(record[AGE_LAA_IDX], record[MNTH_LAA_IDX])
@@ -45,10 +34,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     size_age_map[[key]] <<- value
   }
 
-  # TODO: debug this section + think about if this is necessary.
-  # Handle the case where c(MONTH, AGE) is not present in SIZE_AGE_DF. Iterate from the current time
-  # to earlier time until we find a valid key. If this approach doesn't yield any valid key, iterate from the current time
-  # to later time until we find a valid key.
   missing_size_age_handler <- function(month, age, size_age_map, size_age_df) {
     min_age_mnth_row = size_age_df |>
       arrange(month, age) |>
@@ -90,31 +75,27 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
   }
 
-  # Find the mean and standard deviation of body length at a certain age.
   find_mean_sd <- function(month, age, size_age_map) {
     if (month < birth_month) {
       age = age + 1
     }
     mean_sd = size_age_map[[c(age, month)]]
     if (is.null(mean_sd)) {
-      warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
+      warning("The specified month, age pair does not have any corresponding size at age data.")
       return(missing_size_age_handler(month, age, size_age_map, length_at_age))
     }
 
     return(mean_sd)
   }
 
-  # Find the estimated number of catch.
   find_catch <- function(mean, sd, size_limit, total_indiv) {
     return(total_indiv / max(c((1 - pnorm(size_limit, mean = mean, sd = sd)), min_harvest_rate)))
   }
 
-  # Find the bootstrapped estimated number of catch.
   find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
    return(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv))
   }
 
-  # Find the total number of individuals with bootstrapped values.
   find_bt_sum <- function(est_num, prod_exp) {
     bt_sum_helper <- function(est_num, prod_exp) {
       return((1 + est_num) / prod_exp)
@@ -123,9 +104,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     return(mapply(bt_sum_helper, est_num = est_num, prod_exp = prod_exp) |> rowSums())
   }
 
-  # If MONTH_FISHERY is true, find the number of unique year - age - month tuples for a specific fishery in PROVIDED_FISHERIES.
-  # If MONTH_FISHERY is false, find the number of unique year - age pairs for a specific fishery in PROVIDED_FISHERIES.
-  # PROVIDED_FISHERIES is passed in as a vector of fisheries.
   find_num_rows <- function(rel_reco_dt, fisheries, month_fishery) {
     distinct_cols = c("brood_year", "age")
 
@@ -142,12 +120,11 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
 
   apply(length_at_age, 1, create_size_age_map)
 
-  ########################################
-  ### Step 2: Construct Intermediate 1 ###
-  ########################################
-  # Perform left join
+
+
+# Created Release and Recovery Joined Table -------------------------------
+
   rel_reco_dt <- merge(reco, rel, by = 'tag_code', all.x = TRUE)
-  # Calculate the 'age' column
   rel_reco_dt$age <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
                              ifelse(rel_reco_dt$month >= birth_month,
                                     rel_reco_dt$run_year - rel_reco_dt$brood_year,
@@ -158,7 +135,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   rel_reco_dt$maturation_grp <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
                                         1,
                                         2)
-
   rel_reco_dt <- setDT(rel_reco_dt)
 
   if (bootstrap) {
@@ -220,9 +196,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       select(-c(run_year))
   }
 
-  ##############################################
-  ### Step 3: Calcuate Maturation and Impact ###
-  ##############################################
+# Find Impact and Maturation ----------------------------------------------
 
   yr_ag_cnt = find_num_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_fshry_cnt = find_num_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
@@ -239,7 +213,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
                          fishery = imp_init_vec,
                          impact = imp_init_vec)
 
-  ### Variables for maturation calculation. ###
   prev_hat_esc <- prev_sp_esc <- prev_riv_harv <- 0
   prev_m_year = rel_reco_dt[1, ..BY_IDX] |> unlist()
   prev_m_age = rel_reco_dt[1, ..AGE_IDX] |> unlist()
@@ -247,17 +220,15 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
 
   prev_m_year_valid <- prev_i_year_valid <- FALSE
 
-  ### Variables for impact calculation. ###
-  prev_com_imp <- prev_rec_imp <- 0
-  prev_fshry = NA
+  prev_i_month = rel_reco_dt[1, ..MNTH_IDX] |> unlist()
   is_prev_ocean_r <- is_ocean_r <- FALSE
+  prev_com_imp <- prev_rec_imp <- 0
+  imp_col <- mat_col <- list()
   prev_i_year = prev_m_year
   prev_i_age = prev_m_age
-  prev_i_month = rel_reco_dt[1, ..MNTH_IDX] |> unlist()
+  prev_fshry = NA
   row_i_idx = 1L
-  imp_col <- mat_col <- list()
 
-  # Aggregate function for calculating maturation and impact.
   find_imp_nat_mat <- function(record) {
     par_env = env_parent(current_env())
     if (bootstrap) {
@@ -306,7 +277,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       prev_m_age <<- cur_ag
 
     } else if (cur_fshry %in% c(ocean_r, ocean_c)) {
-      # If fishery is recreational or commercial ocean harvest, calculate impact.
+
       if (prev_i_year_valid && (cur_ag != prev_i_age || cur_mnth != prev_i_month || cur_yr != prev_i_year || (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
         if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE
@@ -333,7 +304,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
         prev_i_year_valid <<- FALSE
       }
 
-      # Calculate number of individuals for each type of fishery.
       if (cur_fshry == ocean_r) {
         is_prev_ocean_r <<- TRUE
         prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
@@ -350,7 +320,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
   }
 
-  # TODO: Think about possible ways to remove this for loop.
   if (bootstrap) {
     for (i in 1 : num_rows) {
       find_imp_nat_mat(rel_reco_dt[i, ])
@@ -359,8 +328,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     apply(rel_reco_dt, 1, find_imp_nat_mat)
   }
 
-  # The apply function doesn't have knowledge of the end of the data frame.
-  # Thus, the solution is one off. We need to apply the last row of maturation here.
   mat_col = append(mat_col, list(prev_sp_esc +
                                    prev_riv_harv +
                                    prev_hat_esc))
@@ -369,8 +336,6 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   mat_dt |>
     set(i = row_m_idx, j = "age", value = prev_m_age)
 
-  # The apply function doesn't have knowledge of the end of the data frame.
-  # Thus, the solution is one off. We need to apply the last row of impact here.
   if (is_ocean_r) {
     imp_col = append(imp_col, list(prev_rec_imp))
     imp_dt |>
