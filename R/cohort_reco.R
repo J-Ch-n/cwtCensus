@@ -161,13 +161,13 @@ reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         nat_mort_rate = find_mortality_rate(as.integer(cur_ag), as.integer(cur_mnth))
         cur_mort = find_mortality(cur_mat, prev_mnth_N, nat_mort_rate)
 
-        # TODO: this is a hack MUST FIX (cur_ag - 1).
-        if (cur_mnth != birth_month - 1) {
-          HACKY_AGE = cur_ag - 1
-        } else {
-          HACKY_AGE = cur_ag
-        }
-        cur_impact_rows = impact_dt[by == cur_yr & age == HACKY_AGE & month == cur_mnth, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
+        # # TODO: this is a hack MUST FIX (cur_ag - 1).
+        # if (cur_mnth != birth_month - 1) {
+        #   HACKY_AGE = cur_ag - 1
+        # } else {
+        #   HACKY_AGE = cur_ag
+        # }
+        cur_impact_rows = impact_dt[by == cur_yr & age == cur_ag & month == cur_mnth, ..IP_IMP_IDX] # & (fishery %in% impact_fisheries)
         cur_impact_mat = as.matrix(cur_impact_rows)
         cur_impact_mat_size = length(cur_impact_mat)
 
@@ -330,8 +330,7 @@ reconstruct <- function(maturation_dt, impact_dt, nat_mort,
         rm(cohort_left_dt)
       }
     }
-    tibble::view(cohort)
-    tibble::view(cohort |> dplyr::filter(age == 2, month == birth_month))
+
     if (detail) {
       return(list(cohort = cohort,
                   srr_dt = srr_dt,

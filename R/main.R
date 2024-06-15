@@ -42,6 +42,6 @@ ch_reco <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mor
                                   release_info = clean_data$release_info, hpd = hpd)
 
   # Return and print outputs.
-  #return(cohort_data(final_data, bootstrap, detail))
+  # return(cohort_data(final_data, bootstrap, detail))
   return(create_output(final_data, birth_month = birth_month, bootstrap = bootstrap, iter = iter, detail = detail))
 }

@@ -92,11 +92,10 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
 
   # Find the mean and standard deviation of body length at a certain age.
   find_mean_sd <- function(month, age, size_age_map) {
-    # TODO: ask about this hacky fix.
-    ####################################################
-    ### Changed age to age + 1. This is a hacky fix. ###
-    ####################################################
-    mean_sd = size_age_map[[c(age + 1, month)]]
+    if (month < birth_month) {
+      age = age + 1
+    }
+    mean_sd = size_age_map[[c(age, month)]]
     if (is.null(mean_sd)) {
       warning("The specified month, age pair dooes not have any corresponding size at age data. NA is applied to the percent harvestable.")
       return(missing_size_age_handler(month, age, size_age_map, length_at_age))
@@ -107,7 +106,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
 
   # Find the estimated number of catch.
   find_catch <- function(mean, sd, size_limit, total_indiv) {
-    return(total_indiv / max(c((1 - pnorm(size_limit, mean =  mean, sd = sd)), min_harvest_rate)))
+    return(total_indiv / max(c((1 - pnorm(size_limit, mean = mean, sd = sd)), min_harvest_rate)))
   }
 
   # Find the bootstrapped estimated number of catch.
@@ -146,23 +145,25 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   ########################################
   ### Step 2: Construct Intermediate 1 ###
   ########################################
-  if (bootstrap) {
-    rel_reco_dt = reco |>
-      left_join(rel, by = 'tag_code') |>
-      setDT() |>
-      lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
-      mutate(
-        age = case_when(
-          month >= birth_month ~ run_year - brood_year,
-          TRUE ~ run_year - brood_year - 1),
-        maturation_grp = case_when(
-          fishery %in% c(spawn, hatchery, river) ~ 1,
-          TRUE ~ 2)) |>
-      as.data.table()
+  # Perform left join
+  rel_reco_dt <- merge(reco, rel, by = 'tag_code', all.x = TRUE)
+  # Calculate the 'age' column
+  rel_reco_dt$age <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
+                             ifelse(rel_reco_dt$month >= birth_month,
+                                    rel_reco_dt$run_year - rel_reco_dt$brood_year,
+                                    rel_reco_dt$run_year - rel_reco_dt$brood_year - 1L),
+                             ifelse(rel_reco_dt$month >= birth_month,
+                                    rel_reco_dt$run_year - rel_reco_dt$brood_year + 1L,
+                                    rel_reco_dt$run_year - rel_reco_dt$brood_year))
+  rel_reco_dt$maturation_grp <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
+                                        1,
+                                        2)
 
+  rel_reco_dt <- setDT(rel_reco_dt)
+
+  if (bootstrap) {
     num_rows = rel_reco_dt |> nrow()
     prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
-    #rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)]
     rel_reco_dt = rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)][,
                               {
                                 total_indiv = find_bt_sum(est_num, prod_exp)
@@ -195,17 +196,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
         TRUE ~ rate)) |>
       select(-run_year)
   } else {
-    rel_reco_ldt = reco |>
-      left_join(rel, by = 'tag_code') |>
-      setDT() |>
+    rel_reco_dt = rel_reco_dt |>
       lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
-      mutate(
-        age = case_when(
-          month >= birth_month ~ run_year - brood_year,
-          TRUE ~ run_year - brood_year - 1),
-        maturation_grp = case_when(
-          fishery %in% c(spawn, hatchery, river) ~ 1,
-          TRUE ~ 2)) |>
       group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year) |>
       summarize(total_indiv = sum(est_num / prod_exp)) |>
       mutate(mean = find_mean_sd(month, age, size_age_map)[1],
@@ -216,16 +208,16 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
       arrange(brood_year, maturation_grp, age, month, fishery) |>
       mutate(month = (month + birth_month) %% 12)
 
-    rel_reco_dt = as.data.table(rel_reco_ldt) |>
+    rel_reco_dt = as.data.table(rel_reco_dt) |>
       left_join(rel_mort, by = c("run_year",
-                                          "month",
-                                          "fishery",
-                                          "location")) |>
+                                  "month",
+                                  "fishery",
+                                  "location")) |>
       mutate(rate = case_when(
         is.na(rate) & fishery == ocean_r ~ hr_r,
         is.na(rate) & fishery == ocean_c ~ hr_c,
         TRUE ~ rate)) |>
-      select(-run_year)
+      select(-c(run_year))
   }
 
   ##############################################
@@ -287,8 +279,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
     }
 
     if (cur_fshry %in% c(spawn, river, hatchery)) {
-      if (((cur_yr != prev_m_year && prev_m_year_valid)
-           | (cur_yr == prev_m_year && cur_ag != prev_m_age))) {
+      if ((cur_yr != prev_m_year && prev_m_year_valid) || (cur_yr == prev_m_year && cur_ag != prev_m_age)) {
         mat_col <<- append(par_env$mat_col, list(par_env$prev_sp_esc +
                  par_env$prev_riv_harv +
                  par_env$prev_hat_esc))
@@ -316,7 +307,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
 
     } else if (cur_fshry %in% c(ocean_r, ocean_c)) {
       # If fishery is recreational or commercial ocean harvest, calculate impact.
-      if (prev_i_year_valid && (cur_ag != prev_i_age | cur_mnth != prev_i_month | cur_yr != prev_i_year | (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
+      if (prev_i_year_valid && (cur_ag != prev_i_age || cur_mnth != prev_i_month || cur_yr != prev_i_year || (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
         if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE
           imp_col <<- append(par_env$imp_col, list(prev_rec_imp))
@@ -403,14 +394,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age,
   imp_dt[, 'impact' := .(imp_col)]
 
   max_age_month_df = rel_reco_dt |>
-    # This a hacky fix for the age offset. NEED TO CHANGE.
-    mutate(age = case_when(
-      fishery %in% c(ocean_r, ocean_c) ~ age + 1,
-      TRUE ~ age
-    )) |>
     group_by(brood_year) |>
     summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
-  tibble::view(imp_dt)
 
   rm(rel_reco_dt)
   return(list(maturation = mat_dt, impact = imp_dt, max_age_month_df = max_age_month_df, release_info = release_info))
