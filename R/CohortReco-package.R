@@ -2,6 +2,8 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @import data.table
+#' @import dtplyr
 #' @importFrom dplyr mutate
 #' @importFrom dplyr left_join
 #' @importFrom dplyr select
@@ -10,8 +12,6 @@
 #' @importFrom dplyr distinct
 #' @importFrom dplyr summarize
 #' @importFrom dplyr group_by
-#' @import data.table
-#' @import dtplyr
 #' @importFrom rlang env_parent
 #' @importFrom rlang current_env
 #' @importFrom HDInterval hdi

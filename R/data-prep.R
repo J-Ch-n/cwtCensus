@@ -2,7 +2,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
                       iter, min_harvest_rate, spawn = 54, hatchery = 50,
                       river = 46, ocean_r = 40, ocean_c = 10, bootstrap = T,
                       d_mort = 0.05, hr_c = 0.26, hr_r = 0.14,
-                      rel_mort = release_mort) {
+                      rel_mort = release_mort, sex = "both") {
 
 
 # Preprocess and Helper Function Definitions ------------------------------
@@ -122,7 +122,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
 
 
 
-# Created Release and Recovery Joined Table -------------------------------
+
+# Create Release and Recovery Joined Table --------------------------------
 
   rel_reco_dt <- merge(reco, rel, by = 'tag_code', all.x = TRUE)
   rel_reco_dt$age <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
@@ -135,7 +136,15 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
   rel_reco_dt$maturation_grp <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
                                         1,
                                         2)
-  rel_reco_dt <- setDT(rel_reco_dt)
+  setDT(rel_reco_dt, key = c("brood_year",
+                             "month",
+                             "age",
+                             "location"))
+  if (sex == "male") {
+    rel_reco_dt = rel_reco_dt[sex == "M"]
+  } else if (sex == "female") {
+    rel_reco_dt = rel_reco_dt[sex == "F"]
+  }
 
   if (bootstrap) {
     num_rows = rel_reco_dt |> nrow()
@@ -338,13 +347,21 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
 
   if (is_ocean_r) {
     imp_col = append(imp_col, list(prev_rec_imp))
-    imp_dt |>
-      set(i = row_i_idx, j = "fishery", value = ocean_r)
+    tryCatch(imp_dt |>
+      set(i = row_i_idx, j = "fishery", value = ocean_r),
+      error = function(e) {
+        if (sex != "both") message("An error occured because there is no ", sex, " ocean fishery data.")
+        else message("An error occured in:\n", e)
+      })
     prev_rec_imp = 0
   } else {
     imp_col = append(imp_col, list(prev_com_imp))
-    imp_dt |>
-      set(i = row_i_idx, j = "fishery", value = ocean_c)
+    tryCatch(imp_dt |>
+               set(i = row_i_idx, j = "fishery", value = ocean_c),
+             error = function(e) {
+               if (sex != "both") message("An error occured because there is no ", sex, " ocean fishery data.")
+               else message("An error occured in:\n", e)
+             })
     prev_com_imp = 0
   }
 
