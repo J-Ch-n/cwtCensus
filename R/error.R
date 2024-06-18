@@ -30,7 +30,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
     if (!is.data.frame(rel_mort)) error[['rel_mort']] = c("'rel_mort'", df, paste0("'", typeof(rel_mort), "'"))
     if (!is.data.frame(nat_mort)) error[['nat_mort']] = c("'natural mortality'", df, paste0("'", typeof(nat_mort), "'"))
     if (!is.character(sex)) error[['sex']] = c("'sex'", ch, paste0("'", typeof(sex), "'"))
-    if (!is.data.frame(fisheries)) error[['fisheries']] = c("'fisheries'", df, paste0("'", typeof(fisheries), "'"))
+    if (!is.list(fisheries)) error[['fisheries']] = c("'fisheries'", df, paste0("'", typeof(fisheries), "'"))
     if (!is.logical(bootstrap)) error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
     if (!is.numeric(bootstrap_iter)) error[['iter']] = c("'bootstrap_iter'", nm, paste0("'", typeof(bootstrap_iter), "'"))
 

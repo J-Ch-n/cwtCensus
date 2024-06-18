@@ -38,9 +38,16 @@
 #' @param nat_mort double specifying the natural mortality rate.
 #' @param sex string for which sex or sexes to consider. Must choose from "male", "female", or "both".
 #' Here, "male" is a short hand for sperm producing individuals. "Female" is a short hand for egg producing individuals.
-#' @param fisheries
-#' @param bootstrap
-#' @param iter
+#' @param fisheries named list for associating each type of fishery with a unique identifier in the release and recovery data.
+#' Must contain the follow named elements:
+#' - "oc_rec": The identifier for recreational ocean fishery.
+#' - "oc_com": The identifier for commercial ocean fishery.
+#' - "esc_sp": The identifier for escapement to spawning ground.
+#' - "esc_hat": The identifier for escapement to hatchery.
+#' - "riv_harv": The identifier for river harvest.
+#' @param bootstrap Boolean for if parametric bootstrapping should be conducted. If `bootstrap` is set to false, then `iter` is ignored.
+#' @param iter numeric or integer to indicate the number of iterations for which we conduct parametric bootstrapping. The default value is 1000.  Caution, the larger
+#' this number is, the most computing power it requires, especially the size of memory.
 #' @param min_harvest_rate
 #' @param detail
 #' @param level
@@ -50,9 +57,15 @@
 #' @export
 #'
 #' @examples
-cohort_recon <- function(rel, reco, birth_month, size_at_age = length_at_age, rel_mort = release, nat_mort = nat_mort_default,
-                    sex = "both", fisheries = release, bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
-                    detail = TRUE, level = 0.05, hpd = TRUE, verbose = TRUE) {
+cohort_recon <- function(rel, reco, birth_month, fisheries = list(oc_rec = 40,
+                                                                  oc_com = 10,
+                                                                  esc_sp = 54,
+                                                                  esc_hat = 50,
+                                                                  riv_harv = 46),
+                         size_at_age = length_at_age, rel_mort = release_mort, nat_mort = nat_mort_default,
+                         d_mort = 0.05, hr_mort_com = 0.26, hr_mort_rec = 0.14,
+                         sex = "both", bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
+                         detail = TRUE, level = 0.05, hpd = TRUE, verbose = TRUE) {
 
   error_handler(rel, reco, size_at_age, rel_mort, nat_mort,
              sex, fisheries, bootstrap, iter)
@@ -72,7 +85,17 @@ cohort_recon <- function(rel, reco, birth_month, size_at_age = length_at_age, re
                          min_harvest_rate = min_harvest_rate,
                          bootstrap = bootstrap,
                          iter = iter,
-                         sex = sex)
+                         sex = sex,
+                         spawn = fisheries[["esc_sp"]],
+                         hatchery = fisheries[["esc_hat"]],
+                         river = fisheries[["riv_harv"]],
+                         ocean_r = fisheries[["oc_rec"]],
+                         ocean_c = fisheries[["oc_com"]],
+                         d_mort = d_mort,
+                         hr_c = hr_mort_com,
+                         hr_r = hr_mort_rec,
+                         rel_mort = rel_mort)
+
   if (verbose) {
     message("Initiating cohort reconstruction.\n")
   }
@@ -81,7 +104,7 @@ cohort_recon <- function(rel, reco, birth_month, size_at_age = length_at_age, re
                            imp_dt = clean_data$impact,
                            nat_mort = nat_mort,
                            birth_month = birth_month,
-                           max_ag_mnth_df = clean_data$max_age_month_df,
+                           max_ag_mnth_dt = clean_data$max_age_month_dt,
                            detail = detail,
                            bootstrap = bootstrap,
                            cr_level = level,

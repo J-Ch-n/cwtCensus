@@ -1,4 +1,4 @@
-reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_df,
+reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
                         iter, rel_info, detail, bootstrap, cr_level, hpd) {
 
     NM_AGE_IDX = 1
@@ -16,10 +16,11 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_df,
     MA_MA_IDX = 3
 
 # Setup Cohort Reconstruction ---------------------------------------------
+
     nat_mort_hp = r2r::hashmap()
-    num_by = nrow(max_ag_mnth_df)
-    num_by_age_month = sum(pmax((max_ag_mnth_df$max_age - 2) * 12, 0) +
-                             pmin(max_ag_mnth_df$max_age - 1, 1) * ((max_ag_mnth_df$month - birth_month) %% 12 + 1))
+    num_by = nrow(max_ag_mnth_dt)
+    num_by_age_month = sum(pmax((max_ag_mnth_dt$max_age - 2) * 12, 0) +
+                             pmin(max_ag_mnth_dt$max_age - 1, 1) * ((max_ag_mnth_dt$month - birth_month) %% 12 + 1))
 
     if (num_by_age_month <= 0) {
       stop("Size is less than or equal to zero.")
@@ -120,8 +121,8 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_df,
     row_idx <- max_age_month_idx <- 1L
     prev_mnth_N = rep(0, times = iter)
     cur_yr = imp_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
-    cur_ag = max_ag_mnth_df$max_age[[max_age_month_idx]]
-    cur_mnth = max_ag_mnth_df$month[[max_age_month_idx]]
+    cur_ag = max_ag_mnth_dt$max_age[[max_age_month_idx]]
+    cur_mnth = max_ag_mnth_dt$month[[max_age_month_idx]]
     imp_col <- mat_col <- abd_col <- mort_col <- list()
 
     cohort_helper <- function(record) {
@@ -178,11 +179,11 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_df,
             if (max_age_month_idx < num_by) {
               max_age_month_idx <<- max_age_month_idx + 1
             }
-            cur_yr <<- max_ag_mnth_df$brood_year[[max_age_month_idx]]
+            cur_yr <<- max_ag_mnth_dt$brood_year[[max_age_month_idx]]
           }
 
-          cur_ag <<- max_ag_mnth_df$max_age[[max_age_month_idx]]
-          cur_mnth <<- max_ag_mnth_df$month[[max_age_month_idx]]
+          cur_ag <<- max_ag_mnth_dt$max_age[[max_age_month_idx]]
+          cur_mnth <<- max_ag_mnth_dt$month[[max_age_month_idx]]
           prev_mnth_N <<- 0
         } else {
           cur_mnth <<- (cur_mnth - 2) %% 12 + 1

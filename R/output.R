@@ -110,10 +110,12 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
       }
     } else {
       if (bootstrap) {
+        ABD_MED_IDX = 5
+        ABD_SD_IDX = 6
+        ABD_CRI_IDX = 7
         data = matrix(data = info[[ABD_IDX]] |> unlist(),
                           nrow = 1,
                           dimnames = list('ocean_abundance', 1 : iter))
-
 
         oa_CrI = info[[ABD_CRI_IDX]] |> unlist()
         summary_info = matrix(data = c(info[[ABD_MED_IDX]] |> unlist(),

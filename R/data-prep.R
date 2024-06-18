@@ -1,17 +1,16 @@
-data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
-                      iter, min_harvest_rate, spawn = 54, hatchery = 50,
-                      river = 46, ocean_r = 40, ocean_c = 10, bootstrap = T,
-                      d_mort = 0.05, hr_c = 0.26, hr_r = 0.14,
-                      rel_mort = release_mort, sex = "both") {
+data_prep <- function(rel, reco, size_at_age, birth_month, iter,
+                      min_harvest_rate, spawn, hatchery, river,
+                      ocean_r, ocean_c, bootstrap, d_mort,
+                      hr_c, hr_r, rel_mort, sex) {
 
 
 # Preprocess and Helper Function Definitions ------------------------------
 
-  BY_IDX = 1
-  MNTH_IDX = 2
-  AGE_IDX = 3
-  FSHRY_IDX = 4
-  LOC_IDX = 5
+  MNTH_IDX = 1
+  FSHRY_IDX = 2
+  LOC_IDX = 3
+  BY_IDX = 4
+  AGE_IDX = 5
   MAT_GRP_IDX = 6
   SIZE_LIM_IDX = 7
   TOTAL_IDX = 8
@@ -75,7 +74,7 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
     }
   }
 
-  find_mean_sd <- function(month, age, size_age_map) {
+  find_mean_sd <- function(month, age) {
     if (month < birth_month) {
       age = age + 1
     }
@@ -152,9 +151,9 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
     rel_reco_dt = rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)][,
                               {
                                 total_indiv = find_bt_sum(est_num, prod_exp)
-                                mean_sd = find_mean_sd(month, age, size_age_map)
-                                mean = mean_sd[1]
-                                sd = mean_sd[2]
+                                mean_sd = split(mapply(find_mean_sd, month = month, age = age), rep(1:2, times = length(month)))
+                                mean = mean_sd[[1]]
+                                sd = mean_sd[[2]]
                                 catch = find_catch_bootstrap(mean, sd, size_limit, total_indiv)
 
                                 .(total_indiv = .(find_bt_sum(est_num, prod_exp)),
@@ -165,44 +164,35 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
                                 },
                               by = list(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year)]
 
-    rel_reco_dt = rel_reco_dt |>
-      lazy_dt(immutable = F) |>
-      mutate(month = (month - birth_month) %% 12) |>
-      arrange(brood_year, maturation_grp, age, month, fishery) |>
-      mutate(month = (month + birth_month) %% 12) |>
-      as.data.table(rel_reco_dt) |>
-      left_join(rel_mort, by = c("run_year",
-                                          "month",
-                                          "fishery",
-                                          "location")) |>
-      mutate(rate = case_when(
-        is.na(rate) & fishery == ocean_r ~ hr_r,
-        is.na(rate) & fishery == ocean_c ~ hr_c,
-        TRUE ~ rate)) |>
-      select(-run_year)
+    rel_reco_dt[, month := (month - birth_month) %% 12]
+    setorder(rel_reco_dt, brood_year, maturation_grp, age, month, fishery)
+    rel_reco_dt[, month := (month + birth_month) %% 12]
+    rel_reco_dt <- merge(rel_reco_dt, rel_mort, by = c("run_year", "month", "fishery", "location"), all.x = TRUE, sort = F, no.dups = F)
+    rel_reco_dt[, rate := fifelse(is.na(rate) & fishery == ocean_r, hr_r,
+                                  fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
+    rel_reco_dt[, run_year := NULL]
   } else {
-    rel_reco_dt = rel_reco_dt |>
-      lazy_dt(immutable = F, key_by = c("brood_year", "month", "fishery", "location", "size_limit")) |>
-      group_by(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year) |>
-      summarize(total_indiv = sum(est_num / prod_exp)) |>
-      mutate(mean = find_mean_sd(month, age, size_age_map)[1],
-             sd = find_mean_sd(month, age, size_age_map)[2],
-             catch = find_catch(mean, sd, size_limit, total_indiv),
-             harvest_rate = 1 - pnorm(size_limit, mean = mean, sd = sd)) |>
-      mutate(month = (month - birth_month) %% 12) |>
-      arrange(brood_year, maturation_grp, age, month, fishery) |>
-      mutate(month = (month + birth_month) %% 12)
-
-    rel_reco_dt = as.data.table(rel_reco_dt) |>
-      left_join(rel_mort, by = c("run_year",
-                                  "month",
-                                  "fishery",
-                                  "location")) |>
-      mutate(rate = case_when(
-        is.na(rate) & fishery == ocean_r ~ hr_r,
-        is.na(rate) & fishery == ocean_c ~ hr_c,
-        TRUE ~ rate)) |>
-      select(-c(run_year))
+    rel_reco_dt <- rel_reco_dt[, .(total_indiv = sum(est_num / prod_exp)),
+             by = .(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year)]
+    rel_reco_dt[, c("mean", "sd") := {
+      res <- split(mapply(find_mean_sd, month = month, age = age), rep(1:2, times = length(month)))
+      .(res[[1]], res[[2]])
+    }]
+    rel_reco_dt[, c("catch", "harvest_rate") := .(
+      find_catch_bootstrap(mean, sd, size_limit, total_indiv),
+      1 - pnorm(size_limit, mean = mean, sd = sd)
+    )]
+    rel_reco_dt[, month := (month - birth_month) %% 12]
+    setorder(rel_reco_dt, brood_year, maturation_grp, age, month, fishery)
+    rel_reco_dt[, month := (month + birth_month) %% 12]
+    rel_reco_dt <- merge(rel_reco_dt, rel_mort, by = c("run_year", "month", "fishery", "location"), all.x = TRUE, sort = F, no.dups = F)
+    rel_reco_dt[, rate := fifelse(is.na(rate) & fishery == ocean_r, hr_r,
+                         fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
+    rel_reco_dt[, run_year := NULL]
+    setcolorder(rel_reco_dt, neworder = c(
+      "brood_year", "month", "age", "fishery", "location", "maturation_grp",
+      "size_limit", "total_indiv", "mean", "sd", "catch", "harvest_rate", "rate"
+    ))
   }
 
 # Find Impact and Maturation ----------------------------------------------
@@ -223,13 +213,13 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
                          impact = imp_init_vec)
 
   prev_hat_esc <- prev_sp_esc <- prev_riv_harv <- 0
-  prev_m_year = rel_reco_dt[1, ..BY_IDX] |> unlist()
-  prev_m_age = rel_reco_dt[1, ..AGE_IDX] |> unlist()
+  prev_m_year = rel_reco_dt[1, ..BY_IDX][[1]]
+  prev_m_age = rel_reco_dt[1, ..AGE_IDX][[1]]
   row_m_idx = 1L
 
   prev_m_year_valid <- prev_i_year_valid <- FALSE
 
-  prev_i_month = rel_reco_dt[1, ..MNTH_IDX] |> unlist()
+  prev_i_month = rel_reco_dt[1, ..MNTH_IDX][[1]]
   is_prev_ocean_r <- is_ocean_r <- FALSE
   prev_com_imp <- prev_rec_imp <- 0
   imp_col <- mat_col <- list()
@@ -246,8 +236,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
       cur_mnth = record[[MNTH_IDX]] |> as.integer()
       cur_fshry = record[[FSHRY_IDX]] |> as.numeric()
       cur_rel_mort = record[[REL_MORT_IDX]] |> as.numeric()
-      cur_indiv = record[[TOTAL_IDX]] |> unlist() |> as.numeric()
-      catch = record[[CATCH_IDX]] |>  unlist() |> as.numeric()
+      cur_indiv = record[[TOTAL_IDX]][[1]]|> as.numeric()
+      catch = record[[CATCH_IDX]][[1]] |> as.numeric()
     } else {
       cur_yr = record[BY_IDX] |> as.integer()
       cur_ag = record[AGE_IDX] |> as.integer()
@@ -375,10 +365,8 @@ data_prep <- function(rel, reco, size_at_age = length_at_age, birth_month,
   mat_dt[, 'maturation' := .(mat_col)]
   imp_dt[, 'impact' := .(imp_col)]
 
-  max_age_month_df = rel_reco_dt |>
-    group_by(brood_year) |>
-    summarize(max_age = max(age), month = (birth_month - 2) %% 12 + 1)
+  max_age_month_dt = rel_reco_dt[, .(max_age = max(age), month = (birth_month - 2 %% 12 + 1)), by = list(brood_year)]
 
   rm(rel_reco_dt)
-  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_df = max_age_month_df, release_info = release_info))
+  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info))
 }
