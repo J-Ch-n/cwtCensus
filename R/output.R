@@ -55,15 +55,15 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
         'elsr',
         'srr')
 
-      data = rbind(info[[ABD_IDX]] |> unlist(),
-                  info[[IMP_IDX]] |> unlist(),
-                  info[[MAT_IDX]] |> unlist(),
-                  info[[NAT_MORT_IDX]] |> unlist(),
-                  info[[ELS_RATE_IDX]] |>  unlist(),
-                  info[[SRR_IDX]] |> unlist()) |>
-        round(digits = 2)
-
       if (bootstrap) {
+        data = rbind(info[[ABD_IDX]] |> unlist(),
+                     info[[IMP_IDX]] |> unlist(),
+                     info[[MAT_IDX]] |> unlist(),
+                     info[[NAT_MORT_IDX]] |> unlist(),
+                     info[[ELS_RATE_IDX]] |>  unlist(),
+                     info[[SRR_IDX]] |> unlist()) |>
+          round(digits = 2)
+
         data |> dimnames() = list(row_name, 1 : iter)
 
         oa_CrI = info[[ABD_CRI_IDX]] |> unlist()
@@ -106,6 +106,13 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                               )) |>
           round(digits = 2)
       } else {
+        data = rbind(info[[4]] |> unlist(),
+                     info[[6]] |> unlist(),
+                     info[[7]] |> unlist(),
+                     info[[5]] |> unlist(),
+                     info[[12]] |>  unlist(),
+                     info[[15]] |> unlist()) |>
+          round(digits = 2)
         data |> dimnames() = list(row_name, 'value')
       }
     } else {
@@ -219,8 +226,7 @@ create_output_by_age <- function(data, bootstrap, iter, detail = T) {
       summary_info = info |> select(-c(ocean_abundance))
     }
 
-      elem = list(list(summary = summary_info, data = data))#, debug = info))
-      names(elem) = name
+      elem = list(list(summary = summary_info, data = data))
       output_obj <<- append(output_obj, elem)
   }
 
@@ -233,6 +239,7 @@ create_output_by_age <- function(data, bootstrap, iter, detail = T) {
     rm(data)
 
     return(output_obj)
+
   } else if (bootstrap) {
     comb = data$cohort
     by(comb, list(comb$age, comb$by), output_helper)
@@ -262,6 +269,7 @@ cohort_summary <- function(data, bootstrap, detail) {
     } else {
       return(data$cohort |>
                select(-c(ocean_abundance)))
+
     }
   } else {
     if (detail) {
@@ -269,8 +277,10 @@ cohort_summary <- function(data, bootstrap, detail) {
                left_join(data$air_dt, by = c("by", "age")) |>
                left_join(data$els_dt, by = c("by" = "brood_year")) |>
                left_join(data$srr_dt, by = c("by")))
+
     } else {
       return(data$cohort)
+
     }
   }
 }
@@ -300,8 +310,10 @@ cohort_data <- function(data, bootstrap, detail) {
                left_join(data$air_dt, by = c("by", "age")) |>
                left_join(data$els_dt, by = c("by" = "brood_year")) |>
                left_join(data$srr_dt, by = c("by")))
+
     } else {
       return(data$cohort)
+
     }
   }
 }

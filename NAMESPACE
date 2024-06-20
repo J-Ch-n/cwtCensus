@@ -3,7 +3,6 @@
 export(cohort_recon)
 import(data.table)
 import(dtplyr)
-importFrom(HDInterval,hdi)
 importFrom(dplyr,arrange)
 importFrom(dplyr,case_when)
 importFrom(dplyr,distinct)

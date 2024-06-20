@@ -189,10 +189,10 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     rel_reco_dt[, rate := fifelse(is.na(rate) & fishery == ocean_r, hr_r,
                          fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
     rel_reco_dt[, run_year := NULL]
-    setcolorder(rel_reco_dt, neworder = c(
-      "brood_year", "month", "age", "fishery", "location", "maturation_grp",
-      "size_limit", "total_indiv", "mean", "sd", "catch", "harvest_rate", "rate"
-    ))
+    # setcolorder(rel_reco_dt, neworder = c(
+    #   "brood_year", "month", "age", "fishery", "location", "maturation_grp",
+    #   "size_limit", "total_indiv", "mean", "sd", "catch", "harvest_rate", "rate"
+    # ))
   }
 
 # Find Impact and Maturation ----------------------------------------------

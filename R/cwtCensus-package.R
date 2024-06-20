@@ -14,6 +14,5 @@
 #' @importFrom dplyr group_by
 #' @importFrom rlang env_parent
 #' @importFrom rlang current_env
-#' @importFrom HDInterval hdi
 ## usethis namespace: end
 NULL

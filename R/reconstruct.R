@@ -75,7 +75,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
       }
 
       if (hpd) {
-        return(split(mapply(hdi, object = col, credMass = cr_level), rep(1 : length(col), each = 2)))
+        return(split(mapply(HDInterva::hdi, object = col, credMass = cr_level), rep(1 : length(col), each = 2)))
       }
 
       return(split(mapply(find_CrI_helper, vec = col, cr_level = cr_level, center = center), rep(1 : length(col), each = 2)))
