@@ -48,10 +48,10 @@
 #' @param bootstrap Boolean for if parametric bootstrapping should be conducted. If `bootstrap` is set to false, then `iter` is ignored.
 #' @param iter numeric or integer to indicate the number of iterations for which we conduct parametric bootstrapping. The default value is 1000.  Caution, the larger
 #' this number is, the most computing power it requires, especially the size of memory.
-#' @param min_harvest_rate
-#' @param detail
-#' @param level
-#' @param hpd
+#' @param min_harvest_rate double for the lower bound for the harvest rate considered in cohort reconstruction.
+#' @param detail Boolean for if the reconstruction calculates the break downs and summary information.
+#' @param level double between 0 and 1 inclusive for the credible level for credible intervals. This option only matters if `bootstrap` is set to TRUE.
+#' @param hpd Boolean to use highest posterior density credible interval. If FALSE, a symmetric credible interval is used.
 #'
 #' @return
 #' @export
