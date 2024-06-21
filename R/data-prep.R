@@ -27,7 +27,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   create_size_age_map <- function(record) {
     record = unname(record)
-    key = c(record[AGE_LAA_IDX], record[MNTH_LAA_IDX])
+    key = c(record[AGE_LAA_IDX], record[MNTH_LAA_IDX]) |> as.integer()
     value = c(record[MEAN_LAA_IDX], record[SD_LAA_IDX])
 
     size_age_map[[key]] <<- value
@@ -76,8 +76,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   find_mean_sd <- function(month, age) {
     if (month < birth_month) {
-      age = age + 1
+      age = age + 1L
     }
+
     mean_sd = size_age_map[[c(age, month)]]
     if (is.null(mean_sd)) {
       warning("The specified month, age pair does not have any corresponding size at age data.")
@@ -172,6 +173,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                                   fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
     rel_reco_dt[, run_year := NULL]
   } else {
+    rel_reco_dt[, month := as.integer(month)]
     rel_reco_dt <- rel_reco_dt[, .(total_indiv = sum(est_num / prod_exp)),
              by = .(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year)]
     rel_reco_dt[, c("mean", "sd") := {
