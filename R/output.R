@@ -40,10 +40,10 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
   SRR_MED_IDX = 37
   SRR_SD_IDX = 38
   SRR_CRI_IDX = 39
-
-
+  # browser()
   output_obj = list()
   output_helper <- function(info) {
+    # browser()
     name = paste('by', info[[1]], 'age', info[[2]], 'month', info[[3]], sep = "-")
     summary_info = NA
     if (detail) {
@@ -64,6 +64,10 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                      info[[SRR_IDX]] |> unlist()) |>
           round(digits = 2)
 
+        if (any(dim(data) != c(length(row_name), iter))) {
+          browser()
+        }
+        # browser()
         data |> dimnames() = list(row_name, 1 : iter)
 
         oa_CrI = info[[ABD_CRI_IDX]] |> unlist()
@@ -151,6 +155,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
       left_join(data$air_dt, by = c("by", "age")) |>
       left_join(data$els_dt, by = c("by" = "brood_year")) |>
       left_join(data$srr_dt, by = c("by"))
+    # browser()
     by(comb, list((comb$month - birth_month) %% 12 + 1, comb$age, comb$by), output_helper)
     rm(data)
 

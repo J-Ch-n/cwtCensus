@@ -101,7 +101,6 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
 
   exp_col <- function() {
     REL_COL = c("release_month",
-                "birth_month",
                 "tag_code",
                 "prod_exp",
                 "total_release",
