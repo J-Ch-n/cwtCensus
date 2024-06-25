@@ -120,11 +120,11 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
 
     row_idx <- max_age_month_idx <- 1L
     prev_mnth_N = rep(0, times = iter)
-    cur_yr = imp_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
+    cur_yr = max_ag_mnth_dt[1, ..IP_BY_IDX] |> unlist() |> unname()
     cur_ag = max_ag_mnth_dt$max_age[[max_age_month_idx]]
     cur_mnth = max_ag_mnth_dt$month[[max_age_month_idx]]
     imp_col <- mat_col <- abd_col <- mort_col <- list()
-
+    # a = F
     cohort_helper <- function(record) {
         cur_mat <- cur_imp <- cur_maturation_rows <- rep(0, iter)
         par_env = env_parent(current_env())
@@ -139,7 +139,13 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
             cur_mat = cur_mat + maturation
           }
         }
-
+        # if (a) {
+        #   print(c(cur_yr, cur_ag, cur_mnth))
+        # }
+        #
+        # if (cur_yr == 2000 && cur_ag == 2 && cur_mnth == 3) {
+        #   a <<- T
+        # }
         nat_mort_rate = find_mortality_rate(as.integer(cur_ag), as.integer(cur_mnth))
         cur_mort = find_mortality(cur_mat, prev_mnth_N, nat_mort_rate)
         cur_impact_rows = imp_dt[by == cur_yr & age == cur_ag & month == cur_mnth, ..IP_IMP_IDX]
@@ -305,7 +311,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
         rm(cohort_left_dt)
       }
     }
-
+    # browser()
     if (detail) {
       return(list(cohort = cohort,
                   srr_dt = srr_dt,

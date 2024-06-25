@@ -57,7 +57,7 @@
 #' @export
 #'
 #' @examples
-cohort_recon <- function(rel, reco, birth_month, fisheries = list(oc_rec = 40,
+cohort_recon <- function(rel, reco, birth_month, last_month, fisheries = list(oc_rec = 40,
                                                                   oc_com = 10,
                                                                   esc_sp = 54,
                                                                   esc_hat = 50,
@@ -94,7 +94,8 @@ cohort_recon <- function(rel, reco, birth_month, fisheries = list(oc_rec = 40,
                          d_mort = d_mort,
                          hr_c = hr_mort_com,
                          hr_r = hr_mort_rec,
-                         rel_mort = rel_mort)
+                         rel_mort = rel_mort,
+                         u_bound = last_month)
 
   if (verbose) {
     message("Initiating cohort reconstruction.\n")
