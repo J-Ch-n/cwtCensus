@@ -29,9 +29,7 @@ release <- release %>%
          brood_year,
          tag_code,
          prod_exp,
-         total_release) %>%
-  # Assume to be March.
-  mutate(birth_month = 3)
+         total_release)
 
 write.csv("release", "./data-raw/release.csv", row.names = FALSE)
 usethis::use_data(release, overwrite = TRUE)

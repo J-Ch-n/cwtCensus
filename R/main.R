@@ -64,8 +64,9 @@ cohort_recon <- function(rel, reco, birth_month, last_month, fisheries = list(oc
                                                                   riv_harv = 46),
                          size_at_age = length_at_age, rel_mort = release_mort, nat_mort = nat_mort_default,
                          d_mort = 0.05, hr_mort_com = 0.26, hr_mort_rec = 0.14,
-                         sex = "both", bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
-                         detail = TRUE, level = 0.05, hpd = TRUE, verbose = TRUE) {
+                         bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
+                         detail = TRUE, level = 0.05, hpd = TRUE, verbose = TRUE,
+                         sex = "both") {
 
   error_handler(rel, reco, size_at_age, rel_mort, nat_mort,
              sex, fisheries, bootstrap, iter)
@@ -112,13 +113,15 @@ cohort_recon <- function(rel, reco, birth_month, last_month, fisheries = list(oc
                            iter = iter,
                            rel_info = clean_data$release_info,
                            hpd = hpd)
+  result = create_output(final_data,
+                birth_month = birth_month,
+                bootstrap = bootstrap,
+                iter = iter,
+                detail = detail)
+
   if (verbose) {
     message("Cohort reconstruction complete.\n")
   }
 
-  return(create_output(final_data,
-                       birth_month = birth_month,
-                       bootstrap = bootstrap,
-                       iter = iter,
-                       detail = detail))
+  return(result)
 }

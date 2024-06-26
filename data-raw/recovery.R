@@ -65,7 +65,6 @@ recovery <- left_join(recovery, release, by = "tag_code") %>%
 # Rename SAMPLING_SITE and LOCATION to match RECOVERY.
 site_code <- site_code %>%
   # TODO: add in the distinct function after verifying everything.
-  #distinct(sampsite, .keep_all = TRUE) %>%
   mutate(sampling_site = sampsite,
          location = area.1) %>%
   select(sampling_site, location)
