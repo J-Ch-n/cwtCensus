@@ -14,13 +14,13 @@
 #' @details
 #'
 #'
+#'
 #' @param rel input data frame for CWT releases with columns
 #' - release_month
 #' - brood_year
 #' - tag_code
 #' - prod_exp
 #' - total_release
-#' - birth_month
 #' @param reco input data frame for CWT recoveries with columns
 #' - run_year
 #' - recovery_id

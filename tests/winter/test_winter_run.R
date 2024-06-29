@@ -129,3 +129,7 @@ usethis::use_data(length_at_age, overwrite = TRUE)
 
 usethis::use_data(release, overwrite = TRUE)
 
+release_mort = read.csv("./tests/winter/release.mort.rate.csv")
+release_mort |> colnames() <- c('run_year', 'fishery', 'location', 'month', 'rate')
+usethis::use_data(release_mort, overwrite = TRUE)
+

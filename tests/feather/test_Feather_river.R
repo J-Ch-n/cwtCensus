@@ -1,4 +1,5 @@
-library(tidyverse)
+library(dplyr)
+library(tidyr)
 library(lubridate)
 
 release = read.csv("./tests/feather/fr_releases.csv")
@@ -19,13 +20,11 @@ release$Total_Released <- (release$cwt_1st_mark_count
 
 # Add a column for the production expansion factor.
 release$prod_exp <- release$cwt_1st_mark_count / release$Total_Released
-
-names(release)[7] <- "tag_code"
 # Create a sample REL data frame for the package
 release <- release %>%
   mutate(release_month = month(ymd(last_release_date)),
          total_release = Total_Released,
-         tag_code = as.character(total_release)) %>%
+         tag_code = as.character(tag_code_or_release_id)) %>%
   select(release_month,
          brood_year,
          tag_code,
@@ -55,9 +54,8 @@ recovery <- recovery %>%
          sampling_site,
          reporting_agency,
          estimated_number,
-         length)
-
-
+         length) #|>
+  # drop_na(estimated_number)
 # Join with release to add BROOD_YEAR column.
 recovery <- left_join(recovery, release, by = "tag_code") %>%
   select(-c("release_month",
@@ -85,7 +83,9 @@ size_limit <- size_limit %>%
   select(-c('Month', 'Location', 'limit'))
 recovery <- recovery %>%
   filter(fishery %in% c(10, 40, 54, 50, 46)) %>%
-  mutate(est_num = estimated_number) %>%
+  mutate(est_num = case_when(
+    is.na(estimated_number) ~ 1,
+    TRUE ~ estimated_number)) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
          "recovery_id",
@@ -98,8 +98,18 @@ recovery <- recovery %>%
          "size_limit",
          "est_num")
 
+recovery = recovery[(recovery$fishery %in% c(40, 10) & !recovery$size_limit |> is.na()) | recovery$fishery %in% c(50, 54, 46), ]
+
 write.csv("recovery", "./data-raw/recovery.csv", row.names = FALSE)
 usethis::use_data(recovery, overwrite = TRUE)
+
+# Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts
+nat_mort_default = data.frame(age = rep(2 : 6, times = 1),
+                              rate = c(rep(0.0561, times = 1), rep(0.0184, times = 4)))
+
+
+usethis::use_data(nat_mort_default, overwrite = TRUE)
+
 
 
 

@@ -83,14 +83,14 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   find_mean_sd <- function(month, age) {
-
+    # if (month == 7 && age == 3) browser()
     if (month < birth_month) {
       age = age + 1L
     }
 
     mean_sd = size_age_map[[c(age, month)]]
     if (is.null(mean_sd)) {
-      warning("The specified month, age pair does not have any corresponding size at age data.")
+      warning(paste("The specified month, age pair does not have any corresponding size at age data.", age, month, sep = "-"))
       return(missing_size_age_handler(month, age, size_age_map, length_at_age))
     }
 
@@ -98,11 +98,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   find_catch <- function(mean, sd, size_limit, total_indiv) {
-    return(total_indiv / max(c((1 - pnorm(size_limit, mean = mean, sd = sd)), min_harvest_rate)))
+    return(total_indiv / (1 - pnorm(size_limit, mean = mean, sd = sd)))
   }
 
   find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
-   return(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv))
+   return(pmax(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv), min_harvest_rate))
   }
 
   find_bt_sum <- function(est_num, prod_exp) {
@@ -135,10 +135,12 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 # Create Release and Recovery Joined Table --------------------------------
 
   rel_reco_dt <- merge(reco, rel, by = 'tag_code')
+
   if (nrow(rel_reco_dt) == 0 || ncol(rel_reco_dt) == 0) {
     stop("Joined release and recovery data table is empty."
     )
   }
+
   rel_reco_dt$age <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
                              ifelse(rel_reco_dt$month > u_bound, # The month marking the upper bound for the current run.
                                     rel_reco_dt$run_year - rel_reco_dt$brood_year + 1L,
@@ -154,17 +156,19 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                              "month",
                              "age",
                              "location"))
+  browser()
   if (sex == "male") {
     rel_reco_dt = rel_reco_dt[sex == "M"]
   } else if (sex == "female") {
     rel_reco_dt = rel_reco_dt[sex == "F"]
   }
 
-  rel_reco_dt[, month := as.integer(month)]
+  rel_reco_dt[, c("month", "age") := .(as.integer(month), as.integer(age))]
 
   if (bootstrap) {
     num_rows = rel_reco_dt |> nrow()
-    prob = rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1)
+    prob = pmin(rep(1 / rel_reco_dt[['est_num']], times = iter, each = 1), 1)
+    # browser()
     rel_reco_dt = rel_reco_dt[, est_num := split(as.vector(vapply(prob, rnbinom, FUN.VALUE = 1, size = 1, n = 1)), 1 : num_rows)][,
                               {
                                 total_indiv = find_bt_sum(est_num, prod_exp)
@@ -172,10 +176,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                                 mean = mean_sd[[1]]
                                 sd = mean_sd[[2]]
                                 catch = find_catch_bootstrap(mean, sd, size_limit, total_indiv)
-                                .(total_indiv = .(find_bt_sum(est_num, prod_exp)),
+
+                                .(total_indiv = .(total_indiv),
                                   mean = mean,
                                   sd = sd,
-                                  catch = .(find_catch_bootstrap(mean, sd, size_limit, total_indiv)),
+                                  catch = .(catch),
                                   harvest_rate = 1 - pnorm(size_limit, mean = mean, sd = sd))
                                 },
                               by = list(brood_year, month, age, fishery, location, maturation_grp, size_limit, run_year)]
@@ -203,9 +208,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     setorder(rel_reco_dt, brood_year, maturation_grp, age, month, fishery)
     rel_reco_dt[, month := (month + birth_month) %% 12]
     rel_reco_dt <- merge(rel_reco_dt, rel_mort, by = c("run_year", "month", "fishery", "location"), all.x = TRUE, sort = F, no.dups = F)
+    browser()
     rel_reco_dt[, rate := fifelse(is.na(rate) & fishery == ocean_r, hr_r,
                          fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
     rel_reco_dt[, run_year := NULL]
+    browser()
   }
 
 # Find Impact and Maturation ----------------------------------------------
@@ -289,7 +296,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
       prev_m_age <<- cur_ag
 
     } else if (cur_fshry %in% c(ocean_r, ocean_c)) {
-
+      # if (cur_yr == 2001 & cur_ag == 2 &) {
+      #   browser()
+      # }
       if (prev_i_year_valid && (cur_ag != prev_i_age || cur_mnth != prev_i_month || cur_yr != prev_i_year || (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
         if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE
@@ -380,8 +389,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   max_age_month_dt = rel_reco_dt[, .(max_age = max(age), month = (birth_month - 2 %% 12 + 1)), by = list(brood_year)]
 
-  # tibble::view(imp_dt)
-  # tibble::view(mat_dt)
+  tibble::view(imp_dt)
+  tibble::view(mat_dt)
   rm(rel_reco_dt)
   return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info))
 }

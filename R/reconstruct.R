@@ -2,8 +2,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
                         iter, rel_info, detail, bootstrap, cr_level, hpd) {
 
     NM_AGE_IDX = 1
-    NM_MNTH_IDX = 2
-    NM_RATE_IDX = 3
+    NM_RATE_IDX = 2
 
     IP_BY_IDX = 1
     IP_MNTH_IDX = 2
@@ -45,8 +44,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
 
     create_nat_mort_map <- function(record) {
         record = unname(record)
-        key = c(record[NM_AGE_IDX] |> unname() |> as.integer(),
-                record[NM_MNTH_IDX] |> unname() |> as.integer())
+        key = c(record[NM_AGE_IDX] |> unname() |> as.integer())
         value = record[NM_RATE_IDX] |> unname()
         nat_mort_hp[[key]] <<- value
     }
@@ -109,7 +107,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
     }
 
     find_mortality_rate <- function(age, month) {
-      mort_rate = nat_mort_hp[[c(age, month)]]
+      mort_rate = nat_mort_hp[[age]]
 
       if (is.null(mort_rate)) {
         mort_rate = missing_mort_rate_handler(age)
@@ -140,7 +138,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
           }
         }
 
-        nat_mort_rate = find_mortality_rate(as.integer(cur_ag), as.integer(cur_mnth))
+        nat_mort_rate = find_mortality_rate(as.integer(cur_ag))
         cur_mort = find_mortality(cur_mat, prev_mnth_N, nat_mort_rate)
         cur_impact_rows = imp_dt[by == cur_yr & age == cur_ag & month == cur_mnth, ..IP_IMP_IDX]
         cur_impact_mat = as.matrix(cur_impact_rows)
@@ -314,5 +312,5 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
                   len = num_by_age_month))
     }
 
-    return(list(cohort = cohort))
+    return(list(cohort = cohort |> filter(by == 2001)))
   }
