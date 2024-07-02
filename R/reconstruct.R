@@ -312,5 +312,5 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
                   len = num_by_age_month))
     }
 
-    return(list(cohort = cohort |> filter(by == 2001)))
+    return(list(cohort = cohort))
   }

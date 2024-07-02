@@ -156,7 +156,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                              "month",
                              "age",
                              "location"))
-  browser()
+  rel_reco_dt[is.na(est_num) | est_num < 1, value := 1]
+  # browser()
   if (sex == "male") {
     rel_reco_dt = rel_reco_dt[sex == "M"]
   } else if (sex == "female") {
@@ -208,11 +209,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     setorder(rel_reco_dt, brood_year, maturation_grp, age, month, fishery)
     rel_reco_dt[, month := (month + birth_month) %% 12]
     rel_reco_dt <- merge(rel_reco_dt, rel_mort, by = c("run_year", "month", "fishery", "location"), all.x = TRUE, sort = F, no.dups = F)
-    browser()
+    # browser()
     rel_reco_dt[, rate := fifelse(is.na(rate) & fishery == ocean_r, hr_r,
                          fifelse(is.na(rate) & fishery == ocean_c, hr_c, rate))]
     rel_reco_dt[, run_year := NULL]
-    browser()
+    # browser()
   }
 
 # Find Impact and Maturation ----------------------------------------------
@@ -269,6 +270,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     }
 
     if (cur_fshry %in% c(spawn, river, hatchery)) {
+      # if (cur_ag == 4 & cur_yr == 2002) {
+      #   browser()
+      # }
       if ((cur_yr != prev_m_year && prev_m_year_valid) || (cur_yr == prev_m_year && cur_ag != prev_m_age)) {
         mat_col <<- append(par_env$mat_col, list(par_env$prev_sp_esc +
                  par_env$prev_riv_harv +
@@ -296,9 +300,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
       prev_m_age <<- cur_ag
 
     } else if (cur_fshry %in% c(ocean_r, ocean_c)) {
-      # if (cur_yr == 2001 & cur_ag == 2 &) {
-      #   browser()
-      # }
+      if (cur_yr == 2001 & cur_ag == 2) {
+        browser()
+      }
       if (prev_i_year_valid && (cur_ag != prev_i_age || cur_mnth != prev_i_month || cur_yr != prev_i_year || (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
         if (par_env$is_prev_ocean_r) {
           is_ocean_r <<- TRUE

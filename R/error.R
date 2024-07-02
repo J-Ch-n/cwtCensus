@@ -81,6 +81,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
     return(error)
   }
 
+  # TODO: update `check_nan`.
   check_nan <- function(rel, reco, size_at_age, rel_mort, nat_mort, fisheries) {
     input = list(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
     names(input) <- c('release', 'recovery', 'size_at_age',
@@ -89,7 +90,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
 
     for (i in names(input)) {
       if (sum(is.na(input[[i]])) > 0) {
-       w_msg =paste0(w_msg, '`',i ,'`', ' contains NaN values')
+        w_msg = paste0(w_msg, '`',i ,'`', ' contains NaN values')
       }
     }
 
