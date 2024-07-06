@@ -1,10 +1,10 @@
 #' Conduct cohort reconstruction for populations with coded wire tags
 #'
 #' @description
-#' `cohort_recon` uses released and recovered coded wire tags to calculate the ocean
+#' `cohort_reconstruct` uses released and recovered coded wire tags to calculate the ocean
 #' abundance of the population for each brood year at each age and in each month.
 #' The function returns a list of outputs indexed by brood year, age, and month. Each
-#' element of the list contains two elements, `data` and `summary`.In general the `data` segment
+#' element of the list contains two elements, `data` and `summary`. In general, the `data` segment
 #' contains the raw data of cohort reconstruction, while the `summary` segment includes
 #' statistics from the raw data.
 #'
@@ -12,52 +12,59 @@
 #' segments may behave in different ways. For more information, see details.
 #'
 #' @details
+#' Aging convention: we use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
+#' as soon as the fish is born, it is in the first year of life, thus age-1. Accordingly, the age in the `size_at_age` data frame should use
+#' fishing age as well.
 #'
+#' @param rel Input data frame for CWT releases with columns:
+#' \describe{
+#'   \item{brood_year}{Integer. The birth year of each CWT batch.}
+#'   \item{total_release}{Double. The total number of releases for each batch of CWT.}
+#'   \item{prod_exp}{Double. The ratio between the number of tagged fish and the total number of fish in each batch, i.e., number of tagged fish / batch size.}
+#'   \item{tag_code}{Any type. The identifier for each batch of CWT release.}
+#' }
+#' @param reco Input data frame for CWT recoveries with columns:
+#' \describe{
+#'   \item{run_year}{Integer. The year of each CWT recovery.}
+#'   \item{month}{Integer. The month of each CWT recovery.}
+#'   \item{length}{Double. The length in inches of each recovered fish.}
+#'   \item{tag_code}{Any type. The identifier for each recovered tag.}
+#'   \item{fishery}{Double. The identifier for the fishery from which the tag is recovered. The fisheries include river harvest, spawning ground escapement, hatchery escapement, ocean recreational fishing, ocean commercial fishing.}
+#'   \item{location}{Character. The identifier for the location at which the tag is recovered.}
+#'   \item{size_limit}{Double. The minimum harvest limit (inclusive) in inches for the recovered tag's region and date.}
+#'   \item{est_num}{Double. The estimated number of fish each tag represents.}
+#'   \item{sex}{Character. The biological sex of the recovered fish.}
+#' }
+#' @param birth_month Integer specifying the birth month of all individuals in the data set.
+#' @param size_at_age Data frame specifying the mean and standard deviation for the individual body length at each age and month.
+#' @param rel_mort Data frame specifying the release mortality rate due to ocean fishing in each region.
+#' @param nat_mort Double specifying the natural mortality rate.
+#' @param sex String specifying which sex or sexes to consider. Must choose from "male", "female", or "both". Here, "male" is shorthand for sperm-producing individuals. "Female" is shorthand for egg-producing individuals.
+#' @param fisheries Named list associating each type of fishery with a unique identifier in the release and recovery data. Must contain the following named elements:
+#' \describe{
+#'   \item{oc_rec}{Identifier for recreational ocean fishery.}
+#'   \item{oc_com}{Identifier for commercial ocean fishery.}
+#'   \item{esc_sp}{Identifier for escapement to spawning ground.}
+#'   \item{esc_hat}{Identifier for escapement to hatchery.}
+#'   \item{riv_harv}{Identifier for river harvest.}
+#' }
+#' @param bootstrap Boolean indicating if parametric bootstrapping should be conducted. If `bootstrap` is set to false, then `iter` is ignored.
+#' @param iter Numeric or integer specifying the number of iterations for parametric bootstrapping. The default value is 1000. Note that larger values require more computing power and memory.
+#' @param min_harvest_rate Double specifying the lower bound for the harvest rate considered in cohort reconstruction.
+#' @param detail Boolean indicating if the reconstruction should calculate breakdowns and summary information.
+#' @param level Double between 0 and 1 inclusive, specifying the credible level for credible intervals. This option only matters if `bootstrap` is set to TRUE.
+#' @param hpd Boolean indicating if the highest posterior density credible interval should be used. If FALSE, a symmetric credible interval is used.
 #'
-#'
-#' @param rel input data frame for CWT releases with columns
-#' - release_month
-#' - brood_year
-#' - tag_code
-#' - prod_exp
-#' - total_release
-#' @param reco input data frame for CWT recoveries with columns
-#' - run_year
-#' - recovery_id
-#' - fishery
-#' - tag_code
-#' - length
-#' - sex
-#' - month
-#' - location
-#' - size_limit
-#' - est_num
-#' @param birth_month integer specifying the birth month of all individuals in the data set.
-#' @param size_at_age data frame specifying the mean and standard deviation for the individual body length at each age and month.
-#' @param rel_mort data frame specifying the release mortality rate due to ocean fishing in each region.
-#' @param nat_mort double specifying the natural mortality rate.
-#' @param sex string for which sex or sexes to consider. Must choose from "male", "female", or "both".
-#' Here, "male" is a short hand for sperm producing individuals. "Female" is a short hand for egg producing individuals.
-#' @param fisheries named list for associating each type of fishery with a unique identifier in the release and recovery data.
-#' Must contain the follow named elements:
-#' - "oc_rec": The identifier for recreational ocean fishery.
-#' - "oc_com": The identifier for commercial ocean fishery.
-#' - "esc_sp": The identifier for escapement to spawning ground.
-#' - "esc_hat": The identifier for escapement to hatchery.
-#' - "riv_harv": The identifier for river harvest.
-#' @param bootstrap Boolean for if parametric bootstrapping should be conducted. If `bootstrap` is set to false, then `iter` is ignored.
-#' @param iter numeric or integer to indicate the number of iterations for which we conduct parametric bootstrapping. The default value is 1000.  Caution, the larger
-#' this number is, the most computing power it requires, especially the size of memory.
-#' @param min_harvest_rate double for the lower bound for the harvest rate considered in cohort reconstruction.
-#' @param detail Boolean for if the reconstruction calculates the break downs and summary information.
-#' @param level double between 0 and 1 inclusive for the credible level for credible intervals. This option only matters if `bootstrap` is set to TRUE.
-#' @param hpd Boolean to use highest posterior density credible interval. If FALSE, a symmetric credible interval is used.
-#'
-#' @return
+#' @return A three-dimensional list of results. The first dimension encodes brood year information, the second age, and the third month. Depending on `detail` and `bootstrap`, the corresponding output will vary.
+
+# TODO: elaborate on how `detail` and `bootstrap` affect the output.
 #' @export
 #'
 #' @examples
-cohort_recon <- function(rel, reco, birth_month, last_month, fisheries = list(oc_rec = 40,
+#' cohort_reconstruct(release, recovery, birth_month = 4,
+#'   bootstrap = F, last_month = 12, iter = 10,
+#'   level = 0.95, detail = F, sex = "both")
+cohort_reconstruct <- function(rel, reco, birth_month, last_month, fisheries = list(oc_rec = 40,
                                                                   oc_com = 10,
                                                                   esc_sp = 54,
                                                                   esc_hat = 50,

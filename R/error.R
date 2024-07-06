@@ -39,7 +39,6 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
 
   check_unique <- function(rel, reco) {
     dist_rel <- rel %>% distinct(tag_code)
-    dist_reco <- reco %>% distinct(recovery_id)
     w_msg <- ""
 
     msg1 <- "df has duplicates in column: "
@@ -48,17 +47,13 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
     if (length(rel[['tag_code']]) != length(dist_rel[['tag_code']])){
       w_msg = paste0(w_msg, "Release ", msg1, "tag_code", msg2)
     }
-    if (length(reco[['recovery_id']]) != length(dist_reco[['recovery_id']])){
-      w_msg = paste0(w_msg, "Recovery ", msg1, "recovery_id", msg2)
-    }
 
     if (nchar(w_msg) > 1) {
       warning(w_msg)
     }
 
     rel <- dist_rel
-    reco <- dist_reco
-    return (list(rel, reco))
+    return (list(rel))
   }
 
   check_columns <- function(rel, reco) {
@@ -107,7 +102,6 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
                 "total_release",
                 "brood_year")
     RECO_COL = c("run_year",
-                "recovery_id",
                 "fishery",
                 "tag_code",
                 "length",

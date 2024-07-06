@@ -31,7 +31,6 @@ release <- release %>%
          prod_exp,
          total_release)
 
-write.csv("release", "./data-raw/release.csv", row.names = FALSE)
 usethis::use_data(release, overwrite = TRUE)
 
 ######################################################
@@ -54,8 +53,7 @@ recovery <- recovery %>%
          sampling_site,
          reporting_agency,
          estimated_number,
-         length) #|>
-  # drop_na(estimated_number)
+         length)
 # Join with release to add BROOD_YEAR column.
 recovery <- left_join(recovery, release, by = "tag_code") %>%
   select(-c("release_month",
@@ -88,7 +86,6 @@ recovery <- recovery %>%
     TRUE ~ estimated_number)) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
-         "recovery_id",
          "fishery",
          "tag_code",
          "length",
@@ -99,8 +96,8 @@ recovery <- recovery %>%
          "est_num")
 
 recovery = recovery[(recovery$fishery %in% c(40, 10) & !recovery$size_limit |> is.na()) | recovery$fishery %in% c(50, 54, 46), ]
+recovery[is.na(recovery$size_limit), "est_num"] <- 0
 
-write.csv("recovery", "./data-raw/recovery.csv", row.names = FALSE)
 usethis::use_data(recovery, overwrite = TRUE)
 
 # Use mortality rates from https://www.researchgate.net/publication/279530889_Sacramento_River_Winter_Chinook_Cohort_Reconstruction_Analysis_of_Ocean_Fishery_Impacts

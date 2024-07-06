@@ -86,7 +86,6 @@ recovery <- recovery %>%
   mutate(est_num = estimated_number) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
-         "recovery_id",
          "fishery",
          "tag_code",
          "length",
