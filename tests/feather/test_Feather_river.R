@@ -82,7 +82,7 @@ size_limit <- size_limit %>%
 recovery <- recovery %>%
   filter(fishery %in% c(10, 40, 54, 50, 46)) %>%
   mutate(est_num = case_when(
-    is.na(estimated_number) ~ 1,
+    is.na(estimated_number) ~ 0,
     TRUE ~ estimated_number)) %>%
   left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) %>%
   select("run_year",
@@ -96,7 +96,6 @@ recovery <- recovery %>%
          "est_num")
 
 recovery = recovery[(recovery$fishery %in% c(40, 10) & !recovery$size_limit |> is.na()) | recovery$fishery %in% c(50, 54, 46), ]
-recovery[is.na(recovery$size_limit), "est_num"] <- 0
 
 usethis::use_data(recovery, overwrite = TRUE)
 

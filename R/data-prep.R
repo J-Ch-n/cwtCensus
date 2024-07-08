@@ -245,6 +245,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   row_i_idx = 1L
 
   find_imp_nat_mat <- function(record) {
+    # browser()
     par_env = env_parent(current_env())
     if (bootstrap) {
       cur_yr = record[[BY_IDX]] |> as.integer()
@@ -294,13 +295,13 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     } else if (cur_fshry %in% c(ocean_r, ocean_c)) {
       if (prev_i_year_valid && (cur_ag != prev_i_age || cur_mnth != prev_i_month || cur_yr != prev_i_year || (prev_fshry != cur_fshry && !is.na(prev_fshry)))) {
         if (par_env$is_prev_ocean_r) {
-          is_ocean_r <<- TRUE
+          # is_ocean_r <<- TRUE
           imp_col <<- append(par_env$imp_col, list(prev_rec_imp))
           par_env$imp_dt |>
             set(i = row_i_idx, j = "fishery", value = ocean_r)
           prev_rec_imp <<- 0
         } else {
-          is_ocean_r <<- FALSE
+          # is_ocean_r <<- FALSE
           imp_col <<- append(par_env$imp_col, list(prev_com_imp))
           par_env$imp_dt |>
             set(i = row_i_idx, j = "fishery", value = ocean_c)
@@ -320,9 +321,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
       if (cur_fshry == ocean_r) {
         is_prev_ocean_r <<- TRUE
+        is_ocean_r <<- TRUE
         prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
       } else {
         is_prev_ocean_r <<- FALSE
+        is_ocean_r <<- FALSE
         prev_com_imp <<- prev_com_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
       }
 
