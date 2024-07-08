@@ -1,6 +1,5 @@
 #' Release information
 #'
-#' @eval
 #' @format ## 'release'
 #'
 #' \describe{
@@ -15,7 +14,6 @@
 
 #' Recovery information
 #'
-#' @eval
 #' @format ## 'release'
 #'
 #' \describe{
@@ -35,7 +33,6 @@
 
 #' Natural mortality information
 #'
-#' @eval
 #' @format ## 'release'
 #'
 #' \describe{
@@ -48,7 +45,6 @@
 
 #' Length at age, or key length age, information
 #'
-#' @eval
 #' @format ## 'release'
 #'
 #' \describe{
@@ -62,7 +58,6 @@
 
 #' Release mortality information
 #'
-#' @eval
 #' @format ## 'release'
 #'
 #' \describe{
