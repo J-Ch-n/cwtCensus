@@ -38,7 +38,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
   }
 
   check_unique <- function(rel, reco) {
-    dist_rel <- rel %>% distinct(tag_code)
+    dist_rel <- rel |> distinct(tag_code)
     w_msg <- ""
 
     msg1 <- "df has duplicates in column: "
@@ -159,5 +159,5 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, nat_mort, sex,
   if (length(nam_err) > 0) error_handler(nam_err, "columns")
 
   check_unique(rel, reco)
-  #check_nan(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
+  # check_nan(rel, reco, size_at_age, rel_mort, nat_mort, fisheries)
 }
