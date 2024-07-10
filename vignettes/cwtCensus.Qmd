@@ -1,0 +1,168 @@
+---
+title: "cwtCensus"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{cwtCensus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## How to Prepare Data
+
+```{r preparation}
+library(cwtCensus)
+
+```
+
+### Release
+
+1.  **Read data.**
+
+    Load the source release data into memory with `read.csv` or some other reader functions. The source data set used here is from <LINK>.
+
+    ```{r}
+    release <- read.csv("./sample_data/sample_releases.csv")
+    ```
+
+2.  **Process coded-wire tag information.**
+
+    We now start to find the total number number of releases and the production expansion factor using the source data. Production expansion factor is defined as the number of tagged fish with clipped adipose fin / the number of total releases.
+
+    ```{r}
+    release$cwt_1st_mark_count[is.na(release$cwt_1st_mark_count)] <- 0
+    release$cwt_2nd_mark_count[is.na(release$cwt_2nd_mark_count)] <- 0
+    release$non_cwt_1st_mark_count[is.na(release$non_cwt_1st_mark_count)] <- 0
+    release$non_cwt_2nd_mark_count[is.na(release$non_cwt_2nd_mark_count)] <- 0
+
+    release$Total_Released <- (release$cwt_1st_mark_count
+                               + release$cwt_2nd_mark_count
+                               + release$non_cwt_1st_mark_count
+                               + release$non_cwt_2nd_mark_count)
+
+    release$prod_exp <- release$cwt_1st_mark_count / release$Total_Released
+
+    names(release)[7] <- "tag_code"
+
+    ```
+
+3.  **Extract time and produce the final data frame**
+
+    ```{r}
+    release <- release |> 
+      dplyr::mutate(release_month = lubridate::month(lubridate::ymd(last_release_date)),
+             total_release = Total_Released) |> 
+      dplyr::select(release_month,
+             brood_year,
+             tag_code,
+             prod_exp,
+             total_release)
+    ```
+
+4.  **Here are the required column names.**
+
+    ```{r}
+    release |> colnames()
+    ```
+
+5.  **Here is the final result.**
+
+    ```{r}
+    release |> head()
+    ```
+
+### Recovery
+
+Once we have the `release` data frame under our belt, we can use it to construct the `recovery` data frame. Here is an example of how to create it.
+
+1.  **Read relevant data**
+
+    On top of the `release` data frame, we also need several other sources of information. We need coded-wire tag recovery information, which contains when and where a tag was recovered. Then, we need the site code data frame to translate the recovery site id into human readable regions. Lastly, we need to know the minimum harvest size limit in inches at the time and location that the tag was recovered. Note that if we have all these pieces of information in one data frame, we do not have to combine these three data frames.
+
+    ```{r}
+    recovery = read.csv("./sample_data/sample_recoveries.csv")
+    site_code = read.csv("./sample_data/sample_site_code.csv")
+    size_limit = read.csv("./sample_data/sample_size_limit.csv")
+    ```
+
+2.  **Combine relevant data frames**
+
+    ```{r, warning=FALSE}
+    site_code <- site_code |>
+      dplyr::mutate(sampling_site = sampsite,
+             location = area.1) |>
+      dplyr::select(sampling_site, location)
+
+    size_limit <- size_limit |>
+      dplyr::mutate(location = Location,
+             month = Month,
+             size_limit = limit) |>
+      dplyr::select(-c('Month', 'Location', 'limit'))
+
+    recovery <- recovery |> 
+      dplyr::mutate(month = lubridate::month(lubridate::ymd(recovery_date))) |> 
+      dplyr::select(run_year,
+             recovery_id,
+             fishery,
+             tag_code,
+             sex,
+             month,
+             sampling_site,
+             recovery_location_code,
+             sampling_site,
+             reporting_agency,
+             estimated_number,
+             length) |> 
+      dplyr::left_join(release, by = "tag_code") |> 
+      dplyr::select(-c("release_month",
+                "prod_exp",
+                "total_release")) |> 
+      dplyr::left_join(site_code, by = "sampling_site") |> 
+      dplyr::filter(fishery %in% c(10, 40, 54, 50, 46)) |>
+      dplyr::mutate(est_num = estimated_number) |>
+      dplyr::left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) |>
+      dplyr::select("run_year",
+             "fishery",
+             "tag_code",
+             "length",
+             "sex",
+             "month",
+             "location",
+             "size_limit",
+             "est_num")
+    ```
+
+3.  **Here are the required column names.**
+
+    ```{r}
+    recovery |> colnames()
+    ```
+
+4.  **Here is the final result.**
+
+    ```{r}
+    recovery |> head()
+    ```
+
+## Natural Mortality
+
+## Fisheries
+
+## Catch and Release Mortality
+
+## Drop Off Mortality
+
+## Length at Age
+
+## How to Use the Function
+
+```{r function}
+library(cwtCensus)
+
+```

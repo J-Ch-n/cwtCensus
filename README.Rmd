@@ -65,7 +65,7 @@ cohort_reconstruct(release, recovery, birth_month = 4,
 
 ## More Information
 
-You can find a more detailed tutorial at (Link)
+You can find a more detailed tutorial at 
 
 ## Getting Help
 
