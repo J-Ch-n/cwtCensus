@@ -1,7 +1,7 @@
 data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                       min_harvest_rate, spawn, hatchery, river,
                       ocean_r, ocean_c, bootstrap, d_mort,
-                      hr_c, hr_r, rel_mort, sex, u_bound) {
+                      hr_c, hr_r, rel_mort, sex, u_bound, survival) {
 
 
 # Preprocess and Helper Function Definitions ------------------------------
@@ -390,6 +390,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   max_age_month_dt = rel_reco_dt[, .(max_age = max(age), month = (birth_month - 2 %% 12 + 1)), by = list(brood_year)]
 
+  survival$rate = 1 - (survival$rate ^ (1 / 12))
+
   rm(rel_reco_dt)
-  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info))
+  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info, nat_mort = survival))
 }

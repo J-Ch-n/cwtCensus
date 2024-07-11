@@ -69,13 +69,13 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month, fisheries = l
                                                                   esc_sp = 54,
                                                                   esc_hat = 50,
                                                                   riv_harv = 46),
-                         size_at_age = length_at_age, rel_mort = release_mort, nat_mort = nat_mort_default,
+                         size_at_age = length_at_age, rel_mort = release_mort, survival = survival_default,
                          d_mort = 0.05, hr_mort_com = 0.26, hr_mort_rec = 0.14,
                          bootstrap = TRUE, iter = 1000, min_harvest_rate = 0,
                          detail = TRUE, level = 0.05, hpd = TRUE, verbose = TRUE,
                          sex = "both") {
 
-  error_handler(rel, reco, size_at_age, rel_mort, nat_mort,
+  error_handler(rel, reco, size_at_age, rel_mort, survival,
              sex, fisheries, bootstrap, iter)
 
   if (!bootstrap) {
@@ -103,7 +103,8 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month, fisheries = l
                          hr_c = hr_mort_com,
                          hr_r = hr_mort_rec,
                          rel_mort = rel_mort,
-                         u_bound = last_month)
+                         u_bound = last_month,
+                         survival = survival)
 
   if (verbose) {
     message("Initiating cohort reconstruction.\n")
@@ -111,7 +112,7 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month, fisheries = l
 
   final_data = reconstruct(mat_dt = clean_data$maturation,
                            imp_dt = clean_data$impact,
-                           nat_mort = nat_mort,
+                           nat_mort = clean_data$nat_mort,
                            birth_month = birth_month,
                            max_ag_mnth_dt = clean_data$max_age_month_dt,
                            detail = detail,
