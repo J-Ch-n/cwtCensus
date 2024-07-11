@@ -220,6 +220,10 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   yr_ag_cnt = find_num_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_fshry_cnt = find_num_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
 
+  if (yr_ag_cnt == 0 || yr_ag_mth_fshry_cnt == 0) {
+    stop("No recovery for maturation or impact. Please provide more recovery information.")
+  }
+
   mat_init_vec = rep(0, yr_ag_cnt)
   mat_dt = data.table(by = mat_init_vec,
                         age = mat_init_vec,
