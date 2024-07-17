@@ -12,9 +12,23 @@
 #' segments may behave in different ways. For more information, see details.
 #'
 #' @details
-#' Aging convention: we use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
+#' ## Aging convention
+#' We use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
 #' as soon as the fish is born, it is in the first year of life, thus age-1. Accordingly, the age in the `size_at_age` data frame should use
 #' fishing age as well.
+#'
+#' ## Detail, bootstrap, and results
+#' Since `detail` and `bootstrap` are Boolean valued variables, there are four combinations these two variables.
+#' \describe{
+#'  \item{`detail = True, bootstrap = True`}{Provides results with detailed summary statistics using bootstrapped data.}
+#'  \item{`detail = False, bootstrap = True`}{Provides results with cohort data only using bootstrapped data.}
+#'  \item{`detail = True, bootstrap = False`}{Provides results with detailed summary statistics using point estimates.}
+#'  \item{`detail = False, bootstrap = True`}{Provides results with cohort data only using point estimates.}
+#' }
+#'
+#' ## Danger of incomplete cohort reconstruction
+#' If the provided recovery data don't span the entire life time of a stock, cohort reconstruction may fail to
+#' yield accurate information. Be sure to provide a complete cohort recovery data set.
 #'
 #' @param rel Input data frame for CWT releases with columns:
 #' \describe{
@@ -38,7 +52,18 @@
 #' @param birth_month Integer specifying the birth month of all individuals in the data set.
 #' @param size_at_age Data frame specifying the mean and standard deviation for the individual body length at each age and month.
 #' @param rel_mort Data frame specifying the release mortality rate due to ocean fishing in each region.
-#' @param nat_mort Double specifying the natural mortality rate.
+#' \describe{
+#'  \item{run_year}{Integer for the run year.}
+#'  \item{fishery}{Identifier for the fishery type.}
+#'  \item{location}{Identifier for location.}
+#'  \item{month}{Integer for the month.}
+#'  \item{rate}{Double for the release mortality rate.}
+#' }
+#' @param survival Data frame specifying the age specific natural survival rates.
+#' \describe{
+#'  \item{age}{Numeric specifying the age.}
+#'  \item{rate}{Double specifying the agely survival rate.}
+#' }
 #' @param sex String specifying which sex or sexes to consider. Must choose from "male", "female", or "both". Here, "male" is shorthand for sperm-producing individuals. "Female" is shorthand for egg-producing individuals.
 #' @param fisheries Named list associating each type of fishery with a unique identifier in the release and recovery data. Must contain the following named elements:
 #' \describe{
@@ -56,8 +81,20 @@
 #' @param hpd Boolean indicating if the highest posterior density credible interval should be used. If FALSE, a symmetric credible interval is used.
 #'
 #' @return A three-dimensional list of results. The first dimension encodes brood year information, the second age, and the third month. Depending on `detail` and `bootstrap`, the corresponding output will vary.
-
-# TODO: elaborate on how `detail` and `bootstrap` affect the output.
+#'```
+#'     by  age  month
+#'
+#'├── [[2002]]
+#'│   ├── [[2]]
+#'│   │   ├── [[1]]
+#'│   │   │   ├── `data`
+#'│   │       └── `summary`
+#'│   ├── [[3]]
+#'│   │   ├── [[1]]
+#'│   │   │   ├── `data`
+#'│   │       └── `summary`
+#'```
+#'
 #' @export
 #'
 #' @examples
@@ -121,6 +158,7 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month, fisheries = l
                            iter = iter,
                            rel_info = clean_data$release_info,
                            hpd = hpd)
+
   result = create_output(final_data,
                 birth_month = birth_month,
                 bootstrap = bootstrap,

@@ -6,7 +6,7 @@
 \alias{cwtCensus-package}
 \title{cwtCensus: Efficient Population Analysis Tool for Cohort Reconstruction}
 \description{
-What the package does (one paragraph).
+Provides fast and convenient cohort reconstruction with both point and bootstrapped estimates.
 }
 \seealso{
 Useful links:
@@ -21,7 +21,7 @@ Useful links:
 
 Other contributors:
 \itemize{
-  \item Erin Redding
+  \item Erin Redding \email{eredding02@berkeley.edu}
 }
 
 }

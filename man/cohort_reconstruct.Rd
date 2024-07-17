@@ -12,7 +12,7 @@ cohort_reconstruct(
   fisheries = list(oc_rec = 40, oc_com = 10, esc_sp = 54, esc_hat = 50, riv_harv = 46),
   size_at_age = length_at_age,
   rel_mort = release_mort,
-  nat_mort = nat_mort_default,
+  survival = survival_default,
   d_mort = 0.05,
   hr_mort_com = 0.26,
   hr_mort_rec = 0.14,
@@ -61,9 +61,20 @@ cohort_reconstruct(
 
 \item{size_at_age}{Data frame specifying the mean and standard deviation for the individual body length at each age and month.}
 
-\item{rel_mort}{Data frame specifying the release mortality rate due to ocean fishing in each region.}
+\item{rel_mort}{Data frame specifying the release mortality rate due to ocean fishing in each region.
+\describe{
+\item{run_year}{Integer for the run year.}
+\item{fishery}{Identifier for the fishery type.}
+\item{location}{Identifier for location.}
+\item{month}{Integer for the month.}
+\item{rate}{Double for the release mortality rate.}
+}}
 
-\item{nat_mort}{Double specifying the natural mortality rate.}
+\item{survival}{Data frame specifying the age specific natural survival rates.
+\describe{
+\item{age}{Numeric specifying the age.}
+\item{rate}{Double specifying the agely survival rate.}
+}}
 
 \item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} is set to false, then \code{iter} is ignored.}
 
@@ -81,6 +92,19 @@ cohort_reconstruct(
 }
 \value{
 A three-dimensional list of results. The first dimension encodes brood year information, the second age, and the third month. Depending on \code{detail} and \code{bootstrap}, the corresponding output will vary.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{    by  age  month
+
+├── [[2002]]
+│   ├── [[2]]
+│   │   ├── [[1]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── [[3]]
+│   │   ├── [[1]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+}\if{html}{\out{</div>}}
 }
 \description{
 \code{cohort_reconstruct} uses released and recovered coded wire tags to calculate the ocean
@@ -94,9 +118,29 @@ Depending on if the \code{bootstrap} and \code{detail} flags are set, the \code{
 segments may behave in different ways. For more information, see details.
 }
 \details{
-Aging convention: we use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
+\subsection{Aging convention}{
+
+We use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
 as soon as the fish is born, it is in the first year of life, thus age-1. Accordingly, the age in the \code{size_at_age} data frame should use
 fishing age as well.
+}
+
+\subsection{Detail, bootstrap, and results}{
+
+Since \code{detail} and \code{bootstrap} are Boolean valued variables, there are four combinations these two variables.
+\describe{
+\item{\verb{detail = True, bootstrap = True}}{Provides results with detailed summary statistics using bootstrapped data.}
+\item{\verb{detail = False, bootstrap = True}}{Provides results with cohort data only using bootstrapped data.}
+\item{\verb{detail = True, bootstrap = False}}{Provides results with detailed summary statistics using point estimates.}
+\item{\verb{detail = False, bootstrap = True}}{Provides results with cohort data only using point estimates.}
+}
+}
+
+\subsection{Danger of incomplete cohort reconstruction}{
+
+If the provided recovery data don't span the entire life time of a stock, cohort reconstruction may fail to
+yield accurate information. Be sure to provide a complete cohort recovery data set.
+}
 }
 \examples{
 cohort_reconstruct(release, recovery, birth_month = 4,
