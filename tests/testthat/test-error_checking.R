@@ -3,14 +3,14 @@ library(tidyr)
 
 test_that("check missing", {
   # Should error when no function argument is provided.
-  expect_error(ch_reco())
+  expect_error(cohort_reconstruct())
 
   # Should error when some function arguments are provided, but the required
   # ones are missing.
-  expect_error(ch_reco(iter=1))
+  expect_error(cohort_reconstruct(iter=1))
   # Should not error or warn when the required arguments are provided.
-  expect_no_error(ch_reco(release, recovery))
-  expect_no_warning(ch_reco(release, recovery))
+  expect_no_error(cohort_reconstruct(release, recovery))
+  expect_no_warning(cohort_reconstruct(release, recovery))
 })
 
 test_that("check typ_err", {
@@ -19,7 +19,7 @@ test_that("check typ_err", {
   int_vec = c(int, int)
 
   # Should error when all provided arguments are of incorrect types.
-  expect_error(ch_reco(rel = char,
+  expect_error(cohort_reconstruct(rel = char,
                          reco = char,
                          size_at_age = int_vec,
                          rel_mort = int_vec,
@@ -30,7 +30,7 @@ test_that("check typ_err", {
                          iter = char))
 
   # Should error when some provided arguments are of incorrect types and others of correct types.
-  expect_error(ch_reco(rel = char,
+  expect_error(cohort_reconstruct(rel = char,
                        reco = char,
                        size_at_age = int_vec,
                        rel_mort = int_vec,
@@ -40,9 +40,9 @@ test_that("check typ_err", {
                        bootstrap = char,
                        iter = char))
   # Should error or warning when there's no incorrect type provided.
-  expect_no_warning(ch_reco(rel = release,
+  expect_no_warning(cohort_reconstruct(rel = release,
                             reco = recovery))
-  expect_no_error(ch_reco(rel = release,
+  expect_no_error(cohort_reconstruct(rel = release,
                             reco = recovery))
 })
 
@@ -51,17 +51,17 @@ test_that("check correct number of col", {
   rec_m = mutate(recovery, test = 1)
 
   # Should error when the required inputs have incorrect number of columns.
-  expect_error(ch_reco(rel = rel_m, reco = rec_m))
+  expect_error(cohort_reconstruct(rel = rel_m, reco = rec_m))
 
   # Should error when optional inputs, when provided, have incorrect number of columns.
-  expect_error(ch_reco(rel = release,
+  expect_error(cohort_reconstruct(rel = release,
                        reco = recovery,
                        size_at_age = rel))
 
   # Should not error or warn when required inputs have the correct number of columns.
-  expect_no_error(ch_reco(rel = release,
+  expect_no_error(cohort_reconstruct(rel = release,
                           reco = recovery))
-  expect_no_warning(ch_reco(rel = release,
+  expect_no_warning(cohort_reconstruct(rel = release,
                           reco = recovery))
 })
 
@@ -71,7 +71,7 @@ test_that("check unique simple", {
   rel_dup = rbind(release, release)
   rec_dup = rbind(recovery, recovery)
 
-  expect_warning(ch_reco(rel = rel_dup, reco = rec_dup), regex=".*")
+  expect_warning(cohort_reconstruct(rel = rel_dup, reco = rec_dup), regex=".*")
 })
 
 test_that("check NaN", {
@@ -84,13 +84,13 @@ test_that("check NaN", {
   rec_nan[1,1] = NA
 
   # Should throw a warning when only release has NA values.
-  expect_warning(ch_reco(rel_nan, recovery), regex=".*")
+  expect_warning(cohort_reconstruct(rel_nan, recovery), regex=".*")
 
   # Should throw a warning when only recovery has NA values.
-  expect_warning(ch_reco(release, rec_nan), regex=".*")
+  expect_warning(cohort_reconstruct(release, rec_nan), regex=".*")
 
   # Should throw a warning when both release and recovery have NA values.
-  expect_warning(ch_reco(rel_nan, rec_nan), regex=".*")
+  expect_warning(cohort_reconstruct(rel_nan, rec_nan), regex=".*")
 })
 
 

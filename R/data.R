@@ -1,72 +1,74 @@
 #' Release information
 #'
-#' @format ## 'release'
+#' @format ## `release`
 #'
-#' \describe{
-#'  \item{release_month}{The month in which the CWTs are released}
-#'  \item{brood_year}{The birth year of the tagged fish}
-#'  \item{tag_code}{The unique identification for each batch of CWT.}
-#'  \item{prod_exp}{The production expansion rate for each batch of CWT.}
-#'  \item{total_release}{The total number of fish released under a specific CWT ID}
+#'  \describe{
+#'    \item{"brood_year"}{Integer. The birth year of each CWT batch.}
+#'    \item{"total_release"}{Double. The total number of releases for each batch of CWT.}
+#'    \item{"prod_exp"}{Double. The ratio between the number of tagged fish and the total number \cr
+#'                      of fish in each batch, i.e., number of tagged fish / batch size.}
+#'    \item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 #' }
 #'
 "release"
 
 #' Recovery information
 #'
-#' @format ## 'release'
+#' @format ## `recovery`
 #'
-#' \describe{
-#' \item{run_year}{The year in which the CWT is recovered}
-#' \item{recovery_id}{The recovery ID of the CWT}
-#' \item{fishery}{The index of the fishery from which the CWT is recovered}
-#' \item{tag_code}{The unique identification for each batch of CWT}
-#' \item{length}{The length of tagged fish in inches}
-#' \item{sex}{The biological sex of the tagged fish}
-#' \item{month}{The month in which the CWT is recovered}
-#' \item{location}{The code of the location from which the CWT is recovered}
-#' \item{size_limit}{The minimum size limit for fish in inches at the time of recovery}
-#' \item{est_num}{The estimated number of fish that each CWT represents.}
+#'  \describe{
+#'    \item{"run_year"}{Integer. The year of each CWT recovery.}
+#'    \item{"month"}{Integer. The month of each CWT recovery.}
+#'    \item{"length"}{Double. The length in inches of each recovered fish.}
+#'    \item{"tag_code"}{Any type. The identifier for each recovered tag.}
+#'    \item{"fishery"}{Double. The identifier for the fishery from which the tag is recovered. \cr
+#'                      The fisheries include river harvest, spawning ground escapement, hatchery \cr
+#'                      escapement, ocean recreational fishing, ocean commercial fishing.}
+#'    \item{"location"}{Character. The identifier for the location at which the tag is recovered.}
+#'    \item{"size_limit"}{Double. The minimum harvest limit (inclusive) in inches for the recovered \cr
+#'                        tag's region and date.}
+#'    \item{"est_num"}{Double. The estimated number of fish each tag represents.}
+#'    \item{"sex"}{Character. The biological sex of the recovered fish.}
 #' }
 #'
 "recovery"
 
-#' Natural mortality information
+#' Age-specific survival information.
 #'
-#' @format ## 'release'
+#' @format ## `survival_default`
 #'
-#' \describe{
-#' \item{age}{The age of fish in which the CWT is recovered}
-#' \item{month}{The month in which the CWTs are released}
-#' \item{rate}{The natural mortality rate for the specified age and month}
-#' }
+#'  \describe{
+#'    \item{age}{Integer. The age of fish in which the CWT is recovered}
+#'    \item{month}{Integer. The month in which the CWTs are released}
+#'    \item{rate}{Double. The natural mortality rate for the specified age and month}
+#'  }
 #'
-"nat_mort_default"
+"survival_default"
 
 #' Length at age, or key length age, information
 #'
-#' @format ## 'release'
+#' @format ## `length_at_age`
 #'
-#' \describe{
-#' \item{age}{The age of fish in which the CWT is recovered}
-#' \item{month}{The month in which the CWT is recovered}
-#' \item{mean}{The mean legnth of fish in inches for the specified age and month}
-#' \item{sd}{The standard deviation of the fish length in inches for the specified age and month}
+#'  \describe{
+#'    \item{"age"}{Integer. The fishing age of the cohort.}
+#'    \item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
+#'    \item{"mean"}{Double. The mean total body length in inches.}
+#'    \item{"sd"}{Double. The standard deviation of total body length in inches.}
 #' }
 #'
 "length_at_age"
 
 #' Release mortality information
 #'
-#' @format ## 'release'
+#' @format ## `release_mort`
 #'
-#' \describe{
-#' \item{run_year}{The year in which the CWT is recovered}
-#' \item{fishery}{The index of the fishery from which the CWT is recovered}
-#' \item{location}{The code of the location from which the CWT is recovered}
-#' \item{month}{The month in which the CWT is recovered}
-#' \item{rate}{The release mortality rate for the specified location and time}
-#' }
+#'  \describe{
+#'    \item{"run_year"}{Integer. The year of each CWT recovery.}
+#'    \item{"fishery"}{Any type. The identifier for each type of fishery.}
+#'    \item{"location"}{Any type. The identifier for location.}
+#'    \item{"month"}{Integer. The month of each CWT recovery.}
+#'    \item{"rate"}{Double. The release mortality rate for each timestep.}
+#'  }
 #'
 "release_mort"
 

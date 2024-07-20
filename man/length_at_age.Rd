@@ -5,13 +5,13 @@
 \alias{length_at_age}
 \title{Length at age, or key length age, information}
 \format{
-\subsection{'release'}{
+\subsection{\code{length_at_age}}{
 
 \describe{
-\item{age}{The age of fish in which the CWT is recovered}
-\item{month}{The month in which the CWT is recovered}
-\item{mean}{The mean legnth of fish in inches for the specified age and month}
-\item{sd}{The standard deviation of the fish length in inches for the specified age and month}
+\item{"age"}{Integer. The fishing age of the cohort.}
+\item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
+\item{"mean"}{Double. The mean total body length in inches.}
+\item{"sd"}{Double. The standard deviation of total body length in inches.}
 }
 }
 }

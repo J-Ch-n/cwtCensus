@@ -5,19 +5,21 @@
 \alias{recovery}
 \title{Recovery information}
 \format{
-\subsection{'release'}{
+\subsection{\code{recovery}}{
 
 \describe{
-\item{run_year}{The year in which the CWT is recovered}
-\item{recovery_id}{The recovery ID of the CWT}
-\item{fishery}{The index of the fishery from which the CWT is recovered}
-\item{tag_code}{The unique identification for each batch of CWT}
-\item{length}{The length of tagged fish in inches}
-\item{sex}{The biological sex of the tagged fish}
-\item{month}{The month in which the CWT is recovered}
-\item{location}{The code of the location from which the CWT is recovered}
-\item{size_limit}{The minimum size limit for fish in inches at the time of recovery}
-\item{est_num}{The estimated number of fish that each CWT represents.}
+\item{"run_year"}{Integer. The year of each CWT recovery.}
+\item{"month"}{Integer. The month of each CWT recovery.}
+\item{"length"}{Double. The length in inches of each recovered fish.}
+\item{"tag_code"}{Any type. The identifier for each recovered tag.}
+\item{"fishery"}{Double. The identifier for the fishery from which the tag is recovered. \cr
+The fisheries include river harvest, spawning ground escapement, hatchery \cr
+escapement, ocean recreational fishing, ocean commercial fishing.}
+\item{"location"}{Character. The identifier for the location at which the tag is recovered.}
+\item{"size_limit"}{Double. The minimum harvest limit (inclusive) in inches for the recovered \cr
+tag's region and date.}
+\item{"est_num"}{Double. The estimated number of fish each tag represents.}
+\item{"sex"}{Character. The biological sex of the recovered fish.}
 }
 }
 }
