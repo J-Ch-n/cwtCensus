@@ -19,7 +19,7 @@ Useful links:
 \author{
 \strong{Maintainer}: Joshua Chen \email{jiashu.chen@berkeley.edu} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
 
-Other contributors:
+Authors:
 \itemize{
   \item Erin Redding \email{eredding02@berkeley.edu}
 }

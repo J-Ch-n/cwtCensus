@@ -9,4 +9,4 @@
 library(testthat)
 library(cwtCensus)
 
-test_check("cwtCensus", path = "./tests/testthat")
+test_check("cwtCensus")

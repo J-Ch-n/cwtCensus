@@ -1,17 +1,15 @@
 ---
 title: "cwtCensus"
-output: rmarkdown::html_vignette
+output: knitr::html_vignette
 vignette: >
   %\VignetteIndexEntry{cwtCensus}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+knitr::opts_chunk$set(collapse = TRUE,
+                      comment = "#>")
 ```
 
 ## How to Prepare Data

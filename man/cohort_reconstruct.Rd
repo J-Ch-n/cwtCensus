@@ -17,7 +17,7 @@ cohort_reconstruct(
   hr_mort_com = 0.26,
   hr_mort_rec = 0.14,
   bootstrap = TRUE,
-  iter = 1000,
+  iter = 1000L,
   detail = TRUE,
   min_harvest_rate = 0,
   level = 0.05,
@@ -166,7 +166,7 @@ output will vary. Here is the structure for the return.
 │   │   │   ├── `data`
 │   │       └── `summary`
 │   ├── ...
-│   │ 
+│   │
 │   ├──[["by_summary"]]
 │   │  ├── `data`
 │   │  └── `summary`
@@ -174,7 +174,17 @@ output will vary. Here is the structure for the return.
 
 }\if{html}{\out{</div>}}
 \subsection{Summary}{
+\itemize{
+\item Parameter: the statistics in question.
+\item Median: the median for the parameter.
+\item SD: the standard deviation for the parameter.
+\item CrI_low: the lower bound of the credible interval.
+\item CrI_high: the upper bound of the credible interval.
+}
 \subsection{Brood-year-specific summary (under \code{by_summary})}{
+\itemize{
+\item srr: spawner reduction rate.
+}
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
@@ -183,6 +193,9 @@ output will vary. Here is the structure for the return.
 }
 
 \subsection{Age-specific summary (under \code{age_summary})}{
+\itemize{
+\item elsr: early life survival rate.
+}
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
@@ -191,6 +204,12 @@ output will vary. Here is the structure for the return.
 }
 
 \subsection{Month-specific summary (under each month)}{
+\itemize{
+\item ocean_abundance: number of individuals in the ocean at that time.
+\item impact: mortality due to fishing.
+\item maturation: number of spawners.
+\item natural_mort: mortality due to natural causes.
+}
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter         | Median | SD   | CrI_low | CrI_high |
 |-------------------|--------|------|---------|----------|
@@ -204,6 +223,9 @@ output will vary. Here is the structure for the return.
 }
 
 \subsection{Data}{
+
+Each labeled entry is one bootstrapped iteration, where the label \code{n} corresponds \cr
+to the nth iteration.
 \subsection{Brood-year-specific data}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
@@ -272,7 +294,21 @@ may fail to yield accurate information. Be sure to provide a complete cohort rec
 }
 }
 \examples{
-cohort_reconstruct(release, recovery, birth_month = 4,
-  bootstrap = F, detail = F, last_month = 12L, iter = 10,
-  level = 0.95, , sex = "both")
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+last_month = 12L, bootstrap = TRUE, iter = 100L, detail = TRUE)
+
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+last_month = 12L, bootstrap = TRUE, iter = 100L, detail = FALSE)
+
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+last_month = 12L, bootstrap = FALSE, detail = TRUE)
+
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+last_month = 12L, bootstrap = FALSE, detail = FALSE)
+
+# Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
+
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
+
 }

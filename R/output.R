@@ -209,9 +209,9 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
 
   if (detail) {
     comb = data$cohort |>
-      left_join(data$air_dt, by = c("by", "age")) |>
-      left_join(data$els_dt, by = c("by" = "brood_year")) |>
-      left_join(data$srr_dt, by = c("by"))
+      dplyr::left_join(data$air_dt, by = c("by", "age")) |>
+      dplyr::left_join(data$els_dt, by = c("by" = "brood_year")) |>
+      dplyr::left_join(data$srr_dt, by = c("by"))
 
     result = by(comb, list(comb$by), by_helper)
     rm(comb)

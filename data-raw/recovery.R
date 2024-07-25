@@ -75,6 +75,6 @@ recovery = recovery |>
          "location",
          "size_limit",
          "est_num")
-
+recovery = recovery[!recovery$size_limit |> is.na() | !recovery$fishery %in% c(40, 10), ]
 write.csv("recovery", "./data-raw/recovery.csv", row.names = FALSE)
 usethis::use_data(recovery, overwrite = TRUE)

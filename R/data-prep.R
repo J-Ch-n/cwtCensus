@@ -39,14 +39,13 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   missing_size_age_handler <- function(month, age, size_age_map, size_age_df) {
-
     min_age_mnth_row = size_age_df |>
-      arrange(month, age) |>
+      dplyr::arrange(month, age) |>
       head(1) |>
       unname()
 
     max_age_mnth_row = size_age_df |>
-      arrange(month, age) |>
+      dplyr::arrange(month, age) |>
       tail(1) |>
       unname()
 
@@ -155,7 +154,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                              "month",
                              "age",
                              "location"))
-  rel_reco_dt[is.na(est_num) | est_num < 1, value := 1]
+
+  rel_reco_dt[is.na(est_num) | est_num < 1, est_num := 1]
 
   if (sex == "male") {
     rel_reco_dt = rel_reco_dt[sex == "M"]
@@ -215,6 +215,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   setcolorder(rel_reco_dt, column_names)
+
 # Find Impact and Maturation ----------------------------------------------
 
   yr_ag_cnt = find_num_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)

@@ -152,27 +152,40 @@
 #'│   │   │   ├── `data`
 #'│   │       └── `summary`
 #'│   ├── ...
-#'│   │ 
+#'│   │
 #'│   ├──[["by_summary"]]
 #'│   │  ├── `data`
 #'│   │  └── `summary`
 #'├── ...
-#' 
+#'
 #'```
 #' ## Summary
+#'
+#'  - Parameter: the statistics in question.
+#'  - Median: the median for the parameter.
+#'  - SD: the standard deviation for the parameter.
+#'  - CrI_low: the lower bound of the credible interval.
+#'  - CrI_high: the upper bound of the credible interval.
+#'
 #' ### Brood-year-specific summary (under `by_summary`)
+#'  - srr: spawner reduction rate.
 #' ```
 #' | Parameter | Median | SD  | CrI_low | CrI_high |
 #' |-----------|--------|-----|---------|----------|
 #' | srr       | 0.05   | 0.02| 0.04    | 0.04     |
 #' ```
 #' ### Age-specific summary (under `age_summary`)
+#'  - elsr: early life survival rate.
 #' ```
 #' | Parameter | Median | SD  | CrI_low | CrI_high |
 #' |-----------|--------|-----|---------|----------|
 #' | elsr      | 0.02   | 0   | 0.01    | 0.01     |
 #' ```
 #' ### Month-specific summary (under each month)
+#'  - ocean_abundance: number of individuals in the ocean at that time.
+#'  - impact: mortality due to fishing.
+#'  - maturation: number of spawners.
+#'  - natural_mort: mortality due to natural causes.
 #' ```
 #' | Parameter         | Median | SD   | CrI_low | CrI_high |
 #' |-------------------|--------|------|---------|----------|
@@ -182,12 +195,14 @@
 #' | natural_mort      | 0.81   | 0.12 | 0.65    | 0.65     |
 #' ```
 #' ## Data
+#'  Each labeled entry is one bootstrapped iteration, where the label `n` corresponds \cr
+#'  to the nth iteration.
 #' ### Brood-year-specific data
 #' ```
 #' | Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
 #' |-----------|------|------|------|------|------|------|------|------|------|------|
 #' | srr       | 0.07 | 0.07 | 0.05 | 0.05 | 0.05 | 0.06 | 0.06 | 0.04 | 0.08 | 0.04 |
-#' 
+#'
 #' ```
 #' ### Age-specific data
 #' ```
@@ -196,7 +211,7 @@
 #' | elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
 #' ```
 #' ### Month-specific data
-#' 
+#'
 #' ```
 #' | Measurement      | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
 #' |------------------|------|------|------|------|------|------|------|------|------|------|
@@ -209,9 +224,24 @@
 #' @export
 #'
 #' @examples
-#' cohort_reconstruct(release, recovery, birth_month = 4,
-#'   bootstrap = F, detail = F, last_month = 12L, iter = 10,
-#'   level = 0.95, , sex = "both")
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#' last_month = 12L, bootstrap = TRUE, iter = 10L, detail = TRUE)
+#'
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#' last_month = 12L, bootstrap = TRUE, iter = 10L, detail = FALSE)
+#'
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#' last_month = 12L, bootstrap = FALSE, detail = TRUE)
+#'
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#' last_month = 12L, bootstrap = FALSE, detail = FALSE)
+#'
+#' # Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
+#'
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#' last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
+#'
+
 cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheries = list(oc_rec = 40,
                                                                   oc_com = 10,
                                                                   esc_sp = 54,
@@ -219,12 +249,14 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                                                                   riv_harv = 46),
                          size_at_age = length_at_age, rel_mort = release_mort, survival = survival_default,
                          d_mort = 0.05, hr_mort_com = 0.26, hr_mort_rec = 0.14,
-                         bootstrap = TRUE, iter = 1000, detail = TRUE,
+                         bootstrap = FALSE, iter = 10L, detail = FALSE,
                          min_harvest_rate = 0, level = 0.05, hpd = TRUE, verbose = TRUE,
                          sex = "both") {
 
   error_handler(rel, reco, size_at_age, rel_mort, survival,
-             sex, fisheries, bootstrap, iter)
+             sex, fisheries, bootstrap, iter, last_month, birth_month,
+             d_mort, hr_mort_com, hr_mort_rec, detail,
+             min_harvest_rate, level, hpd, verbose)
 
   if (!bootstrap) {
     iter = 1
@@ -233,6 +265,9 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
   if (verbose) {
     message("Preparing data.\n")
   }
+
+  bootstrap = bootstrap && iter > 1
+  iter = max(1, iter)
 
   clean_data = data_prep(rel,
                          reco,
