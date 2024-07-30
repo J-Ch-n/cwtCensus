@@ -227,5 +227,8 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
     return(result)
   }
 
+  data$cohort$ocean_abundance = data$cohort$ocean_abundance |>
+    unlist()
+
   return(data$cohort)
 }

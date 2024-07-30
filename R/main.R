@@ -1,3 +1,4 @@
+
 #' Conduct cohort reconstruction for populations with coded wire tags
 #'
 #' @description
@@ -31,7 +32,7 @@
 #' If the provided recovery data don't span the entire life time of a stock, cohort reconstruction \cr
 #'  may fail to yield accurate information. Be sure to provide a complete cohort recovery data set.
 #'
-#' @param rel Input data frame for CWT releases with columns:
+#' @param rel Input data frame for CWT releases with columns in order:
 #'  \describe{
 #'    \item{"brood_year"}{Integer. The birth year of each CWT batch.}
 #'    \item{"total_release"}{Double. The total number of releases for each batch of CWT.}
@@ -39,7 +40,7 @@
 #'                      of fish in each batch, i.e., number of tagged fish / batch size.}
 #'    \item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 #' }
-#' @param reco Input data frame for CWT recoveries with columns:
+#' @param reco Input data frame for CWT recoveries with columns in order:
 #'  \describe{
 #'    \item{"run_year"}{Integer. The year of each CWT recovery.}
 #'    \item{"month"}{Integer. The month of each CWT recovery.}
@@ -71,16 +72,16 @@
 #' @param size_at_age Data frame specifying the mean and standard deviation for the individual \cr
 #'  body length at each age and month. The default data frame is included in the package and named \cr
 #'  `length_at_age`.
-#'  The following is a structure for the required data frame.
+#'  The following describes the required columns in order.
 #'  \describe{
 #'    \item{"age"}{Integer. The fishing age of the cohort.}
 #'    \item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
 #'    \item{"mean"}{Double. The mean total body length in inches.}
 #'    \item{"sd"}{Double. The standard deviation of total body length in inches.}
 #' }
-#' @param rel_mort Data frame specifying the release mortality rate due to ocean fishing in each \cr
-#'  region. The default data frame is included in the package and named `release_mort`. \cr
-#'  The following is a structure for the required data frame.
+#' @param rel_mort Data frame specifying the hook-and-release mortality rate due to ocean fishing in each \cr
+#'  region. Hook-and-release mortality rate is the proportion of fish that are The default data frame is included in the package and named `release_mort`. \cr
+#'  The following describes the required columns in order.
 #'  \describe{
 #'    \item{"run_year"}{Integer. The year of each CWT recovery.}
 #'    \item{"fishery"}{Any type. The identifier for each type of fishery.}
@@ -90,19 +91,14 @@
 #'  }
 #' @param survival Data frame specifying the age specific natural survival rates. The default data \cr
 #'  frame is included in the package and named `survival_default`. \cr
-#'  The following is a structure for the required data frame.
+#'  The following describes the required columns in order.
 #'  \describe{
 #'    \item{"age"}{Numeric specifying the age.}
 #'    \item{"rate"}{Double specifying the agely survival rate.}
 #'  }
 #' @param d_mort Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
-#'  the chance that a fish dies after being hooked but not landed. The default value is 0.05. <Source>
-#' @param hr_mort_com Double indicating the catch and release mortality of commercial fishery. This \cr
-#'  is the chance that a fish dies after being landed and released in a commercial fishery. The \cr
-#'  default value is 0.26. <Source>
-#' @param hr_mort_rec Double indicating the catch and release mortality of recreational fishery. This \cr
-#'  is the change that fish dies after being landed and released in a recreational fishery. The \cr
-#'  default value is 0.14. <Source>
+#'  the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
+#'  intact. The default value is 0.05.
 #' @param bootstrap Boolean indicating if parametric bootstrapping should be conducted. If `bootstrap` \cr
 #'  is set to false, then `iter` is ignored.
 #' @param iter Numeric or integer specifying the number of iterations for parametric bootstrapping. The \cr
@@ -124,10 +120,32 @@
 #'  bootstrapped cohort reconstruction for large iterations that are high in computing cost, as \cr
 #'  having progress updates can instill a sense of confidence into an otherwise discouraged user.
 #'
-#' @return A three-dimensional list of results. The first dimension encodes brood year information (by), \cr
+#' @return
+#'  There are two types of return value, depending on the values of `detail` and `bootstrap`. \cr
+#'  In the case when both `detail` and `bootstrap` are `FALSE`, the return value is a data table of the following form: \cr
+#'
+#'```
+#' | by (integer) | age (integer) | month (integer) | ocean_abundance (double) |
+#' |--------------|---------------|-----------------|--------------------------|
+#' | 1995         | 3             | 5               | 3.814342                 |
+#' | 1995         | 3             | 4               | 10.853284                |
+#' | 1995         | 3             | 3               | 11.056992                |
+#' | 1995         | 3             | 2               | 11.264524                |
+#' | 1995         | 3             | 1               | 11.475951                |
+#' | 1995         | 3             | 12              | 11.691346                |
+#' | 1995         | 3             | 11              | 11.910784                |
+#' | 1995         | 3             | 10              | 12.134340                |
+#' | 1995         | 3             | 9               | 12.362093                |
+#' | 1995         | 3             | 8               | 12.594120                |
+#'
+#'```
+#'  In the cases when either `detail`, `bootstrap`, or both are set to `TRUE`, the return \cr
+#'  value is a three dimensional list. The first dimension encodes brood year information (by), \cr
 #'  the second age, and the third month. Each age has an age-specific summary information. Each month has \cr
-#' `data` and month-specific `summary` information.Depending on `detail` and `bootstrap`, the corresponding \cr
-#'  output will vary. Here is the structure for the return.
+#' `data` and month-specific `summary` information. Depending on `detail` and `bootstrap`,
+#'  the corresponding output will vary. \cr
+#'
+#'  Here is the structure of the return value: \cr
 #'
 #'```
 #'   "by" "age" "month"
@@ -159,6 +177,7 @@
 #'├── ...
 #'
 #'```
+#'
 #' ## Summary
 #'
 #'  - Parameter: the statistics in question.
@@ -224,22 +243,27 @@
 #' @export
 #'
 #' @examples
-#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-#' last_month = 12L, bootstrap = TRUE, iter = 10L, detail = TRUE)
 #'
+#' # Bootstrapped (10 iterations) and detailed cohort reconstruction.
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-#' last_month = 12L, bootstrap = TRUE, iter = 10L, detail = FALSE)
+#'   last_month = 12L, bootstrap = TRUE, iter = 10L, detail = TRUE)
 #'
+#' # Bootstrapped (10 iterations) but not detailed cohort reconstruction.
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-#' last_month = 12L, bootstrap = FALSE, detail = TRUE)
+#'   last_month = 12L, bootstrap = TRUE, iter = 10L, detail = FALSE)
 #'
+#' # Point estimated and detailed cohort reconstruction.
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-#' last_month = 12L, bootstrap = FALSE, detail = FALSE)
+#'   last_month = 12L, bootstrap = FALSE, detail = TRUE)
+#'
+#' # Point estimated but no detailed cohort reconstruction.
+#' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+#'   last_month = 12L, bootstrap = FALSE, detail = FALSE)
 #'
 #' # Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
 #'
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-#' last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
+#'   last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
 #'
 
 cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheries = list(oc_rec = 40,

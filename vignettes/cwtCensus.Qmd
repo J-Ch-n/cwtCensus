@@ -15,8 +15,7 @@ knitr::opts_chunk$set(collapse = TRUE,
 ## How to Prepare Data
 
 ```{r preparation}
-library(cwtCensus)
-
+library(cwtCensus) 
 ```
 
 ### Release
@@ -26,7 +25,7 @@ library(cwtCensus)
     Load the source release data into memory with `read.csv` or some other reader functions. The source data set used here is from <LINK>.
 
     ```{r}
-    release <- read.csv("./sample_data/sample_releases.csv")
+    release_custom <- read.csv("./sample_data/sample_releases.csv")
     ```
 
 2.  **Process coded-wire tag information.**
@@ -34,26 +33,26 @@ library(cwtCensus)
     We now start to find the total number number of releases and the production expansion factor using the source data. Production expansion factor is defined as the number of tagged fish with clipped adipose fin / the number of total releases.
 
     ```{r}
-    release$cwt_1st_mark_count[is.na(release$cwt_1st_mark_count)] <- 0
-    release$cwt_2nd_mark_count[is.na(release$cwt_2nd_mark_count)] <- 0
-    release$non_cwt_1st_mark_count[is.na(release$non_cwt_1st_mark_count)] <- 0
-    release$non_cwt_2nd_mark_count[is.na(release$non_cwt_2nd_mark_count)] <- 0
+    release_custom$cwt_1st_mark_count[is.na(release_custom$cwt_1st_mark_count)] <- 0
+    release_custom$cwt_2nd_mark_count[is.na(release_custom$cwt_2nd_mark_count)] <- 0
+    release_custom$non_cwt_1st_mark_count[is.na(release_custom$non_cwt_1st_mark_count)] <- 0
+    release_custom$non_cwt_2nd_mark_count[is.na(release_custom$non_cwt_2nd_mark_count)] <- 0
 
-    release$Total_Released <- (release$cwt_1st_mark_count
-                               + release$cwt_2nd_mark_count
-                               + release$non_cwt_1st_mark_count
-                               + release$non_cwt_2nd_mark_count)
+    release_custom$Total_Released <- (release_custom$cwt_1st_mark_count
+                               + release_custom$cwt_2nd_mark_count
+                               + release_custom$non_cwt_1st_mark_count
+                               + release_custom$non_cwt_2nd_mark_count)
 
-    release$prod_exp <- release$cwt_1st_mark_count / release$Total_Released
+    release_custom$prod_exp <- release_custom$cwt_1st_mark_count / release_custom$Total_Released
 
-    names(release)[7] <- "tag_code"
+    names(release_custom)[7] <- "tag_code"
 
     ```
 
 3.  **Extract time and produce the final data frame**
 
     ```{r}
-    release <- release |> 
+    release_custom <- release_custom |> 
       dplyr::mutate(release_month = lubridate::month(lubridate::ymd(last_release_date)),
              total_release = Total_Released) |> 
       dplyr::select(release_month,
@@ -66,13 +65,13 @@ library(cwtCensus)
 4.  **Here are the required column names.**
 
     ```{r}
-    release |> colnames()
+    release_custom |> colnames()
     ```
 
 5.  **Here is the final result.**
 
     ```{r}
-    release |> head()
+    release_custom |> head()
     ```
 
 ### Recovery
@@ -84,9 +83,9 @@ Once we have the `release` data frame under our belt, we can use it to construct
     On top of the `release` data frame, we also need several other sources of information. We need coded-wire tag recovery information, which contains when and where a tag was recovered. Then, we need the site code data frame to translate the recovery site id into human readable regions. Lastly, we need to know the minimum harvest size limit in inches at the time and location that the tag was recovered. Note that if we have all these pieces of information in one data frame, we do not have to combine these three data frames.
 
     ```{r}
-    recovery = read.csv("./sample_data/sample_recoveries.csv")
+    recovery_custom = read.csv("./sample_data/sample_recoveries.csv")
     site_code = read.csv("./sample_data/sample_site_code.csv")
-    size_limit = read.csv("./sample_data/sample_size_limit.csv")
+    size_limit = read.csv("./sample_data/sample_size_limits.csv")
     ```
 
 2.  **Combine relevant data frames**
@@ -95,7 +94,7 @@ Once we have the `release` data frame under our belt, we can use it to construct
     site_code <- site_code |>
       dplyr::mutate(sampling_site = sampsite,
              location = area.1) |>
-      dplyr::select(sampling_site, location)
+      dplyr::select(sampling_site, location, agency)
 
     size_limit <- size_limit |>
       dplyr::mutate(location = Location,
@@ -103,7 +102,7 @@ Once we have the `release` data frame under our belt, we can use it to construct
              size_limit = limit) |>
       dplyr::select(-c('Month', 'Location', 'limit'))
 
-    recovery <- recovery |> 
+    recovery_custom <- recovery_custom |> 
       dplyr::mutate(month = lubridate::month(lubridate::ymd(recovery_date))) |> 
       dplyr::select(run_year,
              recovery_id,
@@ -121,7 +120,8 @@ Once we have the `release` data frame under our belt, we can use it to construct
       dplyr::select(-c("release_month",
                 "prod_exp",
                 "total_release")) |> 
-      dplyr::left_join(site_code, by = "sampling_site") |> 
+      dplyr::left_join(site_code, by = c("sampling_site" = "sampling_site",
+                                  "reporting_agency" = "agency")) |> 
       dplyr::filter(fishery %in% c(10, 40, 54, 50, 46)) |>
       dplyr::mutate(est_num = estimated_number) |>
       dplyr::left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) |>
@@ -139,28 +139,136 @@ Once we have the `release` data frame under our belt, we can use it to construct
 3.  **Here are the required column names.**
 
     ```{r}
-    recovery |> colnames()
+    recovery_custom |> colnames()
     ```
 
 4.  **Here is the final result.**
 
     ```{r}
-    recovery |> head()
+    recovery_custom |> head()
     ```
 
-## Natural Mortality
+## Survival
+
+The age-specific survival rate is the ratio between the survived individuals at the end of an age and the total individuals at the beginning of an age. Typically, the survival rate for age-2 cohort is 0.5, while the rate for age-3 and up is 0.8.
+
+Here is how to create a custom survival rate input.
+
+```{r}
+survival_custom = data.frame(age = 2:6, rate = c(0.5, rep(0.8, times = 4)))
+
+survival_custom
+```
 
 ## Fisheries
 
-## Catch and Release Mortality
+The package requires a mapping between each type of fishery and its corresponding identifier.
+
+Here is how to create a custom fisheries-id mapping.
+
+```{r}
+list(oc_rec = 40,
+     oc_com = 10,
+     esc_sp = 54,
+     esc_hat = 50,
+     riv_harv = 46)
+```
+
+## Hook-and-Release Mortality
+
+Hook-and-release mortality rate is the proportion of fish that are The default data frame is included in the package and named `release_mort`. Here is how to create a custom hook-and-release mortality data frame.
+
+```{r}
+release_mort_custom <- data.frame(run_year = rep(1981, 20), 
+                           fishery = c(rep(40, 12), rep(10, 7), 40), 
+                           location = c('FB', 'KC', 'MO', 'SF', 'FB', 'KC', 'MO', 'SF', 'FB',
+                                        'KC', 'MO', 'SF', 'CO', 'FB', 'KC', 'KO', 'MO', 'NO',
+                                        'SF', 'CO'), 
+                           month = c(rep(c(2, 3, 4), each = 4), rep(5, 7), 5), 
+                           rate = c(rep(0.14, 12), rep(0.26, 7), 0.14))
+release_mort_custom
+```
 
 ## Drop Off Mortality
 
-## Length at Age
+Drop off mortality is the proportion of fish encountered by the gear that is killed without being brought to the vessel intact. The default value is 0.05.
+
+## Length-at-Age
+
+Length-at-age is a data frame encoding he mean and standard deviation total length at each age-month.
+
+Here is how to create a custom length-at-age data frame.
+
+```{r}
+length_at_age_custom <- data.frame(
+  age = c(rep(1, 10), rep(2, 12)),
+  month = c(3:12, 1:12),
+  mean = c(rep(19.06998, 14), 21.16612, 22.17341, 
+           22.88485, 24.27430, 24.77973, 23.88669, 24.82676, 25.94237),
+  sd = c(rep(2.151048, 14), 2.272190, 2.250629, 2.393862, 2.191818, 
+         2.098376, 2.129863, 1.940248, 1.985157)
+)
+
+length_at_age_custom
+```
 
 ## How to Use the Function
 
 ```{r function}
 library(cwtCensus)
+```
 
+### Bootstrap or Point Estimate?
+
+The package uses either bootstrapped data or point estimates. Bootstrapped estimations allow us to approximate the spread of each parameters through simulated uncertainties, while point estimates do not as they are deterministic. Simply put, bootstrapped estimations offer more information than point estimates. However, it takes significantly more computing cycles to find bootstrapped estimations than to find point estimates.
+
+#### Bootstrapped Estimation
+
+We model the number of fish missed by the sampling effort with an negative binomial distribution. Assuming the negative binomial distribution models the number of failures before the `kth` success, the number of fish that would have been recovered is $1 + rnbinom(1,  1/est\_num)$ where `est_num` is the number of fish estimated to be recovered by one tag (point estimate).
+
+##### Bootstrap with Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = TRUE, iter = 10L, 
+                            detail = TRUE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+##### Bootstrap Without Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = TRUE, iter = 10L, 
+                            detail = FALSE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+Point Estimate with Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = FALSE, iter = 10L, 
+                            detail = TRUE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+Point Estimate without Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = FALSE, iter = 10L, 
+                            detail = FALSE, verbose = FALSE)
+
+result[result$by == 2007 & result$age == 2 & result$month == 1, ]
 ```

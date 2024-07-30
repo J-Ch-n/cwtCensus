@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Joshua Chen \email{jiashu.chen@berkeley.edu} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Joshua Chen \email{jiashu.chen@berkeley.edu} (\href{https://orcid.org/123123}{ORCID})
 
 Authors:
 \itemize{

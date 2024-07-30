@@ -16,9 +16,9 @@ cohort_reconstruct(
   d_mort = 0.05,
   hr_mort_com = 0.26,
   hr_mort_rec = 0.14,
-  bootstrap = TRUE,
-  iter = 1000L,
-  detail = TRUE,
+  bootstrap = FALSE,
+  iter = 10L,
+  detail = FALSE,
   min_harvest_rate = 0,
   level = 0.05,
   hpd = TRUE,
@@ -27,7 +27,7 @@ cohort_reconstruct(
 )
 }
 \arguments{
-\item{rel}{Input data frame for CWT releases with columns:
+\item{rel}{Input data frame for CWT releases with columns in order:
 \describe{
 \item{"brood_year"}{Integer. The birth year of each CWT batch.}
 \item{"total_release"}{Double. The total number of releases for each batch of CWT.}
@@ -36,7 +36,7 @@ of fish in each batch, i.e., number of tagged fish / batch size.}
 \item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 }}
 
-\item{reco}{Input data frame for CWT recoveries with columns:
+\item{reco}{Input data frame for CWT recoveries with columns in order:
 \describe{
 \item{"run_year"}{Integer. The year of each CWT recovery.}
 \item{"month"}{Integer. The month of each CWT recovery.}
@@ -72,7 +72,7 @@ release and recovery data. Must contain the following named elements:
 \item{size_at_age}{Data frame specifying the mean and standard deviation for the individual \cr
 body length at each age and month. The default data frame is included in the package and named \cr
 \code{length_at_age}.
-The following is a structure for the required data frame.
+The following describes the required columns in order.
 \describe{
 \item{"age"}{Integer. The fishing age of the cohort.}
 \item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
@@ -80,9 +80,9 @@ The following is a structure for the required data frame.
 \item{"sd"}{Double. The standard deviation of total body length in inches.}
 }}
 
-\item{rel_mort}{Data frame specifying the release mortality rate due to ocean fishing in each \cr
-region. The default data frame is included in the package and named \code{release_mort}. \cr
-The following is a structure for the required data frame.
+\item{rel_mort}{Data frame specifying the hook-and-release mortality rate due to ocean fishing in each \cr
+region. Hook-and-release mortality rate is the proportion of fish that are The default data frame is included in the package and named \code{release_mort}. \cr
+The following describes the required columns in order.
 \describe{
 \item{"run_year"}{Integer. The year of each CWT recovery.}
 \item{"fishery"}{Any type. The identifier for each type of fishery.}
@@ -93,22 +93,15 @@ The following is a structure for the required data frame.
 
 \item{survival}{Data frame specifying the age specific natural survival rates. The default data \cr
 frame is included in the package and named \code{survival_default}. \cr
-The following is a structure for the required data frame.
+The following describes the required columns in order.
 \describe{
 \item{"age"}{Numeric specifying the age.}
 \item{"rate"}{Double specifying the agely survival rate.}
 }}
 
 \item{d_mort}{Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
-the chance that a fish dies after being hooked but not landed. The default value is 0.05. \if{html}{\out{<Source>}}}
-
-\item{hr_mort_com}{Double indicating the catch and release mortality of commercial fishery. This \cr
-is the chance that a fish dies after being landed and released in a commercial fishery. The \cr
-default value is 0.26. \if{html}{\out{<Source>}}}
-
-\item{hr_mort_rec}{Double indicating the catch and release mortality of recreational fishery. This \cr
-is the change that fish dies after being landed and released in a recreational fishery. The \cr
-default value is 0.14. \if{html}{\out{<Source>}}}
+the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
+intact. The default value is 0.05.}
 
 \item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} \cr
 is set to false, then \code{iter} is ignored.}
@@ -139,10 +132,31 @@ having progress updates can instill a sense of confidence into an otherwise disc
 egg-producing individuals.}
 }
 \value{
-A three-dimensional list of results. The first dimension encodes brood year information (by), \cr
+There are two types of return value, depending on the values of \code{detail} and \code{bootstrap}. \cr
+In the case when both \code{detail} and \code{bootstrap} are \code{FALSE}, the return value is a data table of the following form: \cr
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| by (integer) | age (integer) | month (integer) | ocean_abundance (double) |
+|--------------|---------------|-----------------|--------------------------|
+| 1995         | 3             | 5               | 3.814342                 |
+| 1995         | 3             | 4               | 10.853284                |
+| 1995         | 3             | 3               | 11.056992                |
+| 1995         | 3             | 2               | 11.264524                |
+| 1995         | 3             | 1               | 11.475951                |
+| 1995         | 3             | 12              | 11.691346                |
+| 1995         | 3             | 11              | 11.910784                |
+| 1995         | 3             | 10              | 12.134340                |
+| 1995         | 3             | 9               | 12.362093                |
+| 1995         | 3             | 8               | 12.594120                |
+
+}\if{html}{\out{</div>}}
+
+In the cases when either \code{detail}, \code{bootstrap}, or both are set to \code{TRUE}, the return \cr
+value is a three dimensional list. The first dimension encodes brood year information (by), \cr
 the second age, and the third month. Each age has an age-specific summary information. Each month has \cr
-\code{data} and month-specific \code{summary} information.Depending on \code{detail} and \code{bootstrap}, the corresponding \cr
-output will vary. Here is the structure for the return.
+\code{data} and month-specific \code{summary} information. Depending on \code{detail} and \code{bootstrap},
+the corresponding output will vary. \cr
+
+Here is the structure of the return value: \cr
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{  "by" "age" "month"
 
@@ -294,21 +308,26 @@ may fail to yield accurate information. Be sure to provide a complete cohort rec
 }
 }
 \examples{
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-last_month = 12L, bootstrap = TRUE, iter = 100L, detail = TRUE)
 
+# Bootstrapped (10 iterations) and detailed cohort reconstruction.
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-last_month = 12L, bootstrap = TRUE, iter = 100L, detail = FALSE)
+  last_month = 12L, bootstrap = TRUE, iter = 10L, detail = TRUE)
 
+# Bootstrapped (10 iterations) but not detailed cohort reconstruction.
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-last_month = 12L, bootstrap = FALSE, detail = TRUE)
+  last_month = 12L, bootstrap = TRUE, iter = 10L, detail = FALSE)
 
+# Point estimated and detailed cohort reconstruction.
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-last_month = 12L, bootstrap = FALSE, detail = FALSE)
+  last_month = 12L, bootstrap = FALSE, detail = TRUE)
+
+# Point estimated but no detailed cohort reconstruction.
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+  last_month = 12L, bootstrap = FALSE, detail = FALSE)
 
 # Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
 
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
+  last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
 
 }
