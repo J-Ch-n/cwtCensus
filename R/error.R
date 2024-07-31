@@ -1,7 +1,7 @@
 ### Error Checking Functions ###
 error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
                         fisheries, bootstrap, iter, last_month, birth_month,
-                        d_mort, hr_mort_com, hr_mort_rec, detail, min_harvest_rate,
+                        d_mort, detail, min_harvest_rate,
                         level, hpd, verbose) {
   check_dim <- function(rel, reco, size_at_age, rel_mort, survival, fisheries) {
     REL_NUM_COL = length(exp_col()[[1]])
@@ -20,7 +20,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
 
   check_type <- function(rel, reco, size_at_age, rel_mort, survival, sex,
                          fisheries, bootstrap, iter, last_month, birth_month,
-                         d_mort, hr_mort_com, hr_mort_rec, detail, min_harvest_rate,
+                         d_mort, detail, min_harvest_rate,
                          level, hpd, verbose) {
     error = list()
     df = "'dataframe'"
@@ -36,8 +36,8 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
     if (!is.data.frame(rel_mort)) error[['rel_mort']] = c("'rel_mort'", df, paste0("'", typeof(rel_mort), "'"))
     if (!is.data.frame(survival)) error[['survival']] = c("'survival'", df, paste0("'", typeof(survival), "'"))
     if (!is.double(d_mort)) error[['d_mort']] = c("'d_mort'", db, paste0("'", typeof(d_mort), "'"))
-    if (!is.double(hr_mort_com)) error[['hr_mort_com']] = c("'hr_mort_com'", db, paste0("'", typeof(hr_mort_com), "'"))
-    if (!is.double(hr_mort_rec)) error[['hr_mort_rec']] = c("'hr_mort_rec'", db, paste0("'", typeof(hr_mort_rec), "'"))
+    # if (!is.double(hr_mort_com)) error[['hr_mort_com']] = c("'hr_mort_com'", db, paste0("'", typeof(hr_mort_com), "'"))
+    # if (!is.double(hr_mort_rec)) error[['hr_mort_rec']] = c("'hr_mort_rec'", db, paste0("'", typeof(hr_mort_rec), "'"))
     if (!is.double(min_harvest_rate)) error[['min_harvest_rate']] = c("'min_harvest_rate'", db, paste0("'", typeof(min_harvest_rate), "'"))
     if (!is.double(level)) error[['level']] = c("'level'", db, paste0("'", typeof(level), "'"))
     if (!is.logical(bootstrap)) error[['bootstrap']] = c("'bootstrap'", lg, paste0("'", typeof(bootstrap), "'"))
@@ -54,7 +54,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
   }
 
   check_length <- function(bootstrap, iter, last_month, birth_month,
-                           d_mort, hr_mort_com, hr_mort_rec, detail, min_harvest_rate,
+                           d_mort, detail, min_harvest_rate,
                            level, hpd, verbose) {
     error = list()
     if (length(bootstrap) > 1) error[['bootstrap']] = c("'bootstrap'", 1, length(bootstrap))
@@ -62,8 +62,8 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
     if (length(last_month) > 1) error[['last_month']] = c("'last_month'", 1, length(last_month))
     if (length(birth_month) > 1) error[['birth_month']] = c("'birth_month'", 1, length(birth_month))
     if (length(d_mort) > 1) error[['d_mort']] = c("'d_mort'", 1, length(d_mort))
-    if (length(hr_mort_com) > 1) error[['hr_mort_com']] = c("'hr_mort_com'", 1, length(hr_mort_com))
-    if (length(hr_mort_rec) > 1) error[['hr_mort_rec']] = c("'hr_mort_rec'", 1, length(hr_mort_rec))
+    # if (length(hr_mort_com) > 1) error[['hr_mort_com']] = c("'hr_mort_com'", 1, length(hr_mort_com))
+    # if (length(hr_mort_rec) > 1) error[['hr_mort_rec']] = c("'hr_mort_rec'", 1, length(hr_mort_rec))
     if (length(detail) > 1) error[['detail']] = c("'detail'", 1, length(detail))
     if (length(min_harvest_rate) > 1) error[['min_harvest_rate']] = c("'min_harvest_rate'", 1, length(min_harvest_rate))
     if (length(level) > 1) error[['level']] = c("'level'", 1, length(level))
@@ -206,7 +206,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
 
   typ_err = check_type(rel, reco, size_at_age, rel_mort, survival, sex,
                        fisheries, bootstrap, iter, last_month, birth_month,
-                       d_mort, hr_mort_com, hr_mort_rec, detail, min_harvest_rate,
+                       d_mort, detail, min_harvest_rate,
                        level, hpd, verbose)
   if (length(typ_err) > 0) error_handler_helper(typ_err, "type")
 
@@ -217,7 +217,7 @@ error_handler <- function(rel, reco, size_at_age, rel_mort, survival, sex,
   if (length(nam_err) > 0) error_handler_helper(nam_err, "columns")
 
   len_err = check_length(bootstrap, iter, last_month, birth_month,
-                         d_mort, hr_mort_com, hr_mort_rec, detail, min_harvest_rate,
+                         d_mort, detail, min_harvest_rate,
                          level, hpd, verbose)
   if (length(len_err) > 0) error_handler_helper(len_err, "element(s)")
 

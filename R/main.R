@@ -272,15 +272,13 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                                                                   esc_hat = 50,
                                                                   riv_harv = 46),
                          size_at_age = length_at_age, rel_mort = release_mort, survival = survival_default,
-                         d_mort = 0.05, hr_mort_com = 0.26, hr_mort_rec = 0.14,
-                         bootstrap = FALSE, iter = 10L, detail = FALSE,
+                         d_mort = 0.05, bootstrap = FALSE, iter = 10L, detail = FALSE,
                          min_harvest_rate = 0, level = 0.05, hpd = TRUE, verbose = TRUE,
                          sex = "both") {
 
   error_handler(rel, reco, size_at_age, rel_mort, survival,
              sex, fisheries, bootstrap, iter, last_month, birth_month,
-             d_mort, hr_mort_com, hr_mort_rec, detail,
-             min_harvest_rate, level, hpd, verbose)
+             d_mort, detail, min_harvest_rate, level, hpd, verbose)
 
   if (!bootstrap) {
     iter = 1
@@ -307,8 +305,6 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                          ocean_r = fisheries[["oc_rec"]],
                          ocean_c = fisheries[["oc_com"]],
                          d_mort = d_mort,
-                         hr_c = hr_mort_com,
-                         hr_r = hr_mort_rec,
                          rel_mort = rel_mort,
                          u_bound = last_month,
                          survival = survival)

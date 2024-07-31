@@ -14,8 +14,6 @@ cohort_reconstruct(
   rel_mort = release_mort,
   survival = survival_default,
   d_mort = 0.05,
-  hr_mort_com = 0.26,
-  hr_mort_rec = 0.14,
   bootstrap = FALSE,
   iter = 10L,
   detail = FALSE,

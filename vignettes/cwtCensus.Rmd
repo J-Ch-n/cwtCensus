@@ -1,9 +1,9 @@
 ---
 title: "cwtCensus"
-output: knitr::html_vignette
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{cwtCensus}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -25,7 +25,7 @@ library(cwtCensus)
     Load the source release data into memory with `read.csv` or some other reader functions. The source data set used here is from <LINK>.
 
     ```{r}
-    release_custom <- read.csv("./sample_data/sample_releases.csv")
+    release_custom <- read.csv("./sample_releases.csv")
     ```
 
 2.  **Process coded-wire tag information.**
@@ -83,9 +83,9 @@ Once we have the `release` data frame under our belt, we can use it to construct
     On top of the `release` data frame, we also need several other sources of information. We need coded-wire tag recovery information, which contains when and where a tag was recovered. Then, we need the site code data frame to translate the recovery site id into human readable regions. Lastly, we need to know the minimum harvest size limit in inches at the time and location that the tag was recovered. Note that if we have all these pieces of information in one data frame, we do not have to combine these three data frames.
 
     ```{r}
-    recovery_custom = read.csv("./sample_data/sample_recoveries.csv")
-    site_code = read.csv("./sample_data/sample_site_code.csv")
-    size_limit = read.csv("./sample_data/sample_size_limits.csv")
+    recovery_custom = read.csv("./sample_recoveries.csv")
+    site_code = read.csv("./sample_site_code.csv")
+    size_limit = read.csv("./sample_size_limits.csv")
     ```
 
 2.  **Combine relevant data frames**
@@ -193,7 +193,7 @@ release_mort_custom
 
 Drop off mortality is the proportion of fish encountered by the gear that is killed without being brought to the vessel intact. The default value is 0.05.
 
-## Length-at-Age
+## Length-at-age
 
 Length-at-age is a data frame encoding he mean and standard deviation total length at each age-month.
 

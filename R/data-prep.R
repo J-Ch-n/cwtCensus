@@ -1,7 +1,7 @@
 data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                       min_harvest_rate, spawn, hatchery, river,
                       ocean_r, ocean_c, bootstrap, d_mort,
-                      hr_c, hr_r, rel_mort, sex, u_bound, survival) {
+                      rel_mort, sex, u_bound, survival) {
 
 
 # Preprocess and Helper Function Definitions ------------------------------
@@ -24,6 +24,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   num_rows = 0
   size_age_map = r2r::hashmap()
+
+  hr_r = 0.14
+  hr_c = 0.26
 
   column_names = c(
     "month", "fishery", "location", "brood_year", "age", "maturation_grp",
