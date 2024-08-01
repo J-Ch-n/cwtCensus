@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{cwtCensus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: ../inst/REFERENCES.bib
 ---
 
 ```{r, include = FALSE}
@@ -191,11 +192,11 @@ release_mort_custom
 
 ## Drop Off Mortality
 
-Drop off mortality is the proportion of fish encountered by the gear that is killed without being brought to the vessel intact. The default value is 0.05.
+Drop off mortality is the proportion of fish encountered by the gear that is killed without being brought to the vessel intact. The default value is 0.05 (Salmon Technical Team 2021).
 
 ## Length-at-age
 
-Length-at-age is a data frame encoding he mean and standard deviation total length at each age-month.
+Length-at-age is a data frame encoding the mean and standard deviation total length at each age-month.
 
 Here is how to create a custom length-at-age data frame.
 
@@ -250,7 +251,7 @@ result[["2007"]][["2"]][["1"]][["data"]]
 result[["2007"]][["2"]][["1"]][["summary"]]
 ```
 
-Point Estimate with Detail
+##### Point Estimate with Detail
 
 ```{r}
 result = cohort_reconstruct(rel = release, reco = recovery,
@@ -262,7 +263,7 @@ result[["2007"]][["2"]][["1"]][["data"]]
 result[["2007"]][["2"]][["1"]][["summary"]]
 ```
 
-Point Estimate without Detail
+##### Point Estimate without Detail
 
 ```{r}
 result = cohort_reconstruct(rel = release, reco = recovery,
@@ -272,3 +273,138 @@ result = cohort_reconstruct(rel = release, reco = recovery,
 
 result[result$by == 2007 & result$age == 2 & result$month == 1, ]
 ```
+
+### Dissecting the Return Value
+
+There are two types of return value, depending on the values of `detail` and `bootstrap`. In the case when both `detail` and `bootstrap` are `FALSE`, the return value is a data table of the following form:
+
+```         
+| by (integer) | age (integer) | month (integer) | ocean_abundance (double) |
+|--------------|---------------|-----------------|--------------------------|
+| 1995         | 3             | 5               | 3.814342                 |
+| 1995         | 3             | 4               | 10.853284                |
+| 1995         | 3             | 3               | 11.056992                |
+| 1995         | 3             | 2               | 11.264524                |
+| 1995         | 3             | 1               | 11.475951                |
+| 1995         | 3             | 12              | 11.691346                |
+| 1995         | 3             | 11              | 11.910784                |
+| 1995         | 3             | 10              | 12.134340                |
+| 1995         | 3             | 9               | 12.362093                |
+| 1995         | 3             | 8               | 12.594120                |
+```
+
+In the cases when either `detail`, `bootstrap`, or both are set to `TRUE`, the return value is a three dimensional list. The first dimension encodes brood year information (by), the second age, and the third month. Each age has an age-specific summary information. Each month has `data` and month-specific `summary` information. Depending on `detail` and `bootstrap`, the corresponding output will vary.
+
+Here is the structure of the return value:
+
+```         
+  "by" "age" "month"
+
+├── [["2002"]]
+│   ├──[["2"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── [["3"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── ...
+│   │
+│   ├──[["by_summary"]]
+│   │  ├── `data`
+│   │  └── `summary`
+├── ...
+```
+
+#### Summary
+
+-   Parameter: the statistics in question.
+-   Median: the median for the parameter.
+-   SD: the standard deviation for the parameter.
+-   CrI_low: the lower bound of the credible interval.
+-   CrI_high: the upper bound of the credible interval.
+
+##### Brood-year-specific summary (under `by_summary`)
+
+-   srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction in a brood’s potential adult spawning escapement owing to ocean fisheries, relative to its escapement potential in the absence of ocean fishing" (O'Farrell et al. 2012):
+
+```         
+| Parameter | Median | SD  | CrI_low | CrI_high |
+|-----------|--------|-----|---------|----------|
+| srr       | 0.05   | 0.02| 0.04    | 0.04     |
+```
+
+##### Age-specific summary (under `age_summary`)
+
+-   elsr: early life survival rate is the proportion of the abundance of fish first month in ocean, relative to the total release number (O'Farrell et al. 2012).
+
+```         
+| Parameter | Median | SD  | CrI_low | CrI_high |
+|-----------|--------|-----|---------|----------|
+| elsr      | 0.02   | 0   | 0.01    | 0.01     |
+```
+
+##### Month-specific summary (under each month)
+
+-   ocean_abundance: number of individuals in the ocean at that time.
+-   impact: mortality due to fishing.
+-   maturation: number of spawners.
+-   natural_mort: mortality due to natural causes.
+
+```         
+| Parameter         | Median | SD   | CrI_low | CrI_high |
+|-------------------|--------|------|---------|----------|
+| ocean_abundance   | 43.91  | 6.50 | 35.09   | 35.09    |
+| impact            | 0.00   | 0.00 | 0.00    | 0.00     |
+| maturation        | 0.00   | 0.00 | 0.00    | 0.00     |
+| natural_mort      | 0.81   | 0.12 | 0.65    | 0.65     |
+```
+
+#### Data
+
+Each labeled entry is one bootstrapped iteration, where the label `n` corresponds to the nth iteration.
+
+##### Brood-year-specific data
+
+```         
+| Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
+|-----------|------|------|------|------|------|------|------|------|------|------|
+| srr       | 0.07 | 0.07 | 0.05 | 0.05 | 0.05 | 0.06 | 0.06 | 0.04 | 0.08 | 0.04 |
+```
+
+##### Age-specific data
+
+```         
+| Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
+|-------------|------|------|------|------|------|------|------|------|------|------|
+| elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+```
+
+##### Month-specific data
+
+```         
+| Measurement      | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
+|------------------|------|------|------|------|------|------|------|------|------|------|
+| ocean_abundance  | 46.69| 37.41| 43.34| 40.74| 35.09| 44.49| 37.43| 56.25| 45.80| 50.56|
+| impact           | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| maturation       | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| natural_mort     | 0.86 | 0.69 | 0.80 | 0.75 | 0.65 | 0.82 | 0.69 | 1.04 | 0.84 | 0.93 |
+```
+## References
+
+O'Farrell M, Mohr M, Grover A, Satterthwaite W (2012). “Sacramento River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery Impacts.” NOAA Technical Memorandum.
+
+Salmon Technical Team (2021). “STT Recommendations for Hooking Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.” Pacific Fishersy Management Council, Portland. https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/.
+
+

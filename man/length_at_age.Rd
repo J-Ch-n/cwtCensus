@@ -3,13 +3,13 @@
 \docType{data}
 \name{length_at_age}
 \alias{length_at_age}
-\title{Length at age, or key length age, information}
+\title{Length-at-age information}
 \format{
 \subsection{\code{length_at_age}}{
 
 \describe{
 \item{"age"}{Integer. The fishing age of the cohort.}
-\item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
+\item{"month"}{Integer. The month in numeric form. For instance, \code{3L} is March.}
 \item{"mean"}{Double. The mean total body length in inches.}
 \item{"sd"}{Double. The standard deviation of total body length in inches.}
 }
@@ -19,6 +19,8 @@
 length_at_age
 }
 \description{
-Length at age, or key length age, information
+length-at-age estimated for Sacramento River Fall Chinook from Chen et al. (in prep). \cr
+Estimated using the Basic Model described in Satterthwaite et al. (2012) from hatchery fish from \cr
+2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and Nimbus Fish Hatchery.
 }
 \keyword{datasets}

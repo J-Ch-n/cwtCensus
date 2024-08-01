@@ -2,12 +2,14 @@ Package: cwtCensus
 Title: Efficient Population Analysis Tool for Cohort Reconstruction
 Version: 0.0.0.9000
 Authors@R: c(person("Joshua", "Chen", 
-              email = "jiashu.chen@berkeley.edu", 
-              role = c("aut", "cre"),
-              comment = c(ORCID = "123123")),
+              email = "joshua.chen.jchn@gmail.com", 
+              role = c("aut", "cre", "cph"),
+              comment = c(ORCID = "0009-0000-3420-7200")),
              person("Erin", "Redding",  
               email = "eredding02@berkeley.edu",
-              role = c("aut")))
+              role = c("aut")),
+             person("Emily", "Chen",
+              role = c("fnd")))
 Description: Provides fast and convenient cohort reconstruction with both point and bootstrapped estimates.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -16,18 +18,20 @@ RoxygenNote: 7.3.2
 URL: https://github.com/J-Ch-n/cohort_reco_pk
 BugReports: https://github.com/J-Ch-n/cohort_reco_pk/issues
 Imports:
-    data.table,
-    dplyr,
-    rlang,
-    r2r,
-    HDInterval
+    data.table (>= 1.15.4),
+    dplyr (>= 1.1.4),
+    rlang (>= 1.1.4),
+    r2r (>= 0.1.1),
+    HDInterval (>= 0.2.4),
+    Rdpack
 Depends: 
     R (>= 2.10)
 LazyData: true
 Suggests: 
-    knitr,
-    rmarkdown,
-    lubridate,
+    knitr (>= 1.48),
+    rmarkdown (>= 2.27),
+    lubridate (>= 1.9.3),
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+RdMacros: Rdpack

@@ -10,6 +10,8 @@
 #'    \item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 #' }
 #'
+#' @description Nimbus Fish Hatchery release information 2007 - 2009.
+#'
 "release"
 
 #' Recovery information
@@ -31,6 +33,8 @@
 #'    \item{"sex"}{Character. The biological sex of the recovered fish.}
 #' }
 #'
+#' @description Nimbus Fish Hatchery recovery information 2007 - 2009.
+#'
 "recovery"
 
 #' Age-specific survival information.
@@ -45,16 +49,20 @@
 #'
 "survival_default"
 
-#' Length at age, or key length age, information
+#' Length-at-age information
 #'
 #' @format ## `length_at_age`
 #'
 #'  \describe{
 #'    \item{"age"}{Integer. The fishing age of the cohort.}
-#'    \item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
+#'    \item{"month"}{Integer. The month in numeric form. For instance, `3L` is March.}
 #'    \item{"mean"}{Double. The mean total body length in inches.}
 #'    \item{"sd"}{Double. The standard deviation of total body length in inches.}
 #' }
+#'
+#' @description length-at-age estimated for Sacramento River Fall Chinook from Chen et al. (in prep). \cr
+#' Estimated using the Basic Model described in Satterthwaite et al. (2012) from hatchery fish from \cr
+#' 2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and Nimbus Fish Hatchery.
 #'
 "length_at_age"
 

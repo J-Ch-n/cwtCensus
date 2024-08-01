@@ -20,6 +20,6 @@ of fish in each batch, i.e., number of tagged fish / batch size.}
 release
 }
 \description{
-Release information
+Nimbus Fish Hatchery release information 2007 - 2009.
 }
 \keyword{datasets}

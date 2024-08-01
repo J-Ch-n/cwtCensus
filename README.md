@@ -17,8 +17,7 @@ click!
 
 ## Installation
 
-You can install the latest stable version of cwtCensus from
-[CRAN](https://cran.r-project.org/) with:
+You can install the latest stable version of cwtCensus from CRAN with:
 
 ``` r
 install.packages("cwtCensus")
@@ -57,7 +56,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = FALSE, last_month = 12L, iter = 10L,
   level = 0.95, detail = FALSE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>   0.330   0.005   0.337
+#>   0.290   0.007   0.297
 ```
 
 Viewing the 1998 brood year age 3 cohort in June:
@@ -96,7 +95,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = TRUE, last_month = 12L, iter = 1000L,
   level = 0.95, detail = TRUE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>  25.597   0.225  25.912
+#>  25.477   0.232  25.776
 ```
 
 ## More Information

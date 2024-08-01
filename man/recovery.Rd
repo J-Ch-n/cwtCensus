@@ -27,6 +27,6 @@ tag's region and date.}
 recovery
 }
 \description{
-Recovery information
+Nimbus Fish Hatchery recovery information 2007 - 2009.
 }
 \keyword{datasets}

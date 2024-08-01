@@ -23,7 +23,7 @@ The goal of cwtCensus is to provide a fast and memory efficient tool for cohort 
 
 ## Installation
 
-You can install the latest stable version of cwtCensus from [CRAN](https://cran.r-project.org/) with:
+You can install the latest stable version of cwtCensus from CRAN with:
 
 ``` r
 install.packages("cwtCensus")

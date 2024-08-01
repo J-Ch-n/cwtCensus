@@ -2,5 +2,6 @@
 
 export(cohort_reconstruct)
 import(data.table)
+importFrom(Rdpack,reprompt)
 importFrom(rlang,current_env)
 importFrom(rlang,env_parent)

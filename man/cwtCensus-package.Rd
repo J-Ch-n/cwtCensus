@@ -17,11 +17,16 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Joshua Chen \email{jiashu.chen@berkeley.edu} (\href{https://orcid.org/123123}{ORCID})
+\strong{Maintainer}: Joshua Chen \email{joshua.chen.jchn@gmail.com} (\href{https://orcid.org/0009-0000-3420-7200}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
   \item Erin Redding \email{eredding02@berkeley.edu}
+}
+
+Other contributors:
+\itemize{
+  \item Emily Chen [funder]
 }
 
 }

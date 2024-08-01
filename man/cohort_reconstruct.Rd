@@ -70,6 +70,7 @@ release and recovery data. Must contain the following named elements:
 \item{size_at_age}{Data frame specifying the mean and standard deviation for the individual \cr
 body length at each age and month. The default data frame is included in the package and named \cr
 \code{length_at_age}.
+
 The following describes the required columns in order.
 \describe{
 \item{"age"}{Integer. The fishing age of the cohort.}
@@ -78,8 +79,10 @@ The following describes the required columns in order.
 \item{"sd"}{Double. The standard deviation of total body length in inches.}
 }}
 
-\item{rel_mort}{Data frame specifying the hook-and-release mortality rate due to ocean fishing in each \cr
-region. Hook-and-release mortality rate is the proportion of fish that are The default data frame is included in the package and named \code{release_mort}. \cr
+\item{rel_mort}{Data frame specifying the hook-and-release mortality rate due to ocean fishing \cr
+in each region. Hook-and-release mortality rate is the proportion of fish that are The default \cr
+data frame is included in the package and named \code{release_mort}. \cr
+
 The following describes the required columns in order.
 \describe{
 \item{"run_year"}{Integer. The year of each CWT recovery.}
@@ -87,7 +90,11 @@ The following describes the required columns in order.
 \item{"location"}{Any type. The identifier for location.}
 \item{"month"}{Integer. The month of each CWT recovery.}
 \item{"rate"}{Double. The release mortality rate for each timestep.}
-}}
+}
+
+To provide convenience, we set the default hook-and-release mortality rate, regardless of time
+and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt2021hooking}{cwtCensus}. \cr
+These default values will be used if we cannot find any matching record from the data frame above.}
 
 \item{survival}{Data frame specifying the age specific natural survival rates. The default data \cr
 frame is included in the package and named \code{survival_default}. \cr
@@ -99,7 +106,7 @@ The following describes the required columns in order.
 
 \item{d_mort}{Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
 the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
-intact. The default value is 0.05.}
+intact. The default value is 0.05 \insertCite{stt2021hooking}{cwtCensus}.}
 
 \item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} \cr
 is set to false, then \code{iter} is ignored.}
@@ -150,11 +157,11 @@ In the case when both \code{detail} and \code{bootstrap} are \code{FALSE}, the r
 
 In the cases when either \code{detail}, \code{bootstrap}, or both are set to \code{TRUE}, the return \cr
 value is a three dimensional list. The first dimension encodes brood year information (by), \cr
-the second age, and the third month. Each age has an age-specific summary information. Each month has \cr
-\code{data} and month-specific \code{summary} information. Depending on \code{detail} and \code{bootstrap},
-the corresponding output will vary. \cr
+the second age, and the third month. Each age has an age-specific summary information. Each \cr
+month has \code{data} and month-specific \code{summary} information. Depending on \code{detail} and \cr
+\code{bootstrap}, the corresponding output will vary. \cr
 
-Here is the structure of the return value: \cr
+Here is the structure of the return value:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{  "by" "age" "month"
 
@@ -193,10 +200,14 @@ Here is the structure of the return value: \cr
 \item CrI_low: the lower bound of the credible interval.
 \item CrI_high: the upper bound of the credible interval.
 }
-\subsection{Brood-year-specific summary (under \code{by_summary})}{
-\itemize{
-\item srr: spawner reduction rate.
 }
+
+\subsection{Brood-year-specific summary (under \code{by_summary})}{
+
+spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
+in a brood’s potential adult spawning escapement owing to ocean fisheries, \cr
+relative to its escapement potential in the absence of ocean fishing," \cr
+as described in \insertCite{winter}{cwtCensus}.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
@@ -206,7 +217,8 @@ Here is the structure of the return value: \cr
 
 \subsection{Age-specific summary (under \code{age_summary})}{
 \itemize{
-\item elsr: early life survival rate.
+\item elsr: early life survival rate is the proportion of the abundance of fish \cr
+first month in ocean, relative to the total release number \insertCite{winter}{cwtCensus}.
 }
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
@@ -232,12 +244,12 @@ Here is the structure of the return value: \cr
 }\if{html}{\out{</div>}}
 }
 
-}
-
 \subsection{Data}{
 
 Each labeled entry is one bootstrapped iteration, where the label \code{n} corresponds \cr
 to the nth iteration.
+}
+
 \subsection{Brood-year-specific data}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
@@ -264,8 +276,6 @@ to the nth iteration.
 | maturation       | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | natural_mort     | 0.86 | 0.69 | 0.80 | 0.75 | 0.65 | 0.82 | 0.69 | 1.04 | 0.84 | 0.93 |
 }\if{html}{\out{</div>}}
-}
-
 }
 }
 \description{
@@ -308,24 +318,27 @@ may fail to yield accurate information. Be sure to provide a complete cohort rec
 \examples{
 
 # Bootstrapped (10 iterations) and detailed cohort reconstruction.
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-  last_month = 12L, bootstrap = TRUE, iter = 10L, detail = TRUE)
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = TRUE, iter = 3L, detail = TRUE)
 
 # Bootstrapped (10 iterations) but not detailed cohort reconstruction.
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-  last_month = 12L, bootstrap = TRUE, iter = 10L, detail = FALSE)
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = TRUE, iter = 3L, detail = FALSE)
 
 # Point estimated and detailed cohort reconstruction.
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
   last_month = 12L, bootstrap = FALSE, detail = TRUE)
 
 # Point estimated but no detailed cohort reconstruction.
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
   last_month = 12L, bootstrap = FALSE, detail = FALSE)
 
 # Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
 
-result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 6L,
-  last_month = 12L, bootstrap = FALSE, iter = 10L, detail = FALSE)
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = FALSE, iter = 1000L, detail = FALSE)
 
+}
+\references{
+\insertAllCited
 }
