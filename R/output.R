@@ -96,10 +96,10 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                 'sd',
                                 'CrI_low',
                                 'CrI_high'))) |>
-        round(digits = 2)
+        round(digits = 5)
     } else {
       summary_info = rbind(info[1, ][[15]] |> unlist()) |>
-        round(digits = 2)
+        round(digits = 5)
 
       dimnames(summary_info) = list(row_name, 1 : iter)
     }
@@ -121,7 +121,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                        info[[IMP_IDX]] |> unlist(),
                        info[[MAT_IDX]] |> unlist(),
                        info[[NAT_MORT_IDX]] |> unlist()) |>
-            round(digits = 2)
+            round(digits = 5)
 
           data |> dimnames() = list(row_name, 1 : iter)
 
@@ -153,13 +153,13 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                     'CrI_low',
                                     'CrI_high')
                                 )) |>
-            round(digits = 2)
+            round(digits = 5)
         } else {
           data = rbind(info[[4]] |> unlist(),
                        info[[6]] |> unlist(),
                        info[[7]] |> unlist(),
                        info[[5]] |> unlist()) |>
-            round(digits = 2)
+            round(digits = 5)
           dimnames(data) = list(row_name, 'value')
         }
       } else {
@@ -184,7 +184,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                     'CrI_low',
                                     'CrI_high')
                                 )) |>
-            round(digits = 2)
+            round(digits = 5)
         }
       }
 

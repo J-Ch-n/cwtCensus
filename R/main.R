@@ -119,7 +119,7 @@
 #' @param level Double between 0 and 1 inclusive, specifying the credible level for credible intervals. \cr
 #'  This option only matters if `bootstrap` is set to TRUE.
 #' @param hpd Boolean indicating if the highest posterior density credible interval should be used. If \cr
-#'  FALSE, a symmetric credible interval is used.
+#'  FALSE, a symmetric credible interval is used. The default is FALSE.
 #' @param sex String specifying which sex or sexes to consider. Must choose from "male", "female", or \cr
 #'  "both". Here, "male" is shorthand for sperm-producing individuals. "Female" is shorthand for \cr
 #'  egg-producing individuals.
@@ -289,7 +289,7 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                                                                   riv_harv = 46),
                          size_at_age = length_at_age, rel_mort = release_mort, survival = survival_default,
                          drop_mort = 0.05, bootstrap = FALSE, iter = 10L, detail = FALSE,
-                         min_harvestability = 0, level = 0.05, hpd = TRUE, verbose = TRUE,
+                         min_harvestability = 0, level = 0.05, hpd = FALSE, verbose = TRUE,
                          sex = "both") {
 
   error_handler(rel, reco, size_at_age, rel_mort, survival,
