@@ -20,6 +20,9 @@
 release_mort
 }
 \description{
-Release mortality information
+hook-and-release mortality described in \insertCite{age_struct}{cwtCensus}.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}

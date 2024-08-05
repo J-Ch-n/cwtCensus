@@ -13,11 +13,11 @@ cohort_reconstruct(
   size_at_age = length_at_age,
   rel_mort = release_mort,
   survival = survival_default,
-  d_mort = 0.05,
+  drop_mort = 0.05,
   bootstrap = FALSE,
   iter = 10L,
   detail = FALSE,
-  min_harvest_rate = 0,
+  min_harvestability = 0,
   level = 0.05,
   hpd = TRUE,
   verbose = TRUE,
@@ -93,7 +93,7 @@ The following describes the required columns in order.
 }
 
 To provide convenience, we set the default hook-and-release mortality rate, regardless of time
-and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt2021hooking}{cwtCensus}. \cr
+and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt}{cwtCensus}. \cr
 These default values will be used if we cannot find any matching record from the data frame above.}
 
 \item{survival}{Data frame specifying the age specific natural survival rates. The default data \cr
@@ -104,9 +104,9 @@ The following describes the required columns in order.
 \item{"rate"}{Double specifying the agely survival rate.}
 }}
 
-\item{d_mort}{Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
+\item{drop_mort}{Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
 the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
-intact. The default value is 0.05 \insertCite{stt2021hooking}{cwtCensus}.}
+intact. The default value is 0.05 \insertCite{stt}{cwtCensus}.}
 
 \item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} \cr
 is set to false, then \code{iter} is ignored.}
@@ -117,7 +117,7 @@ default value is 1000. Note that larger values require more computing power and 
 \item{detail}{Boolean indicating if the reconstruction should calculate breakdowns and summary \cr
 information.}
 
-\item{min_harvest_rate}{Double specifying the lower bound for the harvest rate considered in cohort \cr
+\item{min_harvestability}{Double specifying the lower bound for the harvest rate considered in cohort \cr
 reconstruction. Harvest rate is the ratio between the number of harvestable individuals and the \cr
 size of the cohort.}
 
@@ -203,11 +203,12 @@ Here is the structure of the return value:
 }
 
 \subsection{Brood-year-specific summary (under \code{by_summary})}{
-
-spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
+\itemize{
+\item srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
 in a brood’s potential adult spawning escapement owing to ocean fisheries, \cr
 relative to its escapement potential in the absence of ocean fishing," \cr
-as described in \insertCite{winter}{cwtCensus}.
+as described in \insertCite{age_struct}{cwtCensus}.
+}
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
@@ -217,13 +218,13 @@ as described in \insertCite{winter}{cwtCensus}.
 
 \subsection{Age-specific summary (under \code{age_summary})}{
 \itemize{
-\item elsr: early life survival rate is the proportion of the abundance of fish \cr
-first month in ocean, relative to the total release number \insertCite{winter}{cwtCensus}.
+\item s1: early life survival rate is the proportion of the abundance of fish \cr
+first month in ocean, relative to the total release number \insertCite{age_struct}{cwtCensus}.
 }
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
-| elsr      | 0.02   | 0   | 0.01    | 0.01     |
+| s1        | 0.02   | 0   | 0.01    | 0.01     |
 }\if{html}{\out{</div>}}
 }
 
@@ -263,7 +264,7 @@ to the nth iteration.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{| Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
 |-------------|------|------|------|------|------|------|------|------|------|------|
-| elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+| s1          | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
 }\if{html}{\out{</div>}}
 }
 
@@ -288,6 +289,8 @@ raw data. For more about return value, see the value section. \cr
 
 Depending on if the \code{bootstrap} and \code{detail} flags are set, the \code{data} and \code{summary} segments \cr
 may behave in different ways. For more information, see details.
+
+The function implements a cohort reconstruction outlined in \insertCite{age_struct}{cwtCensus}.
 }
 \details{
 \subsection{Aging convention}{
@@ -317,11 +320,11 @@ may fail to yield accurate information. Be sure to provide a complete cohort rec
 }
 \examples{
 
-# Bootstrapped (10 iterations) and detailed cohort reconstruction.
+# Bootstrapped (3 iterations) and detailed cohort reconstruction.
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
   last_month = 12L, bootstrap = TRUE, iter = 3L, detail = TRUE)
 
-# Bootstrapped (10 iterations) but not detailed cohort reconstruction.
+# Bootstrapped (3 iterations) but not detailed cohort reconstruction.
 result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
   last_month = 12L, bootstrap = TRUE, iter = 3L, detail = FALSE)
 

@@ -19,8 +19,12 @@
 length_at_age
 }
 \description{
-length-at-age estimated for Sacramento River Fall Chinook from Chen et al. (in prep). \cr
-Estimated using the Basic Model described in Satterthwaite et al. (2012) from hatchery fish from \cr
-2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and Nimbus Fish Hatchery.
+length-at-age estimated in \insertCite{age_struct}{cwtCensus}. Estimated \cr
+using the Basic Model described in \insertCite{bm}{cwtCensus} from hatchery fish from \cr
+2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and \cr
+Nimbus Fish Hatchery.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}

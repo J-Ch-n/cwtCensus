@@ -12,6 +12,7 @@
 #' Depending on if the `bootstrap` and `detail` flags are set, the `data` and `summary` segments \cr
 #' may behave in different ways. For more information, see details.
 #'
+#' The function implements a cohort reconstruction outlined in \insertCite{age_struct}{cwtCensus}.
 #' @details
 #' ## Aging convention
 #' We use fishing age, or year of life, as the age for captured tags. This aging convention \cr
@@ -94,7 +95,7 @@
 #'  }
 #'
 #'  To provide convenience, we set the default hook-and-release mortality rate, regardless of time
-#'  and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt2021hooking}{cwtCensus}. \cr
+#'  and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt}{cwtCensus}. \cr
 #'  These default values will be used if we cannot find any matching record from the data frame above.
 #' @param survival Data frame specifying the age specific natural survival rates. The default data \cr
 #'  frame is included in the package and named `survival_default`. \cr
@@ -103,16 +104,16 @@
 #'    \item{"age"}{Numeric specifying the age.}
 #'    \item{"rate"}{Double specifying the agely survival rate.}
 #'  }
-#' @param d_mort Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
+#' @param drop_mort Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
 #'  the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
-#'  intact. The default value is 0.05 \insertCite{stt2021hooking}{cwtCensus}.
+#'  intact. The default value is 0.05 \insertCite{stt}{cwtCensus}.
 #' @param bootstrap Boolean indicating if parametric bootstrapping should be conducted. If `bootstrap` \cr
 #'  is set to false, then `iter` is ignored.
 #' @param iter Numeric or integer specifying the number of iterations for parametric bootstrapping. The \cr
 #'  default value is 1000. Note that larger values require more computing power and memory.
 #' @param detail Boolean indicating if the reconstruction should calculate breakdowns and summary \cr
 #'  information.
-#' @param min_harvest_rate Double specifying the lower bound for the harvest rate considered in cohort \cr
+#' @param min_harvestability Double specifying the lower bound for the harvest rate considered in cohort \cr
 #'  reconstruction. Harvest rate is the ratio between the number of harvestable individuals and the \cr
 #'  size of the cohort.
 #' @param level Double between 0 and 1 inclusive, specifying the credible level for credible intervals. \cr
@@ -194,10 +195,10 @@
 #'  - CrI_high: the upper bound of the credible interval.
 #'
 #' ## Brood-year-specific summary (under `by_summary`)
-#'  spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
+#'  - srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
 #'  in a brood’s potential adult spawning escapement owing to ocean fisheries, \cr
 #'  relative to its escapement potential in the absence of ocean fishing," \cr
-#'  as described in \insertCite{winter}{cwtCensus}.
+#'  as described in \insertCite{age_struct}{cwtCensus}.
 #'
 #' ```
 #' | Parameter | Median | SD  | CrI_low | CrI_high |
@@ -205,13 +206,13 @@
 #' | srr       | 0.05   | 0.02| 0.04    | 0.04     |
 #' ```
 #' ## Age-specific summary (under `age_summary`)
-#'  - elsr: early life survival rate is the proportion of the abundance of fish \cr
-#'  first month in ocean, relative to the total release number \insertCite{winter}{cwtCensus}.
+#'  - s1: early life survival rate is the proportion of the abundance of fish \cr
+#'  first month in ocean, relative to the total release number \insertCite{age_struct}{cwtCensus}.
 #'
 #' ```
 #' | Parameter | Median | SD  | CrI_low | CrI_high |
 #' |-----------|--------|-----|---------|----------|
-#' | elsr      | 0.02   | 0   | 0.01    | 0.01     |
+#' | s1        | 0.02   | 0   | 0.01    | 0.01     |
 #' ```
 #' ## Month-specific summary (under each month)
 #'  - ocean_abundance: number of individuals in the ocean at that time.
@@ -240,7 +241,7 @@
 #' ```
 #' | Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
 #' |-------------|------|------|------|------|------|------|------|------|------|------|
-#' | elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+#' | s1          | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
 #' ```
 #' ## Month-specific data
 #'
@@ -257,11 +258,11 @@
 #'
 #' @examples
 #'
-#' # Bootstrapped (10 iterations) and detailed cohort reconstruction.
+#' # Bootstrapped (3 iterations) and detailed cohort reconstruction.
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
 #'   last_month = 12L, bootstrap = TRUE, iter = 3L, detail = TRUE)
 #'
-#' # Bootstrapped (10 iterations) but not detailed cohort reconstruction.
+#' # Bootstrapped (3 iterations) but not detailed cohort reconstruction.
 #' result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
 #'   last_month = 12L, bootstrap = TRUE, iter = 3L, detail = FALSE)
 #'
@@ -287,13 +288,13 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                                                                   esc_hat = 50,
                                                                   riv_harv = 46),
                          size_at_age = length_at_age, rel_mort = release_mort, survival = survival_default,
-                         d_mort = 0.05, bootstrap = FALSE, iter = 10L, detail = FALSE,
-                         min_harvest_rate = 0, level = 0.05, hpd = TRUE, verbose = TRUE,
+                         drop_mort = 0.05, bootstrap = FALSE, iter = 10L, detail = FALSE,
+                         min_harvestability = 0, level = 0.05, hpd = TRUE, verbose = TRUE,
                          sex = "both") {
 
   error_handler(rel, reco, size_at_age, rel_mort, survival,
              sex, fisheries, bootstrap, iter, last_month, birth_month,
-             d_mort, detail, min_harvest_rate, level, hpd, verbose)
+             drop_mort, detail, min_harvestability, level, hpd, verbose)
 
   if (!bootstrap) {
     iter = 1
@@ -310,7 +311,7 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                          reco,
                          size_at_age,
                          birth_month = birth_month,
-                         min_harvest_rate = min_harvest_rate,
+                         min_harvestability = min_harvestability,
                          bootstrap = bootstrap,
                          iter = iter,
                          sex = sex,
@@ -319,7 +320,7 @@ cohort_reconstruct <- function(rel, reco, birth_month, last_month = 12L, fisheri
                          river = fisheries[["riv_harv"]],
                          ocean_r = fisheries[["oc_rec"]],
                          ocean_c = fisheries[["oc_com"]],
-                         d_mort = d_mort,
+                         drop_mort = drop_mort,
                          rel_mort = rel_mort,
                          u_bound = last_month,
                          survival = survival)

@@ -347,12 +347,12 @@ Here is the structure of the return value:
 
 ##### Age-specific summary (under `age_summary`)
 
--   elsr: early life survival rate is the proportion of the abundance of fish first month in ocean, relative to the total release number (O'Farrell et al. 2012).
+-   s1: early life survival rate is the proportion of the abundance of fish first month in ocean, relative to the total release number (Chen et al.,).
 
 ```         
 | Parameter | Median | SD  | CrI_low | CrI_high |
 |-----------|--------|-----|---------|----------|
-| elsr      | 0.02   | 0   | 0.01    | 0.01     |
+| s1        | 0.02   | 0   | 0.01    | 0.01     |
 ```
 
 ##### Month-specific summary (under each month)
@@ -388,7 +388,7 @@ Each labeled entry is one bootstrapped iteration, where the label `n` correspond
 ```         
 | Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
 |-------------|------|------|------|------|------|------|------|------|------|------|
-| elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+| s1          | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
 ```
 
 ##### Month-specific data
@@ -403,8 +403,8 @@ Each labeled entry is one bootstrapped iteration, where the label `n` correspond
 ```
 ## References
 
-O'Farrell M, Mohr M, Grover A, Satterthwaite W (2012). “Sacramento River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery Impacts.” NOAA Technical Memorandum.
+Chen EK, Satterthwaite WH, O’Farrell MR, Carlson SM (????). “Incorporating age structure into the assessment and forecasting of Sacramento River Fall Chinook salmon (Oncorhynchus tshawytscha).” In preparation.
 
-Salmon Technical Team (2021). “STT Recommendations for Hooking Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.” Pacific Fishersy Management Council, Portland. https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/.
+Salmon Technical Team (2000). “STT Recommendations for Hooking Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.” Pacific Fishery Management Council, Portland. https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/.
 
 

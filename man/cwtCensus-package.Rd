@@ -21,12 +21,8 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Erin Redding \email{eredding02@berkeley.edu}
-}
-
-Other contributors:
-\itemize{
-  \item Emily Chen [funder]
+  \item Erin Redding \email{eredding02@berkeley.edu} [copyright holder]
+  \item Emily Chen [copyright holder]
 }
 
 }

@@ -18,6 +18,9 @@
 survival_default
 }
 \description{
-Age-specific survival information.
+Age-specific survival rate described in \insertCite{age_struct}{cwtCensus}.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}

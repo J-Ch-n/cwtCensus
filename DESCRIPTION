@@ -7,9 +7,9 @@ Authors@R: c(person("Joshua", "Chen",
               comment = c(ORCID = "0009-0000-3420-7200")),
              person("Erin", "Redding",  
               email = "eredding02@berkeley.edu",
-              role = c("aut")),
+              role = c("aut", "cph")),
              person("Emily", "Chen",
-              role = c("fnd")))
+              role = c("aut", "cph")))
 Description: Provides fast and convenient cohort reconstruction with both point and bootstrapped estimates.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -23,7 +23,9 @@ Imports:
     rlang (>= 1.1.4),
     r2r (>= 0.1.1),
     HDInterval (>= 0.2.4),
-    Rdpack
+    Rdpack,
+    stats,
+    utils
 Depends: 
     R (>= 2.10)
 LazyData: true

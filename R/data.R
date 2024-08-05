@@ -11,6 +11,8 @@
 #' }
 #'
 #' @description Nimbus Fish Hatchery release information 2007 - 2009.
+#' @source Regional Mark Processing Center (RMPC), Pacific States Marine Fisheries Commission (2024) \cr
+#' Regional Mark Information System Database. www.rmpc.org (accessed 31 Jan 2024)
 #'
 "release"
 
@@ -34,6 +36,8 @@
 #' }
 #'
 #' @description Nimbus Fish Hatchery recovery information 2007 - 2009.
+#' @source Regional Mark Processing Center (RMPC), Pacific States Marine Fisheries Commission (2024) \cr
+#' Regional Mark Information System Database. www.rmpc.org (accessed 31 Jan 2024)
 #'
 "recovery"
 
@@ -46,7 +50,9 @@
 #'    \item{month}{Integer. The month in which the CWTs are released}
 #'    \item{rate}{Double. The natural mortality rate for the specified age and month}
 #'  }
-#'
+#' @description Age-specific survival rate described in \insertCite{age_struct}{cwtCensus}.
+#' @references
+#' \insertAllCited{}
 "survival_default"
 
 #' Length-at-age information
@@ -60,9 +66,13 @@
 #'    \item{"sd"}{Double. The standard deviation of total body length in inches.}
 #' }
 #'
-#' @description length-at-age estimated for Sacramento River Fall Chinook from Chen et al. (in prep). \cr
-#' Estimated using the Basic Model described in Satterthwaite et al. (2012) from hatchery fish from \cr
-#' 2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and Nimbus Fish Hatchery.
+#' @description length-at-age estimated in \insertCite{age_struct}{cwtCensus}. Estimated \cr
+#' using the Basic Model described in \insertCite{bm}{cwtCensus} from hatchery fish from \cr
+#' 2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and \cr
+#' Nimbus Fish Hatchery.
+#'
+#' @references
+#' \insertAllCited{}
 #'
 "length_at_age"
 
@@ -78,6 +88,9 @@
 #'    \item{"rate"}{Double. The release mortality rate for each timestep.}
 #'  }
 #'
+#' @description hook-and-release mortality described in \insertCite{age_struct}{cwtCensus}.
+#' @references
+#' \insertAllCited{}
 "release_mort"
 
 

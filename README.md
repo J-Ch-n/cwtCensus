@@ -56,7 +56,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = FALSE, last_month = 12L, iter = 10L,
   level = 0.95, detail = FALSE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>   0.290   0.007   0.297
+#>   0.258   0.004   0.263
 ```
 
 Viewing the 1998 brood year age 3 cohort in June:
@@ -75,7 +75,7 @@ result = cohort_reconstruct(release, recovery, birth_month = 4L,
   level = 0.95, detail = TRUE, sex = "both", verbose = FALSE)
 ```
 
-Viewing the bootstrapped summary of 1998 brood year age 3 cohort in
+Viewing the bootstrapped summary of 2007 brood year age 3 cohort in
 June:
 
 ``` r
@@ -95,7 +95,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = TRUE, last_month = 12L, iter = 1000L,
   level = 0.95, detail = TRUE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>  25.477   0.232  25.776
+#>  24.243   0.183  24.459
 ```
 
 ## More Information

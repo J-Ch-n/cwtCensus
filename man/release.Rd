@@ -16,6 +16,10 @@ of fish in each batch, i.e., number of tagged fish / batch size.}
 }
 }
 }
+\source{
+Regional Mark Processing Center (RMPC), Pacific States Marine Fisheries Commission (2024) \cr
+Regional Mark Information System Database. www.rmpc.org (accessed 31 Jan 2024)
+}
 \usage{
 release
 }

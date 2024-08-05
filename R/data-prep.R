@@ -1,6 +1,6 @@
 data_prep <- function(rel, reco, size_at_age, birth_month, iter,
-                      min_harvest_rate, spawn, hatchery, river,
-                      ocean_r, ocean_c, bootstrap, d_mort,
+                      min_harvestability, spawn, hatchery, river,
+                      ocean_r, ocean_c, bootstrap, drop_mort,
                       rel_mort, sex, u_bound, survival) {
 
 
@@ -106,7 +106,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
-   return(pmax(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv), min_harvest_rate))
+   return(pmax(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv), min_harvestability))
   }
 
   find_bt_sum <- function(est_num, prod_exp) {
@@ -331,11 +331,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
       if (cur_fshry == ocean_r) {
         is_prev_ocean_r <<- TRUE
         is_ocean_r <<- TRUE
-        prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
+        prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * drop_mort + (catch - cur_indiv) * cur_rel_mort
       } else {
         is_prev_ocean_r <<- FALSE
         is_ocean_r <<- FALSE
-        prev_com_imp <<- prev_com_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
+        prev_com_imp <<- prev_com_imp + cur_indiv + catch * drop_mort + (catch - cur_indiv) * cur_rel_mort
       }
 
       prev_i_year_valid <<- TRUE

@@ -44,7 +44,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
   }
 
   find_ag_smry <- function(info) {
-    row_name = c('elsr')
+    row_name = c('s1')
     data = NA
     if (bootstrap) {
       data = rbind(info[1, ][[ELS_RATE_IDX]] |> unlist()) |>
