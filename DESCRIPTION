@@ -1,6 +1,6 @@
 Package: cwtCensus
 Title: Efficient Population Analysis Tool for Cohort Reconstruction
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(person("Joshua", "Chen", 
               email = "joshua.chen.jchn@gmail.com", 
               role = c("aut", "cre", "cph"),
