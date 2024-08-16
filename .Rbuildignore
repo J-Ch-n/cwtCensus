@@ -5,3 +5,8 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^LICENSE\.md$
+^cran-comments\.md$
+^doc$
+^Meta$
+^\.github$

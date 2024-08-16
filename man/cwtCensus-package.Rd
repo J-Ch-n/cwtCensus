@@ -6,13 +6,23 @@
 \alias{cwtCensus-package}
 \title{cwtCensus: Efficient Population Analysis Tool for Cohort Reconstruction}
 \description{
-What the package does (one paragraph).
+Provides fast and convenient cohort reconstruction with both point and bootstrapped estimates.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/J-Ch-n/cohort_reco_pk}
   \item Report bugs at \url{https://github.com/J-Ch-n/cohort_reco_pk/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Joshua Chen \email{joshua.chen.jchn@gmail.com} (\href{https://orcid.org/0009-0000-3420-7200}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Erin Redding \email{eredding02@berkeley.edu} [copyright holder]
+  \item Emily Chen [copyright holder]
 }
 
 }

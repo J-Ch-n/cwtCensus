@@ -5,21 +5,25 @@
 \alias{release}
 \title{Release information}
 \format{
-\subsection{'release'}{
+\subsection{\code{release}}{
 
 \describe{
-\item{release_month}{The month in which the CWTs are released}
-\item{brood_year}{The birth year of the tagged fish}
-\item{tag_code}{The unique identification for each batch of CWT.}
-\item{prod_exp}{The production expansion rate for each batch of CWT.}
-\item{total_release}{The total number of fish released under a specific CWT ID}
+\item{"brood_year"}{Integer. The birth year of each CWT batch.}
+\item{"total_release"}{Double. The total number of releases for each batch of CWT.}
+\item{"prod_exp"}{Double. The ratio between the number of tagged fish and the total number \cr
+of fish in each batch, i.e., number of tagged fish / batch size.}
+\item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 }
 }
+}
+\source{
+Regional Mark Processing Center (RMPC), Pacific States Marine Fisheries Commission (2024) \cr
+Regional Mark Information System Database. www.rmpc.org (accessed 31 Jan 2024)
 }
 \usage{
 release
 }
 \description{
-Release information
+Nimbus Fish Hatchery release information 2007 - 2009.
 }
 \keyword{datasets}

@@ -303,7 +303,7 @@ reconstruct <- function(mat_dt, imp_dt, nat_mort, birth_month, max_ag_mnth_dt,
         rm(cohort_left_dt)
       }
     }
-    # browser()
+
     if (detail) {
       return(list(cohort = cohort,
                   srr_dt = srr_dt,

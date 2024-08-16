@@ -8,98 +8,351 @@ cohort_reconstruct(
   rel,
   reco,
   birth_month,
-  last_month,
+  last_month = 12L,
   fisheries = list(oc_rec = 40, oc_com = 10, esc_sp = 54, esc_hat = 50, riv_harv = 46),
   size_at_age = length_at_age,
   rel_mort = release_mort,
-  nat_mort = nat_mort_default,
-  d_mort = 0.05,
-  hr_mort_com = 0.26,
-  hr_mort_rec = 0.14,
-  bootstrap = TRUE,
-  iter = 1000,
-  min_harvest_rate = 0,
-  detail = TRUE,
+  survival = survival_default,
+  drop_mort = 0.05,
+  bootstrap = FALSE,
+  iter = 10L,
+  detail = FALSE,
+  min_harvestability = 0,
   level = 0.05,
-  hpd = TRUE,
+  hpd = FALSE,
   verbose = TRUE,
   sex = "both"
 )
 }
 \arguments{
-\item{rel}{Input data frame for CWT releases with columns:
+\item{rel}{Input data frame for CWT releases with columns in order:
 \describe{
-\item{brood_year}{Integer. The birth year of each CWT batch.}
-\item{total_release}{Double. The total number of releases for each batch of CWT.}
-\item{prod_exp}{Double. The ratio between the number of tagged fish and the total number of fish in each batch, i.e., number of tagged fish / batch size.}
-\item{tag_code}{Any type. The identifier for each batch of CWT release.}
+\item{"brood_year"}{Integer. The birth year of each CWT batch.}
+\item{"total_release"}{Double. The total number of releases for each batch of CWT.}
+\item{"prod_exp"}{Double. The ratio between the number of tagged fish and the total number \cr
+of fish in each batch, i.e., number of tagged fish / batch size.}
+\item{"tag_code"}{Any type. The identifier for each batch of CWT release.}
 }}
 
-\item{reco}{Input data frame for CWT recoveries with columns:
+\item{reco}{Input data frame for CWT recoveries with columns in order:
 \describe{
-\item{run_year}{Integer. The year of each CWT recovery.}
-\item{month}{Integer. The month of each CWT recovery.}
-\item{length}{Double. The length in inches of each recovered fish.}
-\item{tag_code}{Any type. The identifier for each recovered tag.}
-\item{fishery}{Double. The identifier for the fishery from which the tag is recovered. The fisheries include river harvest, spawning ground escapement, hatchery escapement, ocean recreational fishing, ocean commercial fishing.}
-\item{location}{Character. The identifier for the location at which the tag is recovered.}
-\item{size_limit}{Double. The minimum harvest limit (inclusive) in inches for the recovered tag's region and date.}
-\item{est_num}{Double. The estimated number of fish each tag represents.}
-\item{sex}{Character. The biological sex of the recovered fish.}
+\item{"run_year"}{Integer. The year of each CWT recovery.}
+\item{"month"}{Integer. The month of each CWT recovery.}
+\item{"length"}{Double. The length in inches of each recovered fish.}
+\item{"tag_code"}{Any type. The identifier for each recovered tag.}
+\item{"fishery"}{Double. The identifier for the fishery from which the tag is recovered. \cr
+The fisheries include river harvest, spawning ground escapement, hatchery \cr
+escapement, ocean recreational fishing, ocean commercial fishing.}
+\item{"location"}{Character. The identifier for the location at which the tag is recovered.}
+\item{"size_limit"}{Double. The minimum harvest limit (inclusive) in inches for the recovered \cr
+tag's region and date.}
+\item{"est_num"}{Double. The estimated number of fish each tag represents.}
+\item{"sex"}{Character. The biological sex of the recovered fish.}
 }}
 
 \item{birth_month}{Integer specifying the birth month of all individuals in the data set.}
 
-\item{fisheries}{Named list associating each type of fishery with a unique identifier in the release and recovery data. Must contain the following named elements:
+\item{last_month}{Integer indicating the last month, in numeric form, that counts toward the \cr
+current run. This variable is to separate late spawners of the current run and early spawners \cr
+of the next run. For example, a cut off of 9L means fish recovered in September or earlier in \cr
+the current year and fish recovered October-December the previous year will be aggregated into \cr
+the same run. \cr
+
+The default value is 12L, meaning the entire natural year counts toward the current run. \cr}
+
+\item{fisheries}{Named list associating each type of fishery with a unique identifier in the \cr
+release and recovery data. Must contain the following named elements:
 \describe{
-\item{oc_rec}{Identifier for recreational ocean fishery.}
-\item{oc_com}{Identifier for commercial ocean fishery.}
-\item{esc_sp}{Identifier for escapement to spawning ground.}
-\item{esc_hat}{Identifier for escapement to hatchery.}
-\item{riv_harv}{Identifier for river harvest.}
+\item{"oc_rec"}{Identifier for recreational ocean fishery. The default value is 40.}
+\item{"oc_com"}{Identifier for commercial ocean fishery. The default value is 10.}
+\item{"esc_sp"}{Identifier for escapement to spawning ground. The default value is 54.}
+\item{"esc_hat"}{Identifier for escapement to hatchery. The default value is 50.}
+\item{"riv_harv"}{Identifier for river harvest. The default value is 46.}
 }}
 
-\item{size_at_age}{Data frame specifying the mean and standard deviation for the individual body length at each age and month.}
+\item{size_at_age}{Data frame specifying the mean and standard deviation for the individual \cr
+body length at each age and month. The default data frame is included in the package and named \cr
+\code{length_at_age}.
 
-\item{rel_mort}{Data frame specifying the release mortality rate due to ocean fishing in each region.}
+The following describes the required columns in order.
+\describe{
+\item{"age"}{Integer. The fishing age of the cohort.}
+\item{"month"}{Integer. The month in numeric form. For instance, 3L is March.}
+\item{"mean"}{Double. The mean total body length in inches.}
+\item{"sd"}{Double. The standard deviation of total body length in inches.}
+}}
 
-\item{nat_mort}{Double specifying the natural mortality rate.}
+\item{rel_mort}{Data frame specifying the hook-and-release mortality rate due to ocean fishing \cr
+in each region. Hook-and-release mortality rate is the proportion of fish that are The default \cr
+data frame is included in the package and named \code{release_mort}. \cr
 
-\item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} is set to false, then \code{iter} is ignored.}
+The following describes the required columns in order.
+\describe{
+\item{"run_year"}{Integer. The year of each CWT recovery.}
+\item{"fishery"}{Any type. The identifier for each type of fishery.}
+\item{"location"}{Any type. The identifier for location.}
+\item{"month"}{Integer. The month of each CWT recovery.}
+\item{"rate"}{Double. The release mortality rate for each timestep.}
+}
 
-\item{iter}{Numeric or integer specifying the number of iterations for parametric bootstrapping. The default value is 1000. Note that larger values require more computing power and memory.}
+To provide convenience, we set the default hook-and-release mortality rate, regardless of time
+and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery \insertCite{stt}{cwtCensus}. \cr
+These default values will be used if we cannot find any matching record from the data frame above.}
 
-\item{min_harvest_rate}{Double specifying the lower bound for the harvest rate considered in cohort reconstruction.}
+\item{survival}{Data frame specifying the age specific natural survival rates. The default data \cr
+frame is included in the package and named \code{survival_default}. \cr
+The following describes the required columns in order.
+\describe{
+\item{"age"}{Numeric specifying the age.}
+\item{"rate"}{Double specifying the agely survival rate.}
+}}
 
-\item{detail}{Boolean indicating if the reconstruction should calculate breakdowns and summary information.}
+\item{drop_mort}{Double indicating the drop off mortality of fishery impact. Drop off mortality is \cr
+the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
+intact. The default value is 0.05 \insertCite{stt}{cwtCensus}.}
 
-\item{level}{Double between 0 and 1 inclusive, specifying the credible level for credible intervals. This option only matters if \code{bootstrap} is set to TRUE.}
+\item{bootstrap}{Boolean indicating if parametric bootstrapping should be conducted. If \code{bootstrap} \cr
+is set to false, then \code{iter} is ignored. To produce reproducible results, please remember set a seed \cr
+with \code{set.seed}.}
 
-\item{hpd}{Boolean indicating if the highest posterior density credible interval should be used. If FALSE, a symmetric credible interval is used.}
+\item{iter}{Numeric or integer specifying the number of iterations for parametric bootstrapping. The \cr
+default value is 1000. Note that larger values require more computing power and memory.}
 
-\item{sex}{String specifying which sex or sexes to consider. Must choose from "male", "female", or "both". Here, "male" is shorthand for sperm-producing individuals. "Female" is shorthand for egg-producing individuals.}
+\item{detail}{Boolean indicating if the reconstruction should calculate breakdowns and summary \cr
+information.}
+
+\item{min_harvestability}{Double specifying the lower bound for the harvest rate considered in cohort \cr
+reconstruction. Harvest rate is the ratio between the number of harvestable individuals and the \cr
+size of the cohort.}
+
+\item{level}{Double between 0 and 1 inclusive, specifying the credible level for credible intervals. \cr
+This option only matters if \code{bootstrap} is set to TRUE.}
+
+\item{hpd}{Boolean indicating if the highest posterior density credible interval should be used. If \cr
+FALSE, a symmetric credible interval is used. The default is FALSE.}
+
+\item{verbose}{Boolean indicating if the function will print progress updates. If \code{verbose} is set \cr
+to TRUE, the function will provide status updates. This is particularly useful for conducting \cr
+bootstrapped cohort reconstruction for large iterations that are high in computing cost, as \cr
+having progress updates can instill a sense of confidence into an otherwise discouraged user.}
+
+\item{sex}{String specifying which sex or sexes to consider. Must choose from "male", "female", or \cr
+"both". Here, "male" is shorthand for sperm-producing individuals. "Female" is shorthand for \cr
+egg-producing individuals.}
 }
 \value{
-A three-dimensional list of results. The first dimension encodes brood year information, the second age, and the third month. Depending on \code{detail} and \code{bootstrap}, the corresponding output will vary.
+There are two types of return values, depending on the values of \code{detail} and \code{bootstrap}. \cr
+In the case when both \code{detail} and \code{bootstrap} are \code{FALSE}, the return value is a data table of the following form: \cr
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| by (integer) | age (integer) | month (integer) | ocean_abundance (double) |
+|--------------|---------------|-----------------|--------------------------|
+| 1995         | 3             | 5               | 3.814342                 |
+| 1995         | 3             | 4               | 10.853284                |
+| 1995         | 3             | 3               | 11.056992                |
+| 1995         | 3             | 2               | 11.264524                |
+| 1995         | 3             | 1               | 11.475951                |
+| 1995         | 3             | 12              | 11.691346                |
+| 1995         | 3             | 11              | 11.910784                |
+| 1995         | 3             | 10              | 12.134340                |
+| 1995         | 3             | 9               | 12.362093                |
+| 1995         | 3             | 8               | 12.594120                |
+
+}\if{html}{\out{</div>}}
+
+In the cases when either \code{detail}, \code{bootstrap}, or both are set to \code{TRUE}, the return \cr
+value is a three dimensional list. The first dimension encodes brood year information (by), \cr
+the second age, and the third month. Each age has an age-specific summary information. Each \cr
+month has \code{data} and month-specific \code{summary} information. Depending on \code{detail} and \cr
+\code{bootstrap}, the corresponding output will vary. \cr
+
+Here is the structure of the return value:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  "by" "age" "month"
+
+├── [["2002"]]
+│   ├──[["2"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── [["3"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── ...
+│   │
+│   ├──[["by_summary"]]
+│   │  ├── `data`
+│   │  └── `summary`
+├── ...
+
+}\if{html}{\out{</div>}}
+\subsection{Summary}{
+\itemize{
+\item Parameter: the statistics in question.
+\item Median: the median for the parameter.
+\item SD: the standard deviation for the parameter.
+\item CrI_low: the lower bound of the credible interval.
+\item CrI_high: the upper bound of the credible interval.
+}
+}
+
+\subsection{Brood-year-specific summary (under \code{by_summary})}{
+\itemize{
+\item srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction \cr
+in a brood’s potential adult spawning escapement owing to ocean fisheries, \cr
+relative to its escapement potential in the absence of ocean fishing," \cr
+as described in \insertCite{age_struct}{cwtCensus}.
+\item s1: early life survival rate is the proportion of the abundance of fish \cr
+first month in ocean, relative to the total release number \insertCite{age_struct}{cwtCensus}.
+}
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| srr       | 0.18061 | 0.00871 | 0.17996 | 0.18126  |
+| s1        | 0.00519 | 0.00008 | 0.00518 | 0.00521  |
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Age-specific summary (under \code{age_summary})}{
+\itemize{
+\item imp_rate: age-specific fishery impact rate.
+\item mat_rate: age-specific maturation rate.
+}
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| imp_rate  | 0.20872 | 0.00730 | 0.20815 | 0.20930  |
+| mat_rate  | 0.63548 | 0.01462 | 0.63546 | 0.63550  |
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Month-specific summary (under each month)}{
+\itemize{
+\item ocean_abundance: number of individuals in the ocean at that time.
+\item impact: mortality due to fishing.
+\item maturation: number of spawners.
+\item natural_mort: mortality due to natural causes.
+}
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter        | Median      | SD       | CrI_low     | CrI_high    |
+|------------------|-------------|----------|-------------|-------------|
+| ocean_abundance  | 33954.6031  | 497.3167 | 33871.9672  | 34037.2390  |
+| impact           | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| maturation       | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| natural_mort     | 625.5616    | 9.1623   | 624.0392    | 627.0841    |
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Data}{
+
+Each labeled entry is one bootstrapped iteration, where the label \code{n} corresponds \cr
+to the nth iteration.
+}
+
+\subsection{Brood-year-specific data}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Measurement | 1       | 2       | 3       | 4       | 5       | 6       | 7       | 8       | 9       | 10      |
+|-------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| srr         | 0.18414 | 0.17711 | 0.19864 | 0.17655 | 0.18206 | 0.19160 | 0.17342 | 0.17916 | 0.17155 | 0.19019 |
+| s1          | 0.00526 | 0.00514 | 0.00515 | 0.00533 | 0.00531 | 0.00516 | 0.00523 | 0.00515 | 0.00528 | 0.00514 |
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Age-specific data}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter | 1       | 2       | 3       | 4       | 5       | 6       | 7       | 8       | 9       | 10      |
+|-----------|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| imp_rate  | 0.20745 | 0.20182 | 0.22336 | 0.20081 | 0.21000 | 0.21039 | 0.20440 | 0.21559 | 0.19978 | 0.21069 |
+| mat_rate  | 0.63768 | 0.65303 | 0.61126 | 0.63552 | 0.63544 | 0.61204 | 0.61277 | 0.64324 | 0.63224 | 0.64218 |
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Month-specific data}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| Parameter        | 1         | 2         | 3         | 4         | 5         | 6         | 7         | 8         | 9         | 10        |
+|------------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| ocean_abundance  | 34138.2384| 33660.7294| 33638.2628| 34820.2980| 34752.4966| 33731.0876| 34197.4639| 33770.9678| 34532.9376| 33434.5292|
+| impact           | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    |
+| maturation       | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    |
+| natural_mort     | 628.9448  | 620.1474  | 619.7335  | 641.5107  | 640.2616  | 621.4437  | 630.0359  | 622.1784  | 636.2165  | 615.9801  |
+}\if{html}{\out{</div>}}
+}
 }
 \description{
-\code{cohort_reconstruct} uses released and recovered coded wire tags to calculate the ocean
-abundance of the population for each brood year at each age and in each month.
-The function returns a list of outputs indexed by brood year, age, and month. Each
-element of the list contains two elements, \code{data} and \code{summary}. In general, the \code{data} segment
-contains the raw data of cohort reconstruction, while the \code{summary} segment includes
-statistics from the raw data.
+\code{cohort_reconstruct} uses released and recovered coded wire tags to calculate the ocean \cr
+abundance of the population for each brood year at each age and in each month. The function \cr
+returns a list of outputs indexed by brood year, age, and month. Each element of the list \cr
+contains two elements, \code{data} and \code{summary}. In general, the \code{data} segment contains the \cr
+raw data of cohort reconstruction, while the \code{summary} segment includes statistics from the \cr
+raw data. For more about return value, see the value section. \cr
 
-Depending on if the \code{bootstrap} and \code{detail} flags are set, the \code{data} and \code{summary}
-segments may behave in different ways. For more information, see details.
+Depending on if the \code{bootstrap} and \code{detail} flags are set, the \code{data} and \code{summary} segments \cr
+may behave in different ways. For more information, see details.
+
+The function implements a cohort reconstruction outlined in \insertCite{age_struct}{cwtCensus}.
 }
 \details{
-Aging convention: we use fishing age, or year of life, as the age for captured tags. This aging convention starts from age-1. Namely,
-as soon as the fish is born, it is in the first year of life, thus age-1. Accordingly, the age in the \code{size_at_age} data frame should use
-fishing age as well.
+\subsection{Aging convention}{
+
+We use fishing age, or year of life, as the age for captured tags. This aging convention \cr
+starts from age-1. Namely, as soon as the fish is born, it is in the first year of life, \cr
+thus age-1. Accordingly, the age in the \code{size_at_age} data frame should use fishing age \cr
+as well. \cr
+}
+
+\subsection{Detail, bootstrap, and results}{
+
+Since \code{detail} and \code{bootstrap} are Boolean valued variables, there are four combinations.
+\describe{
+\item{\verb{detail = True, bootstrap = True}}{Provides results with detailed summary statistics using bootstrapped data.}
+\item{\verb{detail = False, bootstrap = True}}{Provides results with cohort data only using bootstrapped data.}
+\item{\verb{detail = True, bootstrap = False}}{Provides results with detailed summary statistics using point estimates.}
+\item{\verb{detail = False, bootstrap = True}}{Provides results with cohort data only using point estimates.}
+}
+
+For more information, see the value section.
+}
+
+\subsection{Danger of incomplete cohort reconstruction}{
+
+If the provided recovery data don't span the entire life time of a stock, cohort reconstruction \cr
+may fail to yield accurate information. Be sure to provide a complete cohort recovery data set.
+}
 }
 \examples{
-cohort_reconstruct(release, recovery, birth_month = 4,
-  bootstrap = F, last_month = 12, iter = 10,
-  level = 0.95, detail = F, sex = "both")
+
+# Bootstrapped (3 iterations) and detailed cohort reconstruction.
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = TRUE, iter = 3L, detail = TRUE)
+
+# Bootstrapped (3 iterations) but not detailed cohort reconstruction.
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = TRUE, iter = 3L, detail = FALSE)
+
+# Point estimated and detailed cohort reconstruction.
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = FALSE, detail = TRUE)
+
+# Point estimated but no detailed cohort reconstruction.
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = FALSE, detail = FALSE)
+
+# Setting `iter` to a non-zero number when `bootstrap` is `FALSE` doesn't affect the result.
+
+result = cohort_reconstruct(rel = release, reco = recovery, birth_month = 8L,
+  last_month = 12L, bootstrap = FALSE, iter = 1000L, detail = FALSE)
+
+}
+\references{
+\insertAllCited
 }

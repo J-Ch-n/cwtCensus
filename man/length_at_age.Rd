@@ -3,15 +3,15 @@
 \docType{data}
 \name{length_at_age}
 \alias{length_at_age}
-\title{Length at age, or key length age, information}
+\title{Length-at-age information}
 \format{
-\subsection{'release'}{
+\subsection{\code{length_at_age}}{
 
 \describe{
-\item{age}{The age of fish in which the CWT is recovered}
-\item{month}{The month in which the CWT is recovered}
-\item{mean}{The mean legnth of fish in inches for the specified age and month}
-\item{sd}{The standard deviation of the fish length in inches for the specified age and month}
+\item{"age"}{Integer. The fishing age of the cohort.}
+\item{"month"}{Integer. The month in numeric form. For instance, \code{3L} is March.}
+\item{"mean"}{Double. The mean total body length in inches.}
+\item{"sd"}{Double. The standard deviation of total body length in inches.}
 }
 }
 }
@@ -19,6 +19,12 @@
 length_at_age
 }
 \description{
-Length at age, or key length age, information
+length-at-age estimated in \insertCite{age_struct}{cwtCensus}. Estimated \cr
+using the Basic Model described in \insertCite{bm}{cwtCensus} from hatchery fish from \cr
+2000-2020 originating from Coleman National Fish Hatchery, Feather River Hatchery, and \cr
+Nimbus Fish Hatchery.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}
