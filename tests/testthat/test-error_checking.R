@@ -37,11 +37,9 @@ test_that("check type error", {
                        bootstrap = char,
                        iter = char,
                        verbose = FALSE,
-                       d_mort = char,
-                       hr_mort_com = char,
-                       hr_mort_rec = char,
+                       drop_mort = char,
                        detail = char,
-                       min_harvest_rate = char,
+                       min_harvestability = char,
                        level = char,
                        hpd = char))
   expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
@@ -64,16 +62,10 @@ test_that("check type error", {
                                   detail = char))
   expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
                                   last_month = 4L, verbose = FALSE,
-                                  d_mort = char))
+                                  drop_mort = char))
   expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
                                   last_month = 4L, verbose = FALSE,
-                                  hr_mort_com = char))
-  expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
-                                  last_month = 4L, verbose = FALSE,
-                                  hr_mort_rec = char))
-  expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
-                                  last_month = 4L, verbose = FALSE,
-                                  min_harvest_rate = char))
+                                  min_harvestability = char))
   expect_error(cohort_reconstruct(release, recovery, birth_month = 3L,
                                   last_month = 4L, verbose = FALSE,
                                   level = char))
@@ -245,3 +237,5 @@ test_that("check incorrect column order", {
                                   rel_mort = release_mort[, length(colnames(release_mort)) : 1],
                                   verbose = FALSE))
 })
+
+if ("package:dplyr" %in% search()) detach("package:dplyr", unload = TRUE)

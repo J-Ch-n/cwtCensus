@@ -29,6 +29,8 @@
 #'    \item{`detail = False, bootstrap = True`}{Provides results with cohort data only using point estimates.}
 #'  }
 #'
+#' For more information, see the value section.
+#'
 #' ## Danger of incomplete cohort reconstruction
 #' If the provided recovery data don't span the entire life time of a stock, cohort reconstruction \cr
 #'  may fail to yield accurate information. Be sure to provide a complete cohort recovery data set.
@@ -59,8 +61,11 @@
 #' @param birth_month Integer specifying the birth month of all individuals in the data set.
 #' @param last_month Integer indicating the last month, in numeric form, that counts toward the \cr
 #'  current run. This variable is to separate late spawners of the current run and early spawners \cr
-#'  of the next run.
-#'  The default value is 12L, meaning the entire natural year counts toward the current run.
+#'  of the next run. For example, a cut off of 9L means fish recovered in September or earlier in \cr
+#'  the current year and fish recovered October-December the previous year will be aggregated into \cr
+#'  the same run. \cr
+#'
+#'  The default value is 12L, meaning the entire natural year counts toward the current run. \cr
 #' @param fisheries Named list associating each type of fishery with a unique identifier in the \cr
 #'  release and recovery data. Must contain the following named elements:
 #'  \describe{
@@ -108,7 +113,8 @@
 #'  the proportion of fish encountered by the gear that is killed without being brought to the vessel \cr
 #'  intact. The default value is 0.05 \insertCite{stt}{cwtCensus}.
 #' @param bootstrap Boolean indicating if parametric bootstrapping should be conducted. If `bootstrap` \cr
-#'  is set to false, then `iter` is ignored.
+#'  is set to false, then `iter` is ignored. To produce reproducible results, please remember set a seed \cr
+#'  with `set.seed`.
 #' @param iter Numeric or integer specifying the number of iterations for parametric bootstrapping. The \cr
 #'  default value is 1000. Note that larger values require more computing power and memory.
 #' @param detail Boolean indicating if the reconstruction should calculate breakdowns and summary \cr
@@ -129,7 +135,7 @@
 #'  having progress updates can instill a sense of confidence into an otherwise discouraged user.
 #'
 #' @return
-#'  There are two types of return value, depending on the values of `detail` and `bootstrap`. \cr
+#'  There are two types of return values, depending on the values of `detail` and `bootstrap`. \cr
 #'  In the case when both `detail` and `bootstrap` are `FALSE`, the return value is a data table of the following form: \cr
 #'
 #'```
@@ -185,7 +191,6 @@
 #'├── ...
 #'
 #'```
-#'
 #' ## Summary
 #'
 #'  - Parameter: the statistics in question.
@@ -199,20 +204,24 @@
 #'  in a brood’s potential adult spawning escapement owing to ocean fisheries, \cr
 #'  relative to its escapement potential in the absence of ocean fishing," \cr
 #'  as described in \insertCite{age_struct}{cwtCensus}.
-#'
-#' ```
-#' | Parameter | Median | SD  | CrI_low | CrI_high |
-#' |-----------|--------|-----|---------|----------|
-#' | srr       | 0.05   | 0.02| 0.04    | 0.04     |
-#' ```
-#' ## Age-specific summary (under `age_summary`)
 #'  - s1: early life survival rate is the proportion of the abundance of fish \cr
 #'  first month in ocean, relative to the total release number \insertCite{age_struct}{cwtCensus}.
 #'
 #' ```
-#' | Parameter | Median | SD  | CrI_low | CrI_high |
-#' |-----------|--------|-----|---------|----------|
-#' | s1        | 0.02   | 0   | 0.01    | 0.01     |
+#' | Parameter | Median  | SD      | CrI_low | CrI_high |
+#' |-----------|---------|---------|---------|----------|
+#' | srr       | 0.18061 | 0.00871 | 0.17996 | 0.18126  |
+#' | s1        | 0.00519 | 0.00008 | 0.00518 | 0.00521  |
+#' ```
+#' ## Age-specific summary (under `age_summary`)
+#'  - imp_rate: age-specific fishery impact rate.
+#'  - mat_rate: age-specific maturation rate.
+#'
+#' ```
+#' | Parameter | Median  | SD      | CrI_low | CrI_high |
+#' |-----------|---------|---------|---------|----------|
+#' | imp_rate  | 0.20872 | 0.00730 | 0.20815 | 0.20930  |
+#' | mat_rate  | 0.63548 | 0.01462 | 0.63546 | 0.63550  |
 #' ```
 #' ## Month-specific summary (under each month)
 #'  - ocean_abundance: number of individuals in the ocean at that time.
@@ -220,38 +229,39 @@
 #'  - maturation: number of spawners.
 #'  - natural_mort: mortality due to natural causes.
 #' ```
-#' | Parameter         | Median | SD   | CrI_low | CrI_high |
-#' |-------------------|--------|------|---------|----------|
-#' | ocean_abundance   | 43.91  | 6.50 | 35.09   | 35.09    |
-#' | impact            | 0.00   | 0.00 | 0.00    | 0.00     |
-#' | maturation        | 0.00   | 0.00 | 0.00    | 0.00     |
-#' | natural_mort      | 0.81   | 0.12 | 0.65    | 0.65     |
+#' | Parameter        | Median      | SD       | CrI_low     | CrI_high    |
+#' |------------------|-------------|----------|-------------|-------------|
+#' | ocean_abundance  | 33954.6031  | 497.3167 | 33871.9672  | 34037.2390  |
+#' | impact           | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+#' | maturation       | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+#' | natural_mort     | 625.5616    | 9.1623   | 624.0392    | 627.0841    |
 #' ```
 #' ## Data
 #'  Each labeled entry is one bootstrapped iteration, where the label `n` corresponds \cr
 #'  to the nth iteration.
 #' ## Brood-year-specific data
 #' ```
-#' | Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-#' |-----------|------|------|------|------|------|------|------|------|------|------|
-#' | srr       | 0.07 | 0.07 | 0.05 | 0.05 | 0.05 | 0.06 | 0.06 | 0.04 | 0.08 | 0.04 |
-#'
+#' | Measurement | 1       | 2       | 3       | 4       | 5       | 6       | 7       | 8       | 9       | 10      |
+#' |-------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+#' | srr         | 0.18414 | 0.17711 | 0.19864 | 0.17655 | 0.18206 | 0.19160 | 0.17342 | 0.17916 | 0.17155 | 0.19019 |
+#' | s1          | 0.00526 | 0.00514 | 0.00515 | 0.00533 | 0.00531 | 0.00516 | 0.00523 | 0.00515 | 0.00528 | 0.00514 |
 #' ```
 #' ## Age-specific data
 #' ```
-#' | Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-#' |-------------|------|------|------|------|------|------|------|------|------|------|
-#' | s1          | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+#' | Parameter | 1       | 2       | 3       | 4       | 5       | 6       | 7       | 8       | 9       | 10      |
+#' |-----------|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+#' | imp_rate  | 0.20745 | 0.20182 | 0.22336 | 0.20081 | 0.21000 | 0.21039 | 0.20440 | 0.21559 | 0.19978 | 0.21069 |
+#' | mat_rate  | 0.63768 | 0.65303 | 0.61126 | 0.63552 | 0.63544 | 0.61204 | 0.61277 | 0.64324 | 0.63224 | 0.64218 |
 #' ```
 #' ## Month-specific data
 #'
 #' ```
-#' | Measurement      | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-#' |------------------|------|------|------|------|------|------|------|------|------|------|
-#' | ocean_abundance  | 46.69| 37.41| 43.34| 40.74| 35.09| 44.49| 37.43| 56.25| 45.80| 50.56|
-#' | impact           | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-#' | maturation       | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-#' | natural_mort     | 0.86 | 0.69 | 0.80 | 0.75 | 0.65 | 0.82 | 0.69 | 1.04 | 0.84 | 0.93 |
+#' | Parameter        | 1         | 2         | 3         | 4         | 5         | 6         | 7         | 8         | 9         | 10        |
+#' |------------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+#' | ocean_abundance  | 34138.2384| 33660.7294| 33638.2628| 34820.2980| 34752.4966| 33731.0876| 34197.4639| 33770.9678| 34532.9376| 33434.5292|
+#' | impact           | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    |
+#' | maturation       | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    | 0.0000    |
+#' | natural_mort     | 628.9448  | 620.1474  | 619.7335  | 641.5107  | 640.2616  | 621.4437  | 630.0359  | 622.1784  | 636.2165  | 615.9801  |
 #' ```
 #'
 #' @export

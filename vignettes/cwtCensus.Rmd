@@ -338,21 +338,24 @@ Here is the structure of the return value:
 ##### Brood-year-specific summary (under `by_summary`)
 
 -   srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction in a brood’s potential adult spawning escapement owing to ocean fisheries, relative to its escapement potential in the absence of ocean fishing" (O'Farrell et al. 2012):
-
-```         
-| Parameter | Median | SD  | CrI_low | CrI_high |
-|-----------|--------|-----|---------|----------|
-| srr       | 0.05   | 0.02| 0.04    | 0.04     |
-```
-
-##### Age-specific summary (under `age_summary`)
-
 -   s1: early life survival rate is the proportion of the abundance of fish first month in ocean, relative to the total release number (Chen et al.,).
 
 ```         
-| Parameter | Median | SD  | CrI_low | CrI_high |
-|-----------|--------|-----|---------|----------|
-| s1        | 0.02   | 0   | 0.01    | 0.01     |
+| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| srr       | 0.18061 | 0.00871 | 0.17996 | 0.18126  |
+| s1        | 0.00519 | 0.00008 | 0.00518 | 0.00521  |
+```
+
+##### Age-specific summary (under `age_summary`)
+- imp_rate: age-specific fishery impact rate.
+- mat_rate: age-specific maturation rate.
+
+```         
+| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| imp_rate  | 0.20872 | 0.00730 | 0.20815 | 0.20930  |
+| mat_rate  | 0.63548 | 0.01462 | 0.63546 | 0.63550  |
 ```
 
 ##### Month-specific summary (under each month)
@@ -363,12 +366,12 @@ Here is the structure of the return value:
 -   natural_mort: mortality due to natural causes.
 
 ```         
-| Parameter         | Median | SD   | CrI_low | CrI_high |
-|-------------------|--------|------|---------|----------|
-| ocean_abundance   | 43.91  | 6.50 | 35.09   | 35.09    |
-| impact            | 0.00   | 0.00 | 0.00    | 0.00     |
-| maturation        | 0.00   | 0.00 | 0.00    | 0.00     |
-| natural_mort      | 0.81   | 0.12 | 0.65    | 0.65     |
+| Parameter        | Median      | SD       | CrI_low     | CrI_high    |
+|------------------|-------------|----------|-------------|-------------|
+| ocean_abundance  | 33954.6031  | 497.3167 | 33871.9672  | 34037.2390  |
+| impact           | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| maturation       | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| natural_mort     | 625.5616    | 9.1623   | 624.0392    | 627.0841    |
 ```
 
 #### Data
@@ -378,28 +381,30 @@ Each labeled entry is one bootstrapped iteration, where the label `n` correspond
 ##### Brood-year-specific data
 
 ```         
-| Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|-----------|------|------|------|------|------|------|------|------|------|------|
-| srr       | 0.07 | 0.07 | 0.05 | 0.05 | 0.05 | 0.06 | 0.06 | 0.04 | 0.08 | 0.04 |
+| Measurement | 1       | 2       | 3       |
+|-------------|---------|---------|---------|
+| srr         | 0.18414 | 0.17711 | 0.19864 | 
+| s1          | 0.00526 | 0.00514 | 0.00515 |
 ```
 
 ##### Age-specific data
 
 ```         
-| Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|-------------|------|------|------|------|------|------|------|------|------|------|
-| s1          | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |
+| Parameter | 1       | 2       | 3       |
+|-----------|---------|---------|---------|
+| imp_rate  | 0.20745 | 0.20182 | 0.22336 |
+| mat_rate  | 0.63768 | 0.65303 | 0.61126 |
 ```
 
 ##### Month-specific data
 
 ```         
-| Measurement      | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|------------------|------|------|------|------|------|------|------|------|------|------|
-| ocean_abundance  | 46.69| 37.41| 43.34| 40.74| 35.09| 44.49| 37.43| 56.25| 45.80| 50.56|
-| impact           | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| maturation       | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| natural_mort     | 0.86 | 0.69 | 0.80 | 0.75 | 0.65 | 0.82 | 0.69 | 1.04 | 0.84 | 0.93 |
+| Parameter        | 1         | 2         | 3         |
+|------------------|-----------|-----------|-----------|
+| ocean_abundance  | 34138.2384| 33660.7294| 33638.2628|
+| impact           | 0.0000    | 0.0000    | 0.0000    |
+| maturation       | 0.0000    | 0.0000    | 0.0000    |
+| natural_mort     | 628.9448  | 620.1474  | 619.7335  |
 ```
 ## References
 

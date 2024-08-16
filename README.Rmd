@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/J-Ch-n/cohort_reco_pk/graph/badge.svg)](https://app.codecov.io/gh/J-Ch-n/cohort_reco_pk)
 <!-- badges: end -->
 
 The goal of cwtCensus is to provide a fast and memory efficient tool for cohort reconstruction using point and bootstrapped estimates. Writing efficient code for cohort reconstruction can be challenging, so we developed cwtCensus to abstract away the details of tweaking lines of R and designing algorithms. With this package, you can generate bootstrapped and non-bootstrapped cohort reconstructions with just one click!

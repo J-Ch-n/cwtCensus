@@ -1,0 +1,13 @@
+utils::globalVariables(c("length_at_age", "release_mort", "survival_default", "fishery",
+                         "total_release", "prod_exp", "brood_year", "est_num", "age",
+                         "size_limit", "location", "maturation_grp", "run_year", "rate",
+                         "..BY_IDX", "..AGE_IDX", "..MNTH_IDX", "tag_code", "..IP_BY_IDX",
+                         "..MA_MA_IDX", "..IP_IMP_IDX", "ocean_abundance", "ocean_abundance_CrI",
+                         "ocean_abundance_median", "impact", "maturation", "natural_mort",
+                         "impact_median", "maturation_median", "natural_mort_median",
+                         "maturation_rate", "maturation_rate_median", "maturation_rate_sd",
+                         "maturation_rate_CrI", "impact_rate_median", "impact_rate",
+                         "impact_rate_sd", "impact_rate_CrI", "srr", "proj_mat", "act_mat",
+                         "srr_median", "srr_sd", "srr_CrI", "els_rate", "early_abundance",
+                         "els_rate_median", "els_rate_sd", "early_life_survial_rate_CrI", "mat_rate",
+                         "."))

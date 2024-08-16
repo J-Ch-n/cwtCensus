@@ -110,3 +110,5 @@ test_that("check gapped brood years", {
 
   expect_equal(actual, expected_value)
 })
+
+if ("package:dplyr" %in% search()) detach("package:dplyr", unload = TRUE)

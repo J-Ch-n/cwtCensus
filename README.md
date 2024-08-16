@@ -5,6 +5,9 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/J-Ch-n/cohort_reco_pk/graph/badge.svg)](https://app.codecov.io/gh/J-Ch-n/cohort_reco_pk)
 <!-- badges: end -->
 
 The goal of cwtCensus is to provide a fast and memory efficient tool for
@@ -56,7 +59,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = FALSE, last_month = 12L, iter = 10L,
   level = 0.95, detail = FALSE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>   0.258   0.004   0.263
+#>   0.314   0.008   0.324
 ```
 
 Viewing the 1998 brood year age 3 cohort in June:
@@ -80,11 +83,11 @@ June:
 
 ``` r
 result[["2007"]][["3"]][["6"]][["summary"]]
-#>                  median     sd CrI_low CrI_high
-#> ocean_abundance 7927.95 279.29 7413.22   8499.8
-#> impact             0.00   0.00    0.00      0.0
-#> maturation         0.00   0.00    0.00      0.0
-#> natural_mort     146.06   5.15  136.58    156.6
+#>                    median        sd   CrI_low  CrI_high
+#> ocean_abundance 7927.9520 279.29474 7443.6070 8549.7916
+#> impact             0.0000   0.00000    0.0000    0.0000
+#> maturation         0.0000   0.00000    0.0000    0.0000
+#> natural_mort     146.0604   5.14558  137.1371  157.5168
 ```
 
 Time spent on generating bootstrapped cohort reconstruction with 1000
@@ -95,7 +98,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = TRUE, last_month = 12L, iter = 1000L,
   level = 0.95, detail = TRUE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>  24.243   0.183  24.459
+#>  23.442   0.189  23.671
 ```
 
 ## More Information

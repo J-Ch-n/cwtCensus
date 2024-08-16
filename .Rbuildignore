@@ -7,3 +7,6 @@
 ^pkgdown$
 ^LICENSE\.md$
 ^cran-comments\.md$
+^doc$
+^Meta$
+^\.github$
