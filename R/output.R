@@ -39,24 +39,28 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
   SRR_SD_IDX = 38
   SRR_CRI_IDX = 39
 
-  find_ag_imp <- function(info) {
-    info[[IMP_IDX]] |> unlist() |> sum() / info[[IMP_IDX]][[1]] |> unlist()
-  }
-
   find_ag_smry <- function(info) {
-    row_name = c('elsr')
+    row_name = c('imp_rate', 'mat_rate')
     data = NA
+
     if (bootstrap) {
-      data = rbind(info[1, ][[ELS_RATE_IDX]] |> unlist()) |>
-        round(digits = 2)
+      data = rbind(
+                   info[1, ][[IMP_RATE_IDX]] |> unlist(),
+                   info[1, ][[MAT_RATE_IDX]] |> unlist()) |>
+        round(digits = 5)
 
       data |> dimnames() = list(row_name, 1 : iter)
 
-      el_CrI = info[1, ][[ELS_RATE_CRI_IDX]] |> unlist()
-      summary_info = matrix(data = c(info[1, ][[ELS_RATE_MED_IDX]] |> unlist(),
-                                     info[1, ][[ELS_RATE_SD_IDX]] |> unlist(),
-                                     el_CrI[1],
-                                     el_CrI[2]),
+      imp_CrI = info[1, ][[IMP_RATE_CRI_IDX]] |> unlist()
+      mat_CrI = info[1, ][[MAT_RATE_CRI_IDX]] |> unlist()
+      summary_info = matrix(data = c(info[1, ][[IMP_RATE_MED_IDX]] |> unlist(),
+                                     info[1, ][[MAT_RATE_MED_IDX]] |> unlist(),
+                                     info[1, ][[IMP_RATE_SD_IDX]] |> unlist(),
+                                     info[1, ][[MAT_RATE_SD_IDX]] |> unlist(),
+                                     imp_CrI[1],
+                                     mat_CrI[1],
+                                     imp_CrI[2],
+                                     mat_CrI[2]),
                             ncol = 4,
                             dimnames = list(
                               row_name,
@@ -65,30 +69,40 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                 'CrI_low',
                                 'CrI_high')
                             )) |>
-        round(digits = 2)
+        round(digits = 5)
     } else {
-      summary_info = rbind(info[1, ][[12]] |> unlist()) |>
-        round(digits = 2)
-      summary_info |> dimnames() = list(row_name, 1 : iter)
+      summary_info = rbind(info[1, ][[9]] |> unlist(),
+                           info[1, ][[8]] |> unlist()) |>
+        round(digits = 5)
+      summary_info |> dimnames() = list(row_name, 'value')
+
+      data = summary_info
     }
 
     list(summary = summary_info, data = data)
   }
 
   find_by_smry <- function(info) {
-    row_name = c('srr')
+    row_name = c('srr', 's1')
     data = NA
+
     if (bootstrap) {
-      data = rbind(info[1, ][[SRR_IDX]] |> unlist()) |>
-        round(digits = 2)
+      data = rbind(info[1, ][[SRR_IDX]] |> unlist(),
+                   info[1, ][[ELS_RATE_IDX]] |> unlist()) |>
+        round(digits = 5)
 
       dimnames(data) = list(row_name, 1 : iter)
 
       sr_CrI = info[1, ][[SRR_CRI_IDX]] |> unlist()
+      el_CrI = info[1, ][[ELS_RATE_CRI_IDX]] |> unlist()
       summary_info = matrix(data = c(info[1, ][[SRR_MED_IDX]] |> unlist(),
+                                     info[1, ][[ELS_RATE_MED_IDX]] |> unlist(),
                                      info[1, ][[SRR_SD_IDX]] |> unlist(),
+                                     info[1, ][[ELS_RATE_SD_IDX]] |> unlist(),
                                      sr_CrI[1],
-                                     sr_CrI[2]),
+                                     el_CrI[1],
+                                     el_CrI[1],
+                                     el_CrI[2]),
                             ncol = 4,
                             dimnames = list(
                               row_name,
@@ -96,12 +110,15 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                 'sd',
                                 'CrI_low',
                                 'CrI_high'))) |>
-        round(digits = 2)
+        round(digits = 5)
     } else {
-      summary_info = rbind(info[1, ][[15]] |> unlist()) |>
-        round(digits = 2)
+      summary_info = rbind(info[1, ][[15]] |> unlist(),
+                           info[1, ][[12]] |> unlist()) |>
+        round(digits = 5)
 
-      dimnames(summary_info) = list(row_name, 1 : iter)
+      dimnames(summary_info) = list(row_name, 'value')
+
+      data = summary_info
     }
 
     list(summary = summary_info, data = data)
@@ -121,7 +138,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                        info[[IMP_IDX]] |> unlist(),
                        info[[MAT_IDX]] |> unlist(),
                        info[[NAT_MORT_IDX]] |> unlist()) |>
-            round(digits = 2)
+            round(digits = 5)
 
           data |> dimnames() = list(row_name, 1 : iter)
 
@@ -153,14 +170,16 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                     'CrI_low',
                                     'CrI_high')
                                 )) |>
-            round(digits = 2)
+            round(digits = 5)
         } else {
           data = rbind(info[[4]] |> unlist(),
                        info[[6]] |> unlist(),
                        info[[7]] |> unlist(),
                        info[[5]] |> unlist()) |>
-            round(digits = 2)
+            round(digits = 5)
           dimnames(data) = list(row_name, 'value')
+
+          summary_info = data
         }
       } else {
         if (bootstrap) {
@@ -184,7 +203,7 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
                                     'CrI_low',
                                     'CrI_high')
                                 )) |>
-            round(digits = 2)
+            round(digits = 5)
         }
       }
 
@@ -209,9 +228,9 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
 
   if (detail) {
     comb = data$cohort |>
-      left_join(data$air_dt, by = c("by", "age")) |>
-      left_join(data$els_dt, by = c("by" = "brood_year")) |>
-      left_join(data$srr_dt, by = c("by"))
+      dplyr::left_join(data$air_dt, by = c("by", "age")) |>
+      dplyr::left_join(data$els_dt, by = c("by" = "brood_year")) |>
+      dplyr::left_join(data$srr_dt, by = c("by"))
 
     result = by(comb, list(comb$by), by_helper)
     rm(comb)
@@ -226,6 +245,9 @@ create_output <- function(data, bootstrap, iter, birth_month, detail = T) {
 
     return(result)
   }
+
+  data$cohort$ocean_abundance = data$cohort$ocean_abundance |>
+    unlist()
 
   return(data$cohort)
 }

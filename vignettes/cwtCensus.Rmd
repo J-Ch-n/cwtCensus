@@ -5,15 +5,411 @@ vignette: >
   %\VignetteIndexEntry{cwtCensus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: ../inst/REFERENCES.bib
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+knitr::opts_chunk$set(collapse = TRUE,
+                      comment = "#>")
 ```
 
-```{r setup}
+## How to Prepare Data
+
+```{r preparation}
+library(cwtCensus) 
+```
+
+### Release
+
+1.  **Read data.**
+
+    Load the source release data into memory with `read.csv` or some other reader functions. The source data set used here is from <LINK>.
+
+    ```{r}
+    release_custom <- read.csv("./sample_releases.csv")
+    ```
+
+2.  **Process coded-wire tag information.**
+
+    We now start to find the total number number of releases and the production expansion factor using the source data. Production expansion factor is defined as the number of tagged fish with clipped adipose fin / the number of total releases.
+
+    ```{r}
+    release_custom$cwt_1st_mark_count[is.na(release_custom$cwt_1st_mark_count)] <- 0
+    release_custom$cwt_2nd_mark_count[is.na(release_custom$cwt_2nd_mark_count)] <- 0
+    release_custom$non_cwt_1st_mark_count[is.na(release_custom$non_cwt_1st_mark_count)] <- 0
+    release_custom$non_cwt_2nd_mark_count[is.na(release_custom$non_cwt_2nd_mark_count)] <- 0
+
+    release_custom$Total_Released <- (release_custom$cwt_1st_mark_count
+                               + release_custom$cwt_2nd_mark_count
+                               + release_custom$non_cwt_1st_mark_count
+                               + release_custom$non_cwt_2nd_mark_count)
+
+    release_custom$prod_exp <- release_custom$cwt_1st_mark_count / release_custom$Total_Released
+
+    names(release_custom)[7] <- "tag_code"
+
+    ```
+
+3.  **Extract time and produce the final data frame**
+
+    ```{r}
+    release_custom <- release_custom |> 
+      dplyr::mutate(release_month = lubridate::month(lubridate::ymd(last_release_date)),
+             total_release = Total_Released) |> 
+      dplyr::select(release_month,
+             brood_year,
+             tag_code,
+             prod_exp,
+             total_release)
+    ```
+
+4.  **Here are the required column names.**
+
+    ```{r}
+    release_custom |> colnames()
+    ```
+
+5.  **Here is the final result.**
+
+    ```{r}
+    release_custom |> head()
+    ```
+
+### Recovery
+
+Once we have the `release` data frame under our belt, we can use it to construct the `recovery` data frame. Here is an example of how to create it.
+
+1.  **Read relevant data**
+
+    On top of the `release` data frame, we also need several other sources of information. We need coded-wire tag recovery information, which contains when and where a tag was recovered. Then, we need the site code data frame to translate the recovery site id into human readable regions. Lastly, we need to know the minimum harvest size limit in inches at the time and location that the tag was recovered. Note that if we have all these pieces of information in one data frame, we do not have to combine these three data frames.
+
+    ```{r}
+    recovery_custom = read.csv("./sample_recoveries.csv")
+    site_code = read.csv("./sample_site_code.csv")
+    size_limit = read.csv("./sample_size_limits.csv")
+    ```
+
+2.  **Combine relevant data frames**
+
+    ```{r, warning=FALSE}
+    site_code <- site_code |>
+      dplyr::mutate(sampling_site = sampsite,
+             location = area.1) |>
+      dplyr::select(sampling_site, location, agency)
+
+    size_limit <- size_limit |>
+      dplyr::mutate(location = Location,
+             month = Month,
+             size_limit = limit) |>
+      dplyr::select(-c('Month', 'Location', 'limit'))
+
+    recovery_custom <- recovery_custom |> 
+      dplyr::mutate(month = lubridate::month(lubridate::ymd(recovery_date))) |> 
+      dplyr::select(run_year,
+             recovery_id,
+             fishery,
+             tag_code,
+             sex,
+             month,
+             sampling_site,
+             recovery_location_code,
+             sampling_site,
+             reporting_agency,
+             estimated_number,
+             length) |> 
+      dplyr::left_join(release, by = "tag_code") |> 
+      dplyr::select(-c("release_month",
+                "prod_exp",
+                "total_release")) |> 
+      dplyr::left_join(site_code, by = c("sampling_site" = "sampling_site",
+                                  "reporting_agency" = "agency")) |> 
+      dplyr::filter(fishery %in% c(10, 40, 54, 50, 46)) |>
+      dplyr::mutate(est_num = estimated_number) |>
+      dplyr::left_join(size_limit, by = c('run_year', 'fishery', 'location', 'month')) |>
+      dplyr::select("run_year",
+             "fishery",
+             "tag_code",
+             "length",
+             "sex",
+             "month",
+             "location",
+             "size_limit",
+             "est_num")
+    ```
+
+3.  **Here are the required column names.**
+
+    ```{r}
+    recovery_custom |> colnames()
+    ```
+
+4.  **Here is the final result.**
+
+    ```{r}
+    recovery_custom |> head()
+    ```
+
+## Survival
+
+The age-specific survival rate is the ratio between the survived individuals at the end of an age and the total individuals at the beginning of an age. Typically, the survival rate for age-2 cohort is 0.5, while the rate for age-3 and up is 0.8.
+
+Here is how to create a custom survival rate input.
+
+```{r}
+survival_custom = data.frame(age = 2:6, rate = c(0.5, rep(0.8, times = 4)))
+
+survival_custom
+```
+
+## Fisheries
+
+The package requires a mapping between each type of fishery and its corresponding identifier.
+
+Here is how to create a custom fisheries-id mapping.
+
+```{r}
+list(oc_rec = 40,
+     oc_com = 10,
+     esc_sp = 54,
+     esc_hat = 50,
+     riv_harv = 46)
+```
+
+## Hook-and-Release Mortality
+
+Hook-and-release mortality rate is the proportion of fish that are The default data frame is included in the package and named `release_mort`. Here is how to create a custom hook-and-release mortality data frame.
+
+```{r}
+release_mort_custom <- data.frame(run_year = rep(1981, 20), 
+                           fishery = c(rep(40, 12), rep(10, 7), 40), 
+                           location = c('FB', 'KC', 'MO', 'SF', 'FB', 'KC', 'MO', 'SF', 'FB',
+                                        'KC', 'MO', 'SF', 'CO', 'FB', 'KC', 'KO', 'MO', 'NO',
+                                        'SF', 'CO'), 
+                           month = c(rep(c(2, 3, 4), each = 4), rep(5, 7), 5), 
+                           rate = c(rep(0.14, 12), rep(0.26, 7), 0.14))
+release_mort_custom
+```
+
+## Drop Off Mortality
+
+Drop off mortality is the proportion of fish encountered by the gear that is killed without being brought to the vessel intact. The default value is 0.05 (Salmon Technical Team 2021).
+
+## Length-at-age
+
+Length-at-age is a data frame encoding the mean and standard deviation total length at each age-month.
+
+Here is how to create a custom length-at-age data frame.
+
+```{r}
+length_at_age_custom <- data.frame(
+  age = c(rep(1, 10), rep(2, 12)),
+  month = c(3:12, 1:12),
+  mean = c(rep(19.06998, 14), 21.16612, 22.17341, 
+           22.88485, 24.27430, 24.77973, 23.88669, 24.82676, 25.94237),
+  sd = c(rep(2.151048, 14), 2.272190, 2.250629, 2.393862, 2.191818, 
+         2.098376, 2.129863, 1.940248, 1.985157)
+)
+
+length_at_age_custom
+```
+
+## How to Use the Function
+
+```{r function}
 library(cwtCensus)
 ```
+
+### Bootstrap or Point Estimate?
+
+The package uses either bootstrapped data or point estimates. Bootstrapped estimations allow us to approximate the spread of each parameters through simulated uncertainties, while point estimates do not as they are deterministic. Simply put, bootstrapped estimations offer more information than point estimates. However, it takes significantly more computing cycles to find bootstrapped estimations than to find point estimates.
+
+#### Bootstrapped Estimation
+
+We model the number of fish missed by the sampling effort with an negative binomial distribution. Assuming the negative binomial distribution models the number of failures before the `kth` success, the number of fish that would have been recovered is $1 + rnbinom(1,  1/est\_num)$ where `est_num` is the number of fish estimated to be recovered by one tag (point estimate).
+
+##### Bootstrap with Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = TRUE, iter = 10L, 
+                            detail = TRUE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+##### Bootstrap Without Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = TRUE, iter = 10L, 
+                            detail = FALSE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+##### Point Estimate with Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = FALSE, iter = 10L, 
+                            detail = TRUE, verbose = FALSE)
+
+result[["2007"]][["2"]][["1"]][["data"]]
+result[["2007"]][["2"]][["1"]][["summary"]]
+```
+
+##### Point Estimate without Detail
+
+```{r}
+result = cohort_reconstruct(rel = release, reco = recovery,
+                            birth_month = 6L, last_month = 12L,
+                            bootstrap = FALSE, iter = 10L, 
+                            detail = FALSE, verbose = FALSE)
+
+result[result$by == 2007 & result$age == 2 & result$month == 1, ]
+```
+
+### Dissecting the Return Value
+
+There are two types of return value, depending on the values of `detail` and `bootstrap`. In the case when both `detail` and `bootstrap` are `FALSE`, the return value is a data table of the following form:
+
+```         
+| by (integer) | age (integer) | month (integer) | ocean_abundance (double) |
+|--------------|---------------|-----------------|--------------------------|
+| 1995         | 3             | 5               | 3.814342                 |
+| 1995         | 3             | 4               | 10.853284                |
+| 1995         | 3             | 3               | 11.056992                |
+| 1995         | 3             | 2               | 11.264524                |
+| 1995         | 3             | 1               | 11.475951                |
+| 1995         | 3             | 12              | 11.691346                |
+| 1995         | 3             | 11              | 11.910784                |
+| 1995         | 3             | 10              | 12.134340                |
+| 1995         | 3             | 9               | 12.362093                |
+| 1995         | 3             | 8               | 12.594120                |
+```
+
+In the cases when either `detail`, `bootstrap`, or both are set to `TRUE`, the return value is a three dimensional list. The first dimension encodes brood year information (by), the second age, and the third month. Each age has an age-specific summary information. Each month has `data` and month-specific `summary` information. Depending on `detail` and `bootstrap`, the corresponding output will vary.
+
+Here is the structure of the return value:
+
+```         
+  "by" "age" "month"
+
+├── [["2002"]]
+│   ├──[["2"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── [["3"]]
+│   │   ├── [["1"]]
+│   │   │   ├── `data`
+│   │   │   └── `summary`
+│   │   ├── ...
+│   │   │
+│   │   ├── [["age_summary"]]
+│   │   │   ├── `data`
+│   │       └── `summary`
+│   ├── ...
+│   │
+│   ├──[["by_summary"]]
+│   │  ├── `data`
+│   │  └── `summary`
+├── ...
+```
+
+#### Summary
+
+-   Parameter: the statistics in question.
+-   Median: the median for the parameter.
+-   SD: the standard deviation for the parameter.
+-   CrI_low: the lower bound of the credible interval.
+-   CrI_high: the upper bound of the credible interval.
+
+##### Brood-year-specific summary (under `by_summary`)
+
+-   srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction in a brood’s potential adult spawning escapement owing to ocean fisheries, relative to its escapement potential in the absence of ocean fishing" (O'Farrell et al. 2012):
+-   s1: early life survival rate is the proportion of the abundance of fish first month in ocean, relative to the total release number (Chen et al.,).
+
+```         
+| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| srr       | 0.18061 | 0.00871 | 0.17996 | 0.18126  |
+| s1        | 0.00519 | 0.00008 | 0.00518 | 0.00521  |
+```
+
+##### Age-specific summary (under `age_summary`)
+- imp_rate: age-specific fishery impact rate.
+- mat_rate: age-specific maturation rate.
+
+```         
+| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| imp_rate  | 0.20872 | 0.00730 | 0.20815 | 0.20930  |
+| mat_rate  | 0.63548 | 0.01462 | 0.63546 | 0.63550  |
+```
+
+##### Month-specific summary (under each month)
+
+-   ocean_abundance: number of individuals in the ocean at that time.
+-   impact: mortality due to fishing.
+-   maturation: number of spawners.
+-   natural_mort: mortality due to natural causes.
+
+```         
+| Parameter        | Median      | SD       | CrI_low     | CrI_high    |
+|------------------|-------------|----------|-------------|-------------|
+| ocean_abundance  | 33954.6031  | 497.3167 | 33871.9672  | 34037.2390  |
+| impact           | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| maturation       | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| natural_mort     | 625.5616    | 9.1623   | 624.0392    | 627.0841    |
+```
+
+#### Data
+
+Each labeled entry is one bootstrapped iteration, where the label `n` corresponds to the nth iteration.
+
+##### Brood-year-specific data
+
+```         
+| Measurement | 1       | 2       | 3       |
+|-------------|---------|---------|---------|
+| srr         | 0.18414 | 0.17711 | 0.19864 | 
+| s1          | 0.00526 | 0.00514 | 0.00515 |
+```
+
+##### Age-specific data
+
+```         
+| Parameter | 1       | 2       | 3       |
+|-----------|---------|---------|---------|
+| imp_rate  | 0.20745 | 0.20182 | 0.22336 |
+| mat_rate  | 0.63768 | 0.65303 | 0.61126 |
+```
+
+##### Month-specific data
+
+```         
+| Parameter        | 1         | 2         | 3         |
+|------------------|-----------|-----------|-----------|
+| ocean_abundance  | 34138.2384| 33660.7294| 33638.2628|
+| impact           | 0.0000    | 0.0000    | 0.0000    |
+| maturation       | 0.0000    | 0.0000    | 0.0000    |
+| natural_mort     | 628.9448  | 620.1474  | 619.7335  |
+```
+## References
+
+Chen EK, Satterthwaite WH, O’Farrell MR, Carlson SM (????). “Incorporating age structure into the assessment and forecasting of Sacramento River Fall Chinook salmon (Oncorhynchus tshawytscha).” In preparation.
+
+Salmon Technical Team (2000). “STT Recommendations for Hooking Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.” Pacific Fishery Management Council, Portland. https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/.
+
+

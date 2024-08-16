@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(Cohort Reco)
+library(cwtCensus)
 
-test_check("Cohort Reco")
+test_check("cwtCensus")

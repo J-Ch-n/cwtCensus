@@ -1,7 +1,7 @@
 data_prep <- function(rel, reco, size_at_age, birth_month, iter,
-                      min_harvest_rate, spawn, hatchery, river,
-                      ocean_r, ocean_c, bootstrap, d_mort,
-                      hr_c, hr_r, rel_mort, sex, u_bound) {
+                      min_harvestability, spawn, hatchery, river,
+                      ocean_r, ocean_c, bootstrap, drop_mort,
+                      rel_mort, sex, u_bound, survival) {
 
 
 # Preprocess and Helper Function Definitions ------------------------------
@@ -25,6 +25,9 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   num_rows = 0
   size_age_map = r2r::hashmap()
 
+  hr_r = 0.14
+  hr_c = 0.26
+
   column_names = c(
     "month", "fishery", "location", "brood_year", "age", "maturation_grp",
     "size_limit", "total_indiv", "mean", "sd", "catch", "harvest_rate", "rate"
@@ -39,14 +42,13 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   missing_size_age_handler <- function(month, age, size_age_map, size_age_df) {
-
     min_age_mnth_row = size_age_df |>
-      arrange(month, age) |>
+      dplyr::arrange(month, age) |>
       head(1) |>
       unname()
 
     max_age_mnth_row = size_age_df |>
-      arrange(month, age) |>
+      dplyr::arrange(month, age) |>
       tail(1) |>
       unname()
 
@@ -104,7 +106,7 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   find_catch_bootstrap <- function(mean, sd, size_limit, total_indiv) {
-   return(pmax(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv), min_harvest_rate))
+   return(pmax(mapply(find_catch, mean = mean, sd = sd, size_limit = size_limit, total_indiv), min_harvestability))
   }
 
   find_bt_sum <- function(est_num, prod_exp) {
@@ -155,7 +157,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
                              "month",
                              "age",
                              "location"))
-  rel_reco_dt[is.na(est_num) | est_num < 1, value := 1]
+
+  rel_reco_dt[is.na(est_num) | est_num < 1, est_num := 1]
 
   if (sex == "male") {
     rel_reco_dt = rel_reco_dt[sex == "M"]
@@ -215,10 +218,15 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   }
 
   setcolorder(rel_reco_dt, column_names)
+
 # Find Impact and Maturation ----------------------------------------------
 
   yr_ag_cnt = find_num_rows(rel_reco_dt, c(spawn, hatchery, river), FALSE)
   yr_ag_mth_fshry_cnt = find_num_rows(rel_reco_dt, c(ocean_r, ocean_c), TRUE)
+
+  if (yr_ag_cnt == 0 || yr_ag_mth_fshry_cnt == 0) {
+    stop("No recovery for maturation or impact. Please provide more recovery information.")
+  }
 
   mat_init_vec = rep(0, yr_ag_cnt)
   mat_dt = data.table(by = mat_init_vec,
@@ -323,11 +331,11 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
       if (cur_fshry == ocean_r) {
         is_prev_ocean_r <<- TRUE
         is_ocean_r <<- TRUE
-        prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
+        prev_rec_imp <<- prev_rec_imp + cur_indiv + catch * drop_mort + (catch - cur_indiv) * cur_rel_mort
       } else {
         is_prev_ocean_r <<- FALSE
         is_ocean_r <<- FALSE
-        prev_com_imp <<- prev_com_imp + cur_indiv + catch * d_mort + (catch - cur_indiv) * cur_rel_mort
+        prev_com_imp <<- prev_com_imp + cur_indiv + catch * drop_mort + (catch - cur_indiv) * cur_rel_mort
       }
 
       prev_i_year_valid <<- TRUE
@@ -386,6 +394,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
 
   max_age_month_dt = rel_reco_dt[, .(max_age = max(age), month = (birth_month - 2 %% 12 + 1)), by = list(brood_year)]
 
+  survival$rate = 1 - (survival$rate ^ (1 / 12))
+
   rm(rel_reco_dt)
-  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info))
+  return(list(maturation = mat_dt, impact = imp_dt, max_age_month_dt = max_age_month_dt, release_info = release_info, nat_mort = survival))
 }

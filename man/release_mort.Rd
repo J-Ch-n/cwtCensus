@@ -5,14 +5,14 @@
 \alias{release_mort}
 \title{Release mortality information}
 \format{
-\subsection{'release'}{
+\subsection{\code{release_mort}}{
 
 \describe{
-\item{run_year}{The year in which the CWT is recovered}
-\item{fishery}{The index of the fishery from which the CWT is recovered}
-\item{location}{The code of the location from which the CWT is recovered}
-\item{month}{The month in which the CWT is recovered}
-\item{rate}{The release mortality rate for the specified location and time}
+\item{"run_year"}{Integer. The year of each CWT recovery.}
+\item{"fishery"}{Any type. The identifier for each type of fishery.}
+\item{"location"}{Any type. The identifier for location.}
+\item{"month"}{Integer. The month of each CWT recovery.}
+\item{"rate"}{Double. The release mortality rate for each timestep.}
 }
 }
 }
@@ -20,6 +20,9 @@
 release_mort
 }
 \description{
-Release mortality information
+hook-and-release mortality described in \insertCite{age_struct}{cwtCensus}.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}
