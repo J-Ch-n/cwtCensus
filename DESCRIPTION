@@ -15,7 +15,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-URL: https://github.com/J-Ch-n/cohort_reco_pk
+URL: https://github.com/J-Ch-n/cohort_reco_pk, https://j-ch-n.github.io/cwtCensus/
 BugReports: https://github.com/J-Ch-n/cohort_reco_pk/issues
 Imports:
     data.table (>= 1.15.4),
