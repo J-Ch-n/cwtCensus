@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">cwtCensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -390,22 +390,22 @@ recovered by one tag (point estimate).</p>
 <span>                            detail <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"2"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"1"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"data"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                        1        2        3        4        5        6        7</span></span>
-<span><span class="co">#&gt; ocean_abundance 11191.95 11456.12 11815.38 11212.62 10826.83 12116.27 10582.80</span></span>
-<span><span class="co">#&gt; impact              0.00     0.00     0.00     0.00     0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; maturation          0.00     0.00     0.00     0.00     0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; natural_mort      628.16   642.98   663.15   629.32   607.66   680.03   593.97</span></span>
-<span><span class="co">#&gt;                        8        9       10</span></span>
-<span><span class="co">#&gt; ocean_abundance 12128.28 11714.18 11530.45</span></span>
-<span><span class="co">#&gt; impact              0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; maturation          0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; natural_mort      680.71   657.47   647.15</span></span>
+<span><span class="co">#&gt;                         1          2          3          4          5</span></span>
+<span><span class="co">#&gt; ocean_abundance 11191.952 11456.1228 11815.3818 11212.6189 10826.8287</span></span>
+<span><span class="co">#&gt; impact              0.000     0.0000     0.0000     0.0000     0.0000</span></span>
+<span><span class="co">#&gt; maturation          0.000     0.0000     0.0000     0.0000     0.0000</span></span>
+<span><span class="co">#&gt; natural_mort      628.156   642.9828   663.1464   629.3159   607.6632</span></span>
+<span><span class="co">#&gt;                          6         7          8          9         10</span></span>
+<span><span class="co">#&gt; ocean_abundance 12116.2684 10582.802 12128.2769 11714.1797 11530.4519</span></span>
+<span><span class="co">#&gt; impact              0.0000     0.000     0.0000     0.0000     0.0000</span></span>
+<span><span class="co">#&gt; maturation          0.0000     0.000     0.0000     0.0000     0.0000</span></span>
+<span><span class="co">#&gt; natural_mort      680.0339   593.967   680.7079   657.4664   647.1545</span></span>
 <span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"2"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"1"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"summary"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                   median     sd  CrI_low CrI_high</span></span>
-<span><span class="co">#&gt; ocean_abundance 11493.29 513.87 10582.80 10582.80</span></span>
-<span><span class="co">#&gt; impact              0.00   0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; maturation          0.00   0.00     0.00     0.00</span></span>
-<span><span class="co">#&gt; natural_mort      645.07  28.84   593.97   593.97</span></span></code></pre></div>
+<span><span class="co">#&gt;                     median        sd  CrI_low   CrI_high</span></span>
+<span><span class="co">#&gt; ocean_abundance 11493.2873 513.86663 11476.56 11510.0114</span></span>
+<span><span class="co">#&gt; impact              0.0000   0.00000     0.00     0.0000</span></span>
+<span><span class="co">#&gt; maturation          0.0000   0.00000     0.00     0.0000</span></span>
+<span><span class="co">#&gt; natural_mort      645.0687  28.84112   644.13   646.0073</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="bootstrap-without-detail">Bootstrap Without Detail<a class="anchor" aria-label="anchor" href="#bootstrap-without-detail"></a>
@@ -422,8 +422,8 @@ recovered by one tag (point estimate).</p>
 <span><span class="co">#&gt;                        8        9       10</span></span>
 <span><span class="co">#&gt; ocean_abundance 11738.19 11158.83 10799.96</span></span>
 <span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"2"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"1"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"summary"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                   median     sd  CrI_low CrI_high</span></span>
-<span><span class="co">#&gt; ocean_abundance 11423.41 311.45 10799.96 10799.96</span></span></code></pre></div>
+<span><span class="co">#&gt;                   median      sd  CrI_low CrI_high</span></span>
+<span><span class="co">#&gt; ocean_abundance 11423.41 311.448 11413.18 11433.64</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="point-estimate-with-detail">Point Estimate with Detail<a class="anchor" aria-label="anchor" href="#point-estimate-with-detail"></a>
@@ -435,13 +435,17 @@ recovered by one tag (point estimate).</p>
 <span>                            detail <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"2"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"1"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"data"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                    value</span></span>
-<span><span class="co">#&gt; ocean_abundance 11431.35</span></span>
-<span><span class="co">#&gt; impact              0.00</span></span>
-<span><span class="co">#&gt; maturation          0.00</span></span>
-<span><span class="co">#&gt; natural_mort      641.59</span></span>
+<span><span class="co">#&gt;                      value</span></span>
+<span><span class="co">#&gt; ocean_abundance 11431.3501</span></span>
+<span><span class="co">#&gt; impact              0.0000</span></span>
+<span><span class="co">#&gt; maturation          0.0000</span></span>
+<span><span class="co">#&gt; natural_mort      641.5924</span></span>
 <span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"2"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"1"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"summary"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
+<span><span class="co">#&gt;                      value</span></span>
+<span><span class="co">#&gt; ocean_abundance 11431.3501</span></span>
+<span><span class="co">#&gt; impact              0.0000</span></span>
+<span><span class="co">#&gt; maturation          0.0000</span></span>
+<span><span class="co">#&gt; natural_mort      641.5924</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="point-estimate-without-detail">Point Estimate without Detail<a class="anchor" aria-label="anchor" href="#point-estimate-without-detail"></a>
@@ -531,22 +535,26 @@ summary information. Each month has <code>data</code> and month-specific
 is the “reduction in a brood’s potential adult spawning escapement owing
 to ocean fisheries, relative to its escapement potential in the absence
 of ocean fishing” (O’Farrell et al. 2012):</li>
+<li>s1: early life survival rate is the proportion of the abundance of
+fish first month in ocean, relative to the total release number (Chen et
+al.,).</li>
 </ul>
-<pre><code>| Parameter | Median | SD  | CrI_low | CrI_high |
-|-----------|--------|-----|---------|----------|
-| srr       | 0.05   | 0.02| 0.04    | 0.04     |</code></pre>
+<pre><code>| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| srr       | 0.18061 | 0.00871 | 0.17996 | 0.18126  |
+| s1        | 0.00519 | 0.00008 | 0.00518 | 0.00521  |</code></pre>
 </div>
 <div class="section level5">
 <h5 id="age-specific-summary-under-age_summary">Age-specific summary (under <code>age_summary</code>)<a class="anchor" aria-label="anchor" href="#age-specific-summary-under-age_summary"></a>
 </h5>
 <ul>
-<li>elsr: early life survival rate is the proportion of the abundance of
-fish first month in ocean, relative to the total release number
-(O’Farrell et al. 2012).</li>
+<li>imp_rate: age-specific fishery impact rate.</li>
+<li>mat_rate: age-specific maturation rate.</li>
 </ul>
-<pre><code>| Parameter | Median | SD  | CrI_low | CrI_high |
-|-----------|--------|-----|---------|----------|
-| elsr      | 0.02   | 0   | 0.01    | 0.01     |</code></pre>
+<pre><code>| Parameter | Median  | SD      | CrI_low | CrI_high |
+|-----------|---------|---------|---------|----------|
+| imp_rate  | 0.20872 | 0.00730 | 0.20815 | 0.20930  |
+| mat_rate  | 0.63548 | 0.01462 | 0.63546 | 0.63550  |</code></pre>
 </div>
 <div class="section level5">
 <h5 id="month-specific-summary-under-each-month">Month-specific summary (under each month)<a class="anchor" aria-label="anchor" href="#month-specific-summary-under-each-month"></a>
@@ -558,12 +566,12 @@ time.</li>
 <li>maturation: number of spawners.</li>
 <li>natural_mort: mortality due to natural causes.</li>
 </ul>
-<pre><code>| Parameter         | Median | SD   | CrI_low | CrI_high |
-|-------------------|--------|------|---------|----------|
-| ocean_abundance   | 43.91  | 6.50 | 35.09   | 35.09    |
-| impact            | 0.00   | 0.00 | 0.00    | 0.00     |
-| maturation        | 0.00   | 0.00 | 0.00    | 0.00     |
-| natural_mort      | 0.81   | 0.12 | 0.65    | 0.65     |</code></pre>
+<pre><code>| Parameter        | Median      | SD       | CrI_low     | CrI_high    |
+|------------------|-------------|----------|-------------|-------------|
+| ocean_abundance  | 33954.6031  | 497.3167 | 33871.9672  | 34037.2390  |
+| impact           | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| maturation       | 0.0000      | 0.0000   | 0.0000      | 0.0000      |
+| natural_mort     | 625.5616    | 9.1623   | 624.0392    | 627.0841    |</code></pre>
 </div>
 </div>
 <div class="section level4">
@@ -574,26 +582,28 @@ time.</li>
 <div class="section level5">
 <h5 id="brood-year-specific-data">Brood-year-specific data<a class="anchor" aria-label="anchor" href="#brood-year-specific-data"></a>
 </h5>
-<pre><code>| Parameter | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|-----------|------|------|------|------|------|------|------|------|------|------|
-| srr       | 0.07 | 0.07 | 0.05 | 0.05 | 0.05 | 0.06 | 0.06 | 0.04 | 0.08 | 0.04 |</code></pre>
+<pre><code>| Measurement | 1       | 2       | 3       |
+|-------------|---------|---------|---------|
+| srr         | 0.18414 | 0.17711 | 0.19864 | 
+| s1          | 0.00526 | 0.00514 | 0.00515 |</code></pre>
 </div>
 <div class="section level5">
 <h5 id="age-specific-data">Age-specific data<a class="anchor" aria-label="anchor" href="#age-specific-data"></a>
 </h5>
-<pre><code>| Measurement | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|-------------|------|------|------|------|------|------|------|------|------|------|
-| elsr        | 0.02 | 0.02 | 0.02 | 0.01 | 0.01 | 0.02 | 0.02 | 0.02 | 0.01 | 0.02 |</code></pre>
+<pre><code>| Parameter | 1       | 2       | 3       |
+|-----------|---------|---------|---------|
+| imp_rate  | 0.20745 | 0.20182 | 0.22336 |
+| mat_rate  | 0.63768 | 0.65303 | 0.61126 |</code></pre>
 </div>
 <div class="section level5">
 <h5 id="month-specific-data">Month-specific data<a class="anchor" aria-label="anchor" href="#month-specific-data"></a>
 </h5>
-<pre><code>| Measurement      | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10   |
-|------------------|------|------|------|------|------|------|------|------|------|------|
-| ocean_abundance  | 46.69| 37.41| 43.34| 40.74| 35.09| 44.49| 37.43| 56.25| 45.80| 50.56|
-| impact           | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| maturation       | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| natural_mort     | 0.86 | 0.69 | 0.80 | 0.75 | 0.65 | 0.82 | 0.69 | 1.04 | 0.84 | 0.93 |</code></pre>
+<pre><code>| Parameter        | 1         | 2         | 3         |
+|------------------|-----------|-----------|-----------|
+| ocean_abundance  | 34138.2384| 33660.7294| 33638.2628|
+| impact           | 0.0000    | 0.0000    | 0.0000    |
+| maturation       | 0.0000    | 0.0000    | 0.0000    |
+| natural_mort     | 628.9448  | 620.1474  | 619.7335  |</code></pre>
 </div>
 </div>
 </div>
@@ -601,12 +611,13 @@ time.</li>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>O’Farrell M, Mohr M, Grover A, Satterthwaite W (2012). “Sacramento
-River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery
-Impacts.” NOAA Technical Memorandum.</p>
-<p>Salmon Technical Team (2021). “STT Recommendations for Hooking
+<p>Chen EK, Satterthwaite WH, O’Farrell MR, Carlson SM (????).
+“Incorporating age structure into the assessment and forecasting of
+Sacramento River Fall Chinook salmon (Oncorhynchus tshawytscha).” In
+preparation.</p>
+<p>Salmon Technical Team (2000). “STT Recommendations for Hooking
 Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.”
-Pacific Fishersy Management Council, Portland. <a href="https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/" class="external-link uri">https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/</a>.</p>
+Pacific Fishery Management Council, Portland. <a href="https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/" class="external-link uri">https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/</a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

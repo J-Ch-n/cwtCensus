@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">cwtCensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
 <div class="page-header"><h1 id="cwtcensus">cwtCensus<a class="anchor" aria-label="anchor" href="#cwtcensus"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- badges: end -->
+
 <p>The goal of cwtCensus is to provide a fast and memory efficient tool for cohort reconstruction using point and bootstrapped estimates. Writing efficient code for cohort reconstruction can be challenging, so we developed cwtCensus to abstract away the details of tweaking lines of R and designing algorithms. With this package, you can generate bootstrapped and non-bootstrapped cohort reconstructions with just one click!</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -82,7 +82,7 @@
 <span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>, last_month <span class="op">=</span> <span class="fl">12L</span>, iter <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>, detail <span class="op">=</span> <span class="cn">FALSE</span>, sex <span class="op">=</span> <span class="st">"both"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.290   0.007   0.297</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.314   0.008   0.324</span></span></code></pre></div>
 <p>Viewing the 1998 brood year age 3 cohort in June:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">[</span><span class="va">result</span><span class="op">$</span><span class="va">by</span> <span class="op">==</span> <span class="fl">2007</span> <span class="op">&amp;</span> <span class="va">result</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">result</span><span class="op">$</span><span class="va">month</span> <span class="op">==</span> <span class="fl">6</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -93,21 +93,21 @@
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">=</span> <span class="fu"><a href="reference/cohort_reconstruct.html">cohort_reconstruct</a></span><span class="op">(</span><span class="va">release</span>, <span class="va">recovery</span>, birth_month <span class="op">=</span> <span class="fl">4L</span>,</span>
 <span>  bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, last_month <span class="op">=</span> <span class="fl">12L</span>, iter <span class="op">=</span> <span class="fl">1000L</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>, detail <span class="op">=</span> <span class="cn">TRUE</span>, sex <span class="op">=</span> <span class="st">"both"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p>Viewing the bootstrapped summary of 1998 brood year age 3 cohort in June:</p>
+<p>Viewing the bootstrapped summary of 2007 brood year age 3 cohort in June:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">[[</span><span class="st">"2007"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"3"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"6"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"summary"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                  median     sd CrI_low CrI_high</span></span>
-<span><span class="co">#&gt; ocean_abundance 7927.95 279.29 7413.22   8499.8</span></span>
-<span><span class="co">#&gt; impact             0.00   0.00    0.00      0.0</span></span>
-<span><span class="co">#&gt; maturation         0.00   0.00    0.00      0.0</span></span>
-<span><span class="co">#&gt; natural_mort     146.06   5.15  136.58    156.6</span></span></code></pre></div>
+<span><span class="co">#&gt;                    median        sd   CrI_low  CrI_high</span></span>
+<span><span class="co">#&gt; ocean_abundance 7927.9520 279.29474 7443.6070 8549.7916</span></span>
+<span><span class="co">#&gt; impact             0.0000   0.00000    0.0000    0.0000</span></span>
+<span><span class="co">#&gt; maturation         0.0000   0.00000    0.0000    0.0000</span></span>
+<span><span class="co">#&gt; natural_mort     146.0604   5.14558  137.1371  157.5168</span></span></code></pre></div>
 <p>Time spent on generating bootstrapped cohort reconstruction with 1000 iterations:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/cohort_reconstruct.html">cohort_reconstruct</a></span><span class="op">(</span><span class="va">release</span>, <span class="va">recovery</span>, birth_month <span class="op">=</span> <span class="fl">4L</span>,</span>
 <span>  bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, last_month <span class="op">=</span> <span class="fl">12L</span>, iter <span class="op">=</span> <span class="fl">1000L</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>, detail <span class="op">=</span> <span class="cn">TRUE</span>, sex <span class="op">=</span> <span class="st">"both"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  25.477   0.232  25.776</span></span></code></pre></div>
+<span><span class="co">#&gt;  23.442   0.189  23.671</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="more-information">More Information<a class="anchor" aria-label="anchor" href="#more-information"></a>
@@ -148,12 +148,18 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Joshua Chen <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0009-0000-3420-7200" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Erin Redding <br><small class="roles"> Author </small>  </li>
-<li>Emily Chen <br><small class="roles"> Funder </small>  </li>
+<li>Erin Redding <br><small class="roles"> Author, copyright holder </small>  </li>
+<li>Emily Chen <br><small class="roles"> Author, copyright holder </small>  </li>
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/J-Ch-n/cohort_reco_pk" class="external-link"><img src="https://codecov.io/gh/J-Ch-n/cohort_reco_pk/graph/badge.svg" alt="Codecov test coverage"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>

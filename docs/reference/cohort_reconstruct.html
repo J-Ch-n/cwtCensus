@@ -6,14 +6,18 @@ contains two elements, data and summary. In general, the data segment contains t
 raw data of cohort reconstruction, while the summary segment includes statistics from the
 raw data. For more about return value, see the value section.
 Depending on if the bootstrap and detail flags are set, the data and summary segments
-may behave in different ways. For more information, see details."><meta property="og:description" content="cohort_reconstruct uses released and recovered coded wire tags to calculate the ocean
+may behave in different ways. For more information, see details.
+The function implements a cohort reconstruction outlined in (Chen et al. )
+."><meta property="og:description" content="cohort_reconstruct uses released and recovered coded wire tags to calculate the ocean
 abundance of the population for each brood year at each age and in each month. The function
 returns a list of outputs indexed by brood year, age, and month. Each element of the list
 contains two elements, data and summary. In general, the data segment contains the
 raw data of cohort reconstruction, while the summary segment includes statistics from the
 raw data. For more about return value, see the value section.
 Depending on if the bootstrap and detail flags are set, the data and summary segments
-may behave in different ways. For more information, see details."></head><body>
+may behave in different ways. For more information, see details.
+The function implements a cohort reconstruction outlined in (Chen et al. )
+."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -21,7 +25,7 @@ may behave in different ways. For more information, see details."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">cwtCensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +61,8 @@ raw data of cohort reconstruction, while the <code>summary</code> segment includ
 raw data. For more about return value, see the value section. <br></p>
 <p>Depending on if the <code>bootstrap</code> and <code>detail</code> flags are set, the <code>data</code> and <code>summary</code> segments <br>
 may behave in different ways. For more information, see details.</p>
+<p>The function implements a cohort reconstruction outlined in (Chen et al. )
+.</p>
     </div>
 
     <div class="section level2">
@@ -70,13 +76,13 @@ may behave in different ways. For more information, see details.</p>
 <span>  size_at_age <span class="op">=</span> <span class="va">length_at_age</span>,</span>
 <span>  rel_mort <span class="op">=</span> <span class="va">release_mort</span>,</span>
 <span>  survival <span class="op">=</span> <span class="va">survival_default</span>,</span>
-<span>  d_mort <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  drop_mort <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  iter <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  detail <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  min_harvest_rate <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  min_harvestability <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  hpd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  hpd <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"both"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -146,8 +152,10 @@ tag's region and date.</p></dd>
 <dt id="arg-last-month">last_month<a class="anchor" aria-label="anchor" href="#arg-last-month"></a></dt>
 <dd><p>Integer indicating the last month, in numeric form, that counts toward the <br>
 current run. This variable is to separate late spawners of the current run and early spawners <br>
-of the next run.
-The default value is 12L, meaning the entire natural year counts toward the current run.</p></dd>
+of the next run. For example, a cut off of 9L means fish recovered in September or earlier in <br>
+the current year and fish recovered October-December the previous year will be aggregated into <br>
+the same run. <br></p>
+<p>The default value is 12L, meaning the entire natural year counts toward the current run. <br></p></dd>
 
 
 <dt id="arg-fisheries">fisheries<a class="anchor" aria-label="anchor" href="#arg-fisheries"></a></dt>
@@ -211,7 +219,7 @@ data frame is included in the package and named <code>release_mort</code>. <br><
 
 
 </dl><p>To provide convenience, we set the default hook-and-release mortality rate, regardless of time
-and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery (Salmon Technical Team 2021)
+and location, to be 0.14 for recreational fishery and 0.26 for commercial fishery (Salmon Technical Team 2000)
 . <br>
 These default values will be used if we cannot find any matching record from the data frame above.</p></dd>
 
@@ -229,16 +237,17 @@ The following describes the required columns in order.</p><dl><dt>"age"</dt>
 </dl></dd>
 
 
-<dt id="arg-d-mort">d_mort<a class="anchor" aria-label="anchor" href="#arg-d-mort"></a></dt>
+<dt id="arg-drop-mort">drop_mort<a class="anchor" aria-label="anchor" href="#arg-drop-mort"></a></dt>
 <dd><p>Double indicating the drop off mortality of fishery impact. Drop off mortality is <br>
 the proportion of fish encountered by the gear that is killed without being brought to the vessel <br>
-intact. The default value is 0.05 (Salmon Technical Team 2021)
+intact. The default value is 0.05 (Salmon Technical Team 2000)
 .</p></dd>
 
 
 <dt id="arg-bootstrap">bootstrap<a class="anchor" aria-label="anchor" href="#arg-bootstrap"></a></dt>
 <dd><p>Boolean indicating if parametric bootstrapping should be conducted. If <code>bootstrap</code> <br>
-is set to false, then <code>iter</code> is ignored.</p></dd>
+is set to false, then <code>iter</code> is ignored. To produce reproducible results, please remember set a seed <br>
+with <code>set.seed</code>.</p></dd>
 
 
 <dt id="arg-iter">iter<a class="anchor" aria-label="anchor" href="#arg-iter"></a></dt>
@@ -251,7 +260,7 @@ default value is 1000. Note that larger values require more computing power and 
 information.</p></dd>
 
 
-<dt id="arg-min-harvest-rate">min_harvest_rate<a class="anchor" aria-label="anchor" href="#arg-min-harvest-rate"></a></dt>
+<dt id="arg-min-harvestability">min_harvestability<a class="anchor" aria-label="anchor" href="#arg-min-harvestability"></a></dt>
 <dd><p>Double specifying the lower bound for the harvest rate considered in cohort <br>
 reconstruction. Harvest rate is the ratio between the number of harvestable individuals and the <br>
 size of the cohort.</p></dd>
@@ -264,7 +273,7 @@ This option only matters if <code>bootstrap</code> is set to TRUE.</p></dd>
 
 <dt id="arg-hpd">hpd<a class="anchor" aria-label="anchor" href="#arg-hpd"></a></dt>
 <dd><p>Boolean indicating if the highest posterior density credible interval should be used. If <br>
-FALSE, a symmetric credible interval is used.</p></dd>
+FALSE, a symmetric credible interval is used. The default is FALSE.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -282,7 +291,7 @@ egg-producing individuals.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>There are two types of return value, depending on the values of <code>detail</code> and <code>bootstrap</code>. <br>
+    <p>There are two types of return values, depending on the values of <code>detail</code> and <code>bootstrap</code>. <br>
 In the case when both <code>detail</code> and <code>bootstrap</code> are <code>FALSE</code>, the return value is a data table of the following form: <br></p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> <span class="fu">by</span> (integer) <span class="sc">|</span> <span class="fu">age</span> (integer) <span class="sc">|</span> <span class="fu">month</span> (integer) <span class="sc">|</span> <span class="fu">ocean_abundance</span> (double) <span class="sc">|</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">--------------</span><span class="er">|</span><span class="sc">---------------</span><span class="er">|</span><span class="sc">-----------------</span><span class="er">|</span><span class="sc">--------------------------</span><span class="er">|</span></span>
@@ -342,26 +351,29 @@ month has <code>data</code> and month-specific <code>summary</code> information.
 <div class="section">
 <h3 id="brood-year-specific-summary-under-by-summary-">Brood-year-specific summary (under <code>by_summary</code>)<a class="anchor" aria-label="anchor" href="#brood-year-specific-summary-under-by-summary-"></a></h3>
 
-
-<p>spawner reduction rate, or adult equivalent exploitation rate, is the "reduction <br>
+<ul><li><p>srr: spawner reduction rate, or adult equivalent exploitation rate, is the "reduction <br>
 in a brood’s potential adult spawning escapement owing to ocean fisheries, <br>
 relative to its escapement potential in the absence of ocean fishing," <br>
-as described in (O'Farrell et al. 2012)
-.</p>
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> Median <span class="sc">|</span> SD  <span class="sc">|</span> CrI_low <span class="sc">|</span> CrI_high <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">-----</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> srr       <span class="sc">|</span> <span class="fl">0.05</span>   <span class="sc">|</span> <span class="fl">0.02</span><span class="sc">|</span> <span class="fl">0.04</span>    <span class="sc">|</span> <span class="fl">0.04</span>     <span class="sc">|</span></span></code></pre><p></p></div>
+as described in (Chen et al. )
+.</p></li>
+<li><p>s1: early life survival rate is the proportion of the abundance of fish <br>
+first month in ocean, relative to the total release number (Chen et al. )
+.</p></li>
+</ul><p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> Median  <span class="sc">|</span> SD      <span class="sc">|</span> CrI_low <span class="sc">|</span> CrI_high <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> srr       <span class="sc">|</span> <span class="fl">0.18061</span> <span class="sc">|</span> <span class="fl">0.00871</span> <span class="sc">|</span> <span class="fl">0.17996</span> <span class="sc">|</span> <span class="fl">0.18126</span>  <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> s1        <span class="sc">|</span> <span class="fl">0.00519</span> <span class="sc">|</span> <span class="fl">0.00008</span> <span class="sc">|</span> <span class="fl">0.00518</span> <span class="sc">|</span> <span class="fl">0.00521</span>  <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
 <div class="section">
 <h3 id="age-specific-summary-under-age-summary-">Age-specific summary (under <code>age_summary</code>)<a class="anchor" aria-label="anchor" href="#age-specific-summary-under-age-summary-"></a></h3>
 
-<ul><li><p>elsr: early life survival rate is the proportion of the abundance of fish <br>
-first month in ocean, relative to the total release number (O'Farrell et al. 2012)
-.</p></li>
-</ul><p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> Median <span class="sc">|</span> SD  <span class="sc">|</span> CrI_low <span class="sc">|</span> CrI_high <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">-----</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> elsr      <span class="sc">|</span> <span class="fl">0.02</span>   <span class="sc">|</span> <span class="dv">0</span>   <span class="sc">|</span> <span class="fl">0.01</span>    <span class="sc">|</span> <span class="fl">0.01</span>     <span class="sc">|</span></span></code></pre><p></p></div>
+<ul><li><p>imp_rate: age-specific fishery impact rate.</p></li>
+<li><p>mat_rate: age-specific maturation rate.</p></li>
+</ul><p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> Median  <span class="sc">|</span> SD      <span class="sc">|</span> CrI_low <span class="sc">|</span> CrI_high <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> imp_rate  <span class="sc">|</span> <span class="fl">0.20872</span> <span class="sc">|</span> <span class="fl">0.00730</span> <span class="sc">|</span> <span class="fl">0.20815</span> <span class="sc">|</span> <span class="fl">0.20930</span>  <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> mat_rate  <span class="sc">|</span> <span class="fl">0.63548</span> <span class="sc">|</span> <span class="fl">0.01462</span> <span class="sc">|</span> <span class="fl">0.63546</span> <span class="sc">|</span> <span class="fl">0.63550</span>  <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
 <div class="section">
@@ -371,12 +383,12 @@ first month in ocean, relative to the total release number (O'Farrell et al. 201
 <li><p>impact: mortality due to fishing.</p></li>
 <li><p>maturation: number of spawners.</p></li>
 <li><p>natural_mort: mortality due to natural causes.</p></li>
-</ul><p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter         <span class="sc">|</span> Median <span class="sc">|</span> SD   <span class="sc">|</span> CrI_low <span class="sc">|</span> CrI_high <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-------------------</span><span class="er">|</span><span class="sc">--------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> ocean_abundance   <span class="sc">|</span> <span class="fl">43.91</span>  <span class="sc">|</span> <span class="fl">6.50</span> <span class="sc">|</span> <span class="fl">35.09</span>   <span class="sc">|</span> <span class="fl">35.09</span>    <span class="sc">|</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> impact            <span class="sc">|</span> <span class="fl">0.00</span>   <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span>    <span class="sc">|</span> <span class="fl">0.00</span>     <span class="sc">|</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="er">|</span> maturation        <span class="sc">|</span> <span class="fl">0.00</span>   <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span>    <span class="sc">|</span> <span class="fl">0.00</span>     <span class="sc">|</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="er">|</span> natural_mort      <span class="sc">|</span> <span class="fl">0.81</span>   <span class="sc">|</span> <span class="fl">0.12</span> <span class="sc">|</span> <span class="fl">0.65</span>    <span class="sc">|</span> <span class="fl">0.65</span>     <span class="sc">|</span></span></code></pre><p></p></div>
+</ul><p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter        <span class="sc">|</span> Median      <span class="sc">|</span> SD       <span class="sc">|</span> CrI_low     <span class="sc">|</span> CrI_high    <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">------------------</span><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span><span class="sc">----------</span><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> ocean_abundance  <span class="sc">|</span> <span class="fl">33954.6031</span>  <span class="sc">|</span> <span class="fl">497.3167</span> <span class="sc">|</span> <span class="fl">33871.9672</span>  <span class="sc">|</span> <span class="fl">34037.2390</span>  <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> impact           <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span> <span class="fl">0.0000</span>   <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="er">|</span> maturation       <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span> <span class="fl">0.0000</span>   <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span> <span class="fl">0.0000</span>      <span class="sc">|</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="er">|</span> natural_mort     <span class="sc">|</span> <span class="fl">625.5616</span>    <span class="sc">|</span> <span class="fl">9.1623</span>   <span class="sc">|</span> <span class="fl">624.0392</span>    <span class="sc">|</span> <span class="fl">627.0841</span>    <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
 <div class="section">
@@ -391,31 +403,32 @@ to the nth iteration.</p>
 <h3 id="brood-year-specific-data">Brood-year-specific data<a class="anchor" aria-label="anchor" href="#brood-year-specific-data"></a></h3>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> <span class="dv">1</span>    <span class="sc">|</span> <span class="dv">2</span>    <span class="sc">|</span> <span class="dv">3</span>    <span class="sc">|</span> <span class="dv">4</span>    <span class="sc">|</span> <span class="dv">5</span>    <span class="sc">|</span> <span class="dv">6</span>    <span class="sc">|</span> <span class="dv">7</span>    <span class="sc">|</span> <span class="dv">8</span>    <span class="sc">|</span> <span class="dv">9</span>    <span class="sc">|</span> <span class="dv">10</span>   <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> srr       <span class="sc">|</span> <span class="fl">0.07</span> <span class="sc">|</span> <span class="fl">0.07</span> <span class="sc">|</span> <span class="fl">0.05</span> <span class="sc">|</span> <span class="fl">0.05</span> <span class="sc">|</span> <span class="fl">0.05</span> <span class="sc">|</span> <span class="fl">0.06</span> <span class="sc">|</span> <span class="fl">0.06</span> <span class="sc">|</span> <span class="fl">0.04</span> <span class="sc">|</span> <span class="fl">0.08</span> <span class="sc">|</span> <span class="fl">0.04</span> <span class="sc">|</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Measurement <span class="sc">|</span> <span class="dv">1</span>       <span class="sc">|</span> <span class="dv">2</span>       <span class="sc">|</span> <span class="dv">3</span>       <span class="sc">|</span> <span class="dv">4</span>       <span class="sc">|</span> <span class="dv">5</span>       <span class="sc">|</span> <span class="dv">6</span>       <span class="sc">|</span> <span class="dv">7</span>       <span class="sc">|</span> <span class="dv">8</span>       <span class="sc">|</span> <span class="dv">9</span>       <span class="sc">|</span> <span class="dv">10</span>      <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> srr         <span class="sc">|</span> <span class="fl">0.18414</span> <span class="sc">|</span> <span class="fl">0.17711</span> <span class="sc">|</span> <span class="fl">0.19864</span> <span class="sc">|</span> <span class="fl">0.17655</span> <span class="sc">|</span> <span class="fl">0.18206</span> <span class="sc">|</span> <span class="fl">0.19160</span> <span class="sc">|</span> <span class="fl">0.17342</span> <span class="sc">|</span> <span class="fl">0.17916</span> <span class="sc">|</span> <span class="fl">0.17155</span> <span class="sc">|</span> <span class="fl">0.19019</span> <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> s1          <span class="sc">|</span> <span class="fl">0.00526</span> <span class="sc">|</span> <span class="fl">0.00514</span> <span class="sc">|</span> <span class="fl">0.00515</span> <span class="sc">|</span> <span class="fl">0.00533</span> <span class="sc">|</span> <span class="fl">0.00531</span> <span class="sc">|</span> <span class="fl">0.00516</span> <span class="sc">|</span> <span class="fl">0.00523</span> <span class="sc">|</span> <span class="fl">0.00515</span> <span class="sc">|</span> <span class="fl">0.00528</span> <span class="sc">|</span> <span class="fl">0.00514</span> <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
 <div class="section">
 <h3 id="age-specific-data">Age-specific data<a class="anchor" aria-label="anchor" href="#age-specific-data"></a></h3>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Measurement <span class="sc">|</span> <span class="dv">1</span>    <span class="sc">|</span> <span class="dv">2</span>    <span class="sc">|</span> <span class="dv">3</span>    <span class="sc">|</span> <span class="dv">4</span>    <span class="sc">|</span> <span class="dv">5</span>    <span class="sc">|</span> <span class="dv">6</span>    <span class="sc">|</span> <span class="dv">7</span>    <span class="sc">|</span> <span class="dv">8</span>    <span class="sc">|</span> <span class="dv">9</span>    <span class="sc">|</span> <span class="dv">10</span>   <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-------------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> elsr        <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.01</span> <span class="sc">|</span> <span class="fl">0.01</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span> <span class="fl">0.01</span> <span class="sc">|</span> <span class="fl">0.02</span> <span class="sc">|</span></span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter <span class="sc">|</span> <span class="dv">1</span>       <span class="sc">|</span> <span class="dv">2</span>       <span class="sc">|</span> <span class="dv">3</span>       <span class="sc">|</span> <span class="dv">4</span>       <span class="sc">|</span> <span class="dv">5</span>       <span class="sc">|</span> <span class="dv">6</span>       <span class="sc">|</span> <span class="dv">7</span>       <span class="sc">|</span> <span class="dv">8</span>       <span class="sc">|</span> <span class="dv">9</span>       <span class="sc">|</span> <span class="dv">10</span>      <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span><span class="sc">---------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> imp_rate  <span class="sc">|</span> <span class="fl">0.20745</span> <span class="sc">|</span> <span class="fl">0.20182</span> <span class="sc">|</span> <span class="fl">0.22336</span> <span class="sc">|</span> <span class="fl">0.20081</span> <span class="sc">|</span> <span class="fl">0.21000</span> <span class="sc">|</span> <span class="fl">0.21039</span> <span class="sc">|</span> <span class="fl">0.20440</span> <span class="sc">|</span> <span class="fl">0.21559</span> <span class="sc">|</span> <span class="fl">0.19978</span> <span class="sc">|</span> <span class="fl">0.21069</span> <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> mat_rate  <span class="sc">|</span> <span class="fl">0.63768</span> <span class="sc">|</span> <span class="fl">0.65303</span> <span class="sc">|</span> <span class="fl">0.61126</span> <span class="sc">|</span> <span class="fl">0.63552</span> <span class="sc">|</span> <span class="fl">0.63544</span> <span class="sc">|</span> <span class="fl">0.61204</span> <span class="sc">|</span> <span class="fl">0.61277</span> <span class="sc">|</span> <span class="fl">0.64324</span> <span class="sc">|</span> <span class="fl">0.63224</span> <span class="sc">|</span> <span class="fl">0.64218</span> <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
 <div class="section">
 <h3 id="month-specific-data">Month-specific data<a class="anchor" aria-label="anchor" href="#month-specific-data"></a></h3>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Measurement      <span class="sc">|</span> <span class="dv">1</span>    <span class="sc">|</span> <span class="dv">2</span>    <span class="sc">|</span> <span class="dv">3</span>    <span class="sc">|</span> <span class="dv">4</span>    <span class="sc">|</span> <span class="dv">5</span>    <span class="sc">|</span> <span class="dv">6</span>    <span class="sc">|</span> <span class="dv">7</span>    <span class="sc">|</span> <span class="dv">8</span>    <span class="sc">|</span> <span class="dv">9</span>    <span class="sc">|</span> <span class="dv">10</span>   <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">------------------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span><span class="sc">------</span><span class="er">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> ocean_abundance  <span class="sc">|</span> <span class="fl">46.69</span><span class="sc">|</span> <span class="fl">37.41</span><span class="sc">|</span> <span class="fl">43.34</span><span class="sc">|</span> <span class="fl">40.74</span><span class="sc">|</span> <span class="fl">35.09</span><span class="sc">|</span> <span class="fl">44.49</span><span class="sc">|</span> <span class="fl">37.43</span><span class="sc">|</span> <span class="fl">56.25</span><span class="sc">|</span> <span class="fl">45.80</span><span class="sc">|</span> <span class="fl">50.56</span><span class="sc">|</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> impact           <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="er">|</span> maturation       <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span> <span class="fl">0.00</span> <span class="sc">|</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="er">|</span> natural_mort     <span class="sc">|</span> <span class="fl">0.86</span> <span class="sc">|</span> <span class="fl">0.69</span> <span class="sc">|</span> <span class="fl">0.80</span> <span class="sc">|</span> <span class="fl">0.75</span> <span class="sc">|</span> <span class="fl">0.65</span> <span class="sc">|</span> <span class="fl">0.82</span> <span class="sc">|</span> <span class="fl">0.69</span> <span class="sc">|</span> <span class="fl">1.04</span> <span class="sc">|</span> <span class="fl">0.84</span> <span class="sc">|</span> <span class="fl">0.93</span> <span class="sc">|</span></span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> Parameter        <span class="sc">|</span> <span class="dv">1</span>         <span class="sc">|</span> <span class="dv">2</span>         <span class="sc">|</span> <span class="dv">3</span>         <span class="sc">|</span> <span class="dv">4</span>         <span class="sc">|</span> <span class="dv">5</span>         <span class="sc">|</span> <span class="dv">6</span>         <span class="sc">|</span> <span class="dv">7</span>         <span class="sc">|</span> <span class="dv">8</span>         <span class="sc">|</span> <span class="dv">9</span>         <span class="sc">|</span> <span class="dv">10</span>        <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span><span class="sc">------------------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> ocean_abundance  <span class="sc">|</span> <span class="fl">34138.2384</span><span class="sc">|</span> <span class="fl">33660.7294</span><span class="sc">|</span> <span class="fl">33638.2628</span><span class="sc">|</span> <span class="fl">34820.2980</span><span class="sc">|</span> <span class="fl">34752.4966</span><span class="sc">|</span> <span class="fl">33731.0876</span><span class="sc">|</span> <span class="fl">34197.4639</span><span class="sc">|</span> <span class="fl">33770.9678</span><span class="sc">|</span> <span class="fl">34532.9376</span><span class="sc">|</span> <span class="fl">33434.5292</span><span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> impact           <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="er">|</span> maturation       <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span> <span class="fl">0.0000</span>    <span class="sc">|</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="er">|</span> natural_mort     <span class="sc">|</span> <span class="fl">628.9448</span>  <span class="sc">|</span> <span class="fl">620.1474</span>  <span class="sc">|</span> <span class="fl">619.7335</span>  <span class="sc">|</span> <span class="fl">641.5107</span>  <span class="sc">|</span> <span class="fl">640.2616</span>  <span class="sc">|</span> <span class="fl">621.4437</span>  <span class="sc">|</span> <span class="fl">630.0359</span>  <span class="sc">|</span> <span class="fl">622.1784</span>  <span class="sc">|</span> <span class="fl">636.2165</span>  <span class="sc">|</span> <span class="fl">615.9801</span>  <span class="sc">|</span></span></code></pre><p></p></div>
 </div>
 
     </div>
@@ -449,7 +462,8 @@ as well. <br></p>
 <dd><p>Provides results with cohort data only using point estimates.</p></dd>
 
 
-</dl></div>
+</dl><p>For more information, see the value section.</p>
+</div>
 
 <div class="section">
 <h3 id="danger-of-incomplete-cohort-reconstruction">Danger of incomplete cohort reconstruction<a class="anchor" aria-label="anchor" href="#danger-of-incomplete-cohort-reconstruction"></a></h3>
@@ -462,25 +476,25 @@ may fail to yield accurate information. Be sure to provide a complete cohort rec
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>O'Farrell M, Mohr M, Grover A, Satterthwaite W (2012).
-“Sacramento River Winter Chinook Cohort Reconstruction: Analysis of Ocean Fishery Impacts.”
-NOAA Technical Memorandum.<br><br> Salmon Technical Team (2021).
+    <p>Chen EK, Satterthwaite WH, O’Farrell MR, Carlson SM (????).
+“Incorporating age structure into the assessment and forecasting of Sacramento River Fall Chinook salmon (Oncorhynchus tshawytscha).”
+In preparation.<br><br> Salmon Technical Team (2000).
 “STT Recommendations for Hooking Mortality Rates in 2000 Recreational Ocean Chinook and Coho Fisheries.”
-Pacific Fishersy Management Council, Portland.
+Pacific Fishery Management Council, Portland.
 <a href="https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/" class="external-link">https://www.pcouncil.org/documents/2021/05/stt-recommendations-for-hooking-mortality-rates-in-2000-recreational-ocean-chinook-and-coho-fisheries.pdf/</a>.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Bootstrapped (10 iterations) and detailed cohort reconstruction.</span></span></span>
+<span class="r-in"><span><span class="co"># Bootstrapped (3 iterations) and detailed cohort reconstruction.</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">=</span> <span class="fu">cohort_reconstruct</span><span class="op">(</span>rel <span class="op">=</span> <span class="va">release</span>, reco <span class="op">=</span> <span class="va">recovery</span>, birth_month <span class="op">=</span> <span class="fl">8L</span>,</span></span>
 <span class="r-in"><span>  last_month <span class="op">=</span> <span class="fl">12L</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, iter <span class="op">=</span> <span class="fl">3L</span>, detail <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Preparing data.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Initiating cohort reconstruction.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Cohort reconstruction complete.</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Bootstrapped (10 iterations) but not detailed cohort reconstruction.</span></span></span>
+<span class="r-in"><span><span class="co"># Bootstrapped (3 iterations) but not detailed cohort reconstruction.</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">=</span> <span class="fu">cohort_reconstruct</span><span class="op">(</span>rel <span class="op">=</span> <span class="va">release</span>, reco <span class="op">=</span> <span class="va">recovery</span>, birth_month <span class="op">=</span> <span class="fl">8L</span>,</span></span>
 <span class="r-in"><span>  last_month <span class="op">=</span> <span class="fl">12L</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, iter <span class="op">=</span> <span class="fl">3L</span>, detail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Preparing data.</span>
