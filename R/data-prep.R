@@ -155,8 +155,8 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
   rel_reco_dt[, age := fcase(
     fishery %in% c(spawn, hatchery, river) & birth_month < u_bound & month < u_bound, run_year - brood_year,
     fishery %in% c(spawn, hatchery, river) & birth_month < u_bound & month >= u_bound, run_year - brood_year + 1L,
-    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month < birth_month, run_year - brood_year,
-    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month >= birth_month, run_year - brood_year + 1L,
+    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month < birth_month, run_year - brood_year - 1L,
+    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month >= birth_month, run_year - brood_year,
     month >= birth_month, run_year - brood_year + 1L,
     month < birth_month, run_year - brood_year
   )]
