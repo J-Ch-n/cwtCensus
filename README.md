@@ -5,9 +5,8 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/J-Ch-n/cohort_reco_pk/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/J-Ch-n/cohort_reco_pk/graph/badge.svg)](https://app.codecov.io/gh/J-Ch-n/cohort_reco_pk)
+[![R-CMD-check](https://github.com/J-Ch-n/cwtcensus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/J-Ch-n/cwtcensus/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/J-Ch-n/cwtCensus/graph/badge.svg?token=F9OVS3MDQ2)](https://codecov.io/gh/J-Ch-n/cwtCensus)
 <!-- badges: end -->
 
 The goal of cwtCensus is to provide a fast and memory efficient tool for
@@ -59,7 +58,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = FALSE, last_month = 12L, iter = 10L,
   level = 0.95, detail = FALSE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>   0.314   0.008   0.324
+#>   0.315   0.008   0.327
 ```
 
 Viewing the 1998 brood year age 3 cohort in June:
@@ -67,7 +66,7 @@ Viewing the 1998 brood year age 3 cohort in June:
 ``` r
 result[result$by == 2007 & result$age == 3 & result$month == 6] |> unlist()
 #>              by             age           month ocean_abundance 
-#>        2007.000           3.000           6.000        7965.572
+#>        2007.000           3.000           6.000        8436.809
 ```
 
 Creating a bootstrapped cohort reconstruction with 1000 iterations:
@@ -83,11 +82,11 @@ June:
 
 ``` r
 result[["2007"]][["3"]][["6"]][["summary"]]
-#>                    median        sd   CrI_low  CrI_high
-#> ocean_abundance 7927.9520 279.29474 7443.6070 8549.7916
-#> impact             0.0000   0.00000    0.0000    0.0000
-#> maturation         0.0000   0.00000    0.0000    0.0000
-#> natural_mort     146.0604   5.14558  137.1371  157.5168
+#>                    median       sd   CrI_low  CrI_high
+#> ocean_abundance 8407.3850 286.6125 7888.9955 9003.7356
+#> impact             0.0000   0.0000    0.0000    0.0000
+#> maturation         0.0000   0.0000    0.0000    0.0000
+#> natural_mort     154.8932   5.2804  145.3427  165.8801
 ```
 
 Time spent on generating bootstrapped cohort reconstruction with 1000
@@ -98,7 +97,7 @@ cohort_reconstruct(release, recovery, birth_month = 4L,
   bootstrap = TRUE, last_month = 12L, iter = 1000L,
   level = 0.95, detail = TRUE, sex = "both", verbose = FALSE) |> system.time()
 #>    user  system elapsed 
-#>  23.442   0.189  23.671
+#>  28.819   0.515  30.398
 ```
 
 ## More Information

@@ -142,23 +142,24 @@ data_prep <- function(rel, reco, size_at_age, birth_month, iter,
     )
   }
 
-  rel_reco_dt$age <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
-                             ifelse(rel_reco_dt$month > u_bound, # The month marking the upper bound for the current run.
-                                    rel_reco_dt$run_year - rel_reco_dt$brood_year + 1L,
-                                    rel_reco_dt$run_year - rel_reco_dt$brood_year),
-                             ifelse(rel_reco_dt$month >= birth_month,
-                                    rel_reco_dt$run_year - rel_reco_dt$brood_year + 1L,
-                                    rel_reco_dt$run_year - rel_reco_dt$brood_year))
   rel_reco_dt$maturation_grp <- ifelse(rel_reco_dt$fishery %in% c(spawn, hatchery, river),
                                         1,
                                         2)
 
   setDT(rel_reco_dt, key = c("brood_year",
                              "month",
-                             "age",
                              "location"))
 
   rel_reco_dt[is.na(est_num) | est_num < 1, est_num := 1]
+
+  rel_reco_dt[, age := fcase(
+    fishery %in% c(spawn, hatchery, river) & birth_month < u_bound & month < u_bound, run_year - brood_year,
+    fishery %in% c(spawn, hatchery, river) & birth_month < u_bound & month >= u_bound, run_year - brood_year + 1L,
+    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month < birth_month, run_year - brood_year - 1L,
+    fishery %in% c(spawn, hatchery, river) & birth_month >= u_bound & month >= birth_month, run_year - brood_year,
+    month >= birth_month, run_year - brood_year + 1L,
+    month < birth_month, run_year - brood_year
+  )]
 
   if (sex == "male") {
     rel_reco_dt = rel_reco_dt[sex == "M"]
